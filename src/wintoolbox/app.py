@@ -15,6 +15,7 @@ import wintoolbox.tools.data
 import wintoolbox.tools.files
 import wintoolbox.tools.archive
 import wintoolbox.tools.pdf
+import wintoolbox.tools.media
 
 from wintoolbox.core.settings import load_settings
 from wintoolbox.ui.main_window import MainWindow

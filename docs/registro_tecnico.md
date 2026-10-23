@@ -183,11 +183,30 @@ Para evitar limitação de recursos que dependem de serviços de terceiros (como
 - [x] Conversor e visualizador em dois painéis de Markdown para HTML autônomo com estilos Fluent (`data.doc_converter`).
 - [x] Conversor de documentos Word, Excel e PowerPoint para PDF de alta fidelidade via automação COM (`pdf.office_convert`).
 
+### Fase 5 — Vídeo, Áudio e Mídia Local (Concluída - 8 Novas Ferramentas, 100% Offline)
+- [x] Conversor de áudio/vídeo, extração de áudio, vídeo para GIF e compressão por meta de MB (`media.convert`).
+- [x] Cortador e juntador rápido de áudio/vídeo sem reencodagem via stream copy (`media.trim_merge`).
+- [x] Downloader de mídia multiplataforma via yt-dlp local (`media.downloader`).
+- [x] Extrator em lote de frames de vídeo, intervalos e mosaicos 3x3 (`media.frame_extractor`).
+- [x] Gravador de tela nativo do Windows com ffmpeg gdigrab (`media.recorder`).
+- [x] Texto para fala (TTS) offline local com SAPI do Windows (`media.speech`).
+- [x] Editor de metadados e tags ID3 de arquivos MP3 com capa de álbum (`media.id3_editor`).
+- [x] Player de áudio e vídeo embutido com QMediaPlayer nativo (`media.player`).
+
 ---
 
 ## 6. Próximas Fases do Roadmap
 
-### Fase 5 — Sistema, Processos e Manutenção Avançada (Próximo Bloco)
+### Fase 6 — Arquivos Avançados e Organização Inteligente (Próximo Bloco)
+- [ ] Organizador automático de pastas por extensão ou data com simulação prévia (`files.auto_organize`).
+- [ ] Pesquisa rápida de arquivos por nome, tamanho, data e conteúdo de texto (`files.search`).
+- [ ] Comparador e sincronizador de pastas com preview visual estilo diff (`files.sync`).
+- [ ] Criptografia e descriptografia local de arquivos com AES-256 (`files.encrypt`).
+- [ ] Modificador em lote de datas de criação, modificação e acesso (`files.timestamp_editor`).
+- [ ] Monitor de pastas em tempo real com alertas na bandeja (`files.folder_watcher`).
+- [ ] Assistente de backup incremental de pastas locais (`files.backup`).
+
+### Fase 7 — Sistema, Processos e Manutenção Avançada
 - [ ] Gerenciador de processos nativo com monitor de CPU/RAM e árvore de processos (`system.process_manager`).
 - [ ] Gerenciador de Serviços do Windows: listar, iniciar, parar, reiniciar e tipo de boot (`system.services_manager`).
 - [ ] Gerenciador de inicialização do Windows (Registro + pasta Startup) (`system.startup_manager`).
@@ -198,25 +217,6 @@ Para evitar limitação de recursos que dependem de serviços de terceiros (como
 - [ ] Backup de drivers de terceiros instalados via pnputil (`system.driver_backup`).
 - [ ] Ajustes rápidos do Windows: arquivos ocultos, extensões, modo escuro e atalhos (`system.quick_tweaks`).
 - [ ] Gerenciador rápido de tarefas agendadas do Windows (`system.task_scheduler`).
-
-### Fase 6 — Arquivos Avançados e Organização Inteligente
-- [ ] Organizador automático de pastas por extensão ou data com simulação prévia (`files.auto_organize`).
-- [ ] Pesquisa rápida de arquivos por nome, tamanho, data e conteúdo de texto (`files.search`).
-- [ ] Comparador e sincronizador de pastas com preview visual estilo diff (`files.sync`).
-- [ ] Criptografia e descriptografia local de arquivos com AES-256 (`files.encrypt`).
-- [ ] Modificador em lote de datas de criação, modificação e acesso (`files.timestamp_editor`).
-- [ ] Monitor de pastas em tempo real com alertas na bandeja (`files.folder_watcher`).
-- [ ] Assistente de backup incremental de pastas locais (`files.backup`).
-
-### Fase 7 — Vídeo, Áudio e Mídia Local (ffmpeg e yt-dlp)
-- [ ] Conversor de áudio/vídeo, extração de áudio, vídeo para GIF e compressão por meta de MB (`media.convert`).
-- [ ] Cortador e juntador rápido de áudio/vídeo sem reencodagem (`media.trim_merge`).
-- [ ] Downloader de mídia multiplataforma via yt-dlp local (`media.downloader`).
-- [ ] Extrator em lote de frames de vídeo e mosaicos (`media.frame_extractor`).
-- [ ] Gravador de tela e áudio do sistema com ffmpeg nativo (`media.recorder`).
-- [ ] Texto para fala (TTS) offline local com pyttsx3 e edge-tts (`media.speech`).
-- [ ] Editor de metadados e tags ID3 de arquivos MP3 (`media.id3_editor`).
-- [ ] Player minimalista embutido com QMediaPlayer (`media.player`).
 
 ### Fase 8 — Segurança e Cofre Local
 - [ ] Cofre local de senhas criptografado com senha mestra AES-GCM em SQLite (`security.password_vault`).
@@ -270,9 +270,10 @@ Para evitar limitação de recursos que dependem de serviços de terceiros (como
 ---
 
 ## 7. Métrica de Qualidade e Testes
-- **Total de Ferramentas Registradas**: 47 ferramentas operacionais.
-- **Cobertura de Testes**: 58 testes unitários e de integração executados com 100% de aprovação no `pytest`.
-- **Tempo de Execução dos Testes**: ~1.5s.
+- **Total de Ferramentas Registradas**: 55 ferramentas operacionais.
+- **Cobertura de Testes**: 65 testes unitários e de integração executados com 100% de aprovação no `pytest`.
+- **Tempo de Execução dos Testes**: ~6.9s.
+
 
 
 

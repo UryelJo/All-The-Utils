@@ -434,5 +434,73 @@ Este documento mantém o inventário detalhado de todas as ferramentas disponív
   - Suporte a tabelas, listas, citações e blocos de código com fontes monoespaçadas.
   - Botão de carregar arquivo `.md`, copiar HTML gerado ou exportar diretamente como página autônoma `.html`.
 
+---
+
+## 10. Áudio e Vídeo (`tools/media/`)
+
+### `media.convert` — Conversor de Vídeo e Áudio
+- **Tipo**: `FileTool` (Processamento em Lote Automatizado)
+- **Extensões Suportadas**: `.mp4`, `.mkv`, `.avi`, `.mov`, `.webm`, `.flv`, `.wmv`, `.mp3`, `.wav`, `.aac`, `.flac`, `.ogg`, `.m4a`, `.wma`
+- **Formatos de Saída**: MP4, MKV, WEBM, AVI, MOV, GIF, MP3, WAV, AAC, FLAC, OGG, M4A
+- **Recursos**:
+  - Conversão em lote com recursão de pastas e espelhamento de estrutura de diretórios.
+  - Extração exclusiva de faixa de áudio de vídeos (convertendo direto para MP3/AAC/WAV/FLAC).
+  - Conversão direta de trechos de vídeo para GIF animado com controle de FPS e resolução.
+  - Otimização e compressão por meta de tamanho em MB (calculando automaticamente o bitrate ideal pela duração).
+
+### `media.trim_merge` — Cortador e Juntador de Mídia
+- **Tipo**: `Tool` (Interface em Abas)
+- **Recursos**:
+  - **Aba Cortar Mídia (Trim)**:
+    - Seleção de tempo inicial e final (formato `HH:MM:SS` ou segundos).
+    - Modo Stream Copy (`-c copy`) para cortes ultra-rápidos e instantâneos sem perda de qualidade, com opção de reencodagem para precisão de frame.
+  - **Aba Juntar Mídias (Concat)**:
+    - Concatenação em lista de múltiplos arquivos de áudio ou vídeo na ordem desejada via demuxer concat.
+
+### `media.downloader` — Downloader de Mídia
+- **Tipo**: `Tool`
+- **Recursos**:
+  - Download de vídeos e áudios de centenas de sites (YouTube, TikTok, Instagram, Twitter/X, Facebook, etc.) através do `yt-dlp` local integrado ao `ffmpeg`.
+  - Opção de download de vídeo em alta qualidade (Original, 1080p, 720p, 480p) ou extração automática para áudio MP3 (192 kbps).
+  - Barra de progresso ao vivo com percentual de download.
+
+### `media.frame_extractor` — Extrator de Frames de Vídeo
+- **Tipo**: `FileTool` (Processamento em Lote Automatizado)
+- **Extensões Suportadas**: `.mp4`, `.mkv`, `.avi`, `.mov`, `.webm`, `.flv`, `.wmv`
+- **Recursos**:
+  - Extração de quadros a cada N segundos em lote para toda uma biblioteca de vídeos.
+  - Extração de quadro fixo por timestamp (`HH:MM:SS`).
+  - Geração de folha de mosaico de miniaturas em grade 3x3 para visão panorâmica do vídeo.
+  - Exportação em formato PNG ou JPG.
+
+### `media.recorder` — Gravador de Tela
+- **Tipo**: `Tool`
+- **Recursos**:
+  - Gravação de vídeo da área de trabalho do Windows através da captura nativa `gdigrab` do ffmpeg.
+  - Controle de taxa de quadros (15, 30 ou 60 FPS).
+  - Cronômetro de tempo de gravação em tempo real (`00:00:00`).
+  - Encerramento seguro gerando arquivo MP4 finalizado sem corrupção de contêiner.
+
+### `media.speech` — Texto para Voz (TTS Local)
+- **Tipo**: `Tool`
+- **Recursos**:
+  - Sintetizador de voz 100% offline utilizando o motor SAPI do Windows via `pyttsx3`.
+  - Seleção de vozes locais instaladas no Windows, com controle de velocidade (palavras por minuto) e volume.
+  - Reprodução de áudio ao vivo nos alto-falantes ou gravação direta em arquivo `.wav`.
+
+### `media.id3_editor` — Editor de Tags ID3 (MP3)
+- **Tipo**: `FileTool` (Processamento em Lote Automatizado)
+- **Extensões Suportadas**: `.mp3`
+- **Recursos**:
+  - Edição de metadados ID3v2: Artista, Álbum, Ano e Gênero em lote para coleções de músicas.
+  - Embutimento de arte de capa do álbum (PNG ou JPG) no frame `APIC`.
+
+### `media.player` — Player de Áudio e Vídeo
+- **Tipo**: `Tool`
+- **Recursos**:
+  - Player embutido nativo utilizando `QMediaPlayer` e `QVideoWidget` do PySide6.
+  - Controles de Play, Pause, Stop, seek por slider de progresso, relógio de tempo atual/total e ajuste de volume.
+
+
 
 
