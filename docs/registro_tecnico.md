@@ -177,13 +177,95 @@ Para evitar limitação de recursos que dependem de serviços de terceiros (como
 
 ## 6. Próximas Fases do Roadmap
 
-### Fase 4 — PDF e Documentos (Próximo Bloco)
-- [ ] Divisor e juntador de páginas de PDF em lote (`pdf.split_merge`).
-- [ ] Conversor de imagens para documento PDF em lote (`pdf.images_to_pdf`).
-- [ ] Extrator de imagens e texto em lote de arquivos PDF (`pdf.extract`).
-- [ ] Compressor e otimizador de peso de PDFs (`pdf.compress`).
-- [ ] Girador e organizador de páginas de PDF (`pdf.rotate`).
-- [ ] Proteção, criptografia com senha e remoção de senhas de PDF (`pdf.security`).
+### Fase 4 — PDF e Documentos (Próximo Bloco - 100% Offline)
+- [ ] Divisor de PDF por páginas e juntador em lote (`pdf.split_merge`).
+- [ ] Conversor de imagens em lote para documento PDF com margens (`pdf.images_to_pdf`).
+- [ ] Extrator de imagens embutidas e texto por página de PDF (`pdf.extract`).
+- [ ] Compressor e otimizador de peso de PDFs via recompressão de streams (`pdf.compress`).
+- [ ] Rotação de páginas de PDF em 90°, 180° e 270° (`pdf.rotate`).
+- [ ] Proteção com senha AES e remoção de restrições (`pdf.security`).
+- [ ] Conversor de Markdown para HTML estilizado e PDF (`data.doc_converter`).
+- [ ] Conversor de arquivos Office (Word, Excel, PowerPoint) para PDF via automação COM (`pdf.office_convert`).
+
+### Fase 5 — Sistema, Processos e Manutenção Avançada
+- [ ] Gerenciador de processos nativo com monitor de CPU/RAM e árvore de processos (`system.process_manager`).
+- [ ] Gerenciador de Serviços do Windows: listar, iniciar, parar, reiniciar e tipo de boot (`system.services_manager`).
+- [ ] Gerenciador de inicialização do Windows (Registro + pasta Startup) (`system.startup_manager`).
+- [ ] Editor seguro do arquivo hosts com backup e Flush DNS (`system.hosts_editor`).
+- [ ] Editor de variáveis de ambiente do Usuário e Sistema com gestão do PATH (`system.env_editor`).
+- [ ] Visualizador de programas instalados no Windows e desinstalador (`system.uninstaller`).
+- [ ] Planos de energia e desligamento/reinício agendado (`system.power_manager`).
+- [ ] Backup de drivers de terceiros instalados via pnputil (`system.driver_backup`).
+- [ ] Ajustes rápidos do Windows: arquivos ocultos, extensões, modo escuro e atalhos (`system.quick_tweaks`).
+- [ ] Gerenciador rápido de tarefas agendadas do Windows (`system.task_scheduler`).
+
+### Fase 6 — Arquivos Avançados e Organização Inteligente
+- [ ] Organizador automático de pastas por extensão ou data com simulação prévia (`files.auto_organize`).
+- [ ] Pesquisa rápida de arquivos por nome, tamanho, data e conteúdo de texto (`files.search`).
+- [ ] Comparador e sincronizador de pastas com preview visual estilo diff (`files.sync`).
+- [ ] Criptografia e descriptografia local de arquivos com AES-256 (`files.encrypt`).
+- [ ] Modificador em lote de datas de criação, modificação e acesso (`files.timestamp_editor`).
+- [ ] Monitor de pastas em tempo real com alertas na bandeja (`files.folder_watcher`).
+- [ ] Assistente de backup incremental de pastas locais (`files.backup`).
+
+### Fase 7 — Vídeo, Áudio e Mídia Local (ffmpeg e yt-dlp)
+- [ ] Conversor de áudio/vídeo, extração de áudio, vídeo para GIF e compressão por meta de MB (`media.convert`).
+- [ ] Cortador e juntador rápido de áudio/vídeo sem reencodagem (`media.trim_merge`).
+- [ ] Downloader de mídia multiplataforma via yt-dlp local (`media.downloader`).
+- [ ] Extrator em lote de frames de vídeo e mosaicos (`media.frame_extractor`).
+- [ ] Gravador de tela e áudio do sistema com ffmpeg nativo (`media.recorder`).
+- [ ] Texto para fala (TTS) offline local com pyttsx3 e edge-tts (`media.speech`).
+- [ ] Editor de metadados e tags ID3 de arquivos MP3 (`media.id3_editor`).
+- [ ] Player minimalista embutido com QMediaPlayer (`media.player`).
+
+### Fase 8 — Segurança e Cofre Local
+- [ ] Cofre local de senhas criptografado com senha mestra AES-GCM em SQLite (`security.password_vault`).
+- [ ] Autenticador de dois fatores (2FA / TOTP) local com códigos de 30s (`security.totp_manager`).
+
+### Fase 9 — Ferramentas para Desenvolvedores
+- [ ] Gerador de dados fictícios para testes em lote e Lorem Ipsum (`dev.fake_data`).
+- [ ] Visualizador leve de bancos SQLite locais e executor de consultas SQL (`dev.sqlite_viewer`).
+- [ ] Conversor instantâneo de cores HEX, RGB, HSL, HSV e CMYK (`dev.color_converter`).
+- [ ] Calculador e explicador de expressões cron em português (`dev.cron_calculator`).
+- [ ] Wrapper visual para PyInstaller para gerar executáveis .exe (`dev.pyinstaller_wrapper`).
+- [ ] Gerador de templates e scaffold de projetos (.gitignore, README, LICENSE) (`dev.project_scaffold`).
+
+### Fase 10 — Produtividade e Utilidades Pessoais
+- [ ] Histórico da área de transferência com favoritos e busca (`productivity.clipboard_history`).
+- [ ] Lista de tarefas / To-Do local minimalista em SQLite (`productivity.todo`).
+- [ ] Timer Pomodoro de foco com notificações nativas (`productivity.pomodoro`).
+- [ ] Alarmes e lembretes com notificação nativa do Windows (`productivity.reminders`).
+- [ ] Bloco de anotações rápidas flutuante com salvamento automático (`productivity.quick_notes`).
+- [ ] Registrador de tempo por atividade ou projeto (`productivity.time_tracker`).
+
+### Fase 11 — Calculadoras Especiais
+- [ ] Conversor de unidades de medida (comprimento, massa, dados, temp, etc.) (`calc.unit_converter`).
+- [ ] Calculadora de datas, dias úteis e prazos (`calc.date_calculator`).
+- [ ] Calculadora financeira (juros compostos, parcelas, descontos) (`calc.finance`).
+- [ ] Calculadora de sub-redes IPv4 / CIDR (`calc.subnet_calculator`).
+- [ ] Relógio mundial com fusos horários de referência e conversor de horas (`calc.world_clock`).
+
+### Fase 12 — Automação e Macros Locais
+- [ ] Autoclicker configurável e gravador simples de sequências (`automation.macro_recorder`).
+- [ ] Gerenciador de janelas: sempre no topo, transparência e reposicionamento (`automation.window_manager`).
+- [ ] Executor de scripts em lote (.bat, .ps1, .py) com console em tempo real (`automation.script_runner`).
+
+### Fase 13 — Ferramentas Adicionais de Imagem e Desktop
+- [ ] Montador de GIFs animados e extrator de frames (`images.gif_tools`).
+- [ ] Colagens e montagens de imagens em grade com preview (`images.collage`).
+- [ ] Conta-gotas de tela com hotkey global e lupa de zoom (`images.color_picker`).
+- [ ] Gerador e leitor de QR Code / código de barras (`images.qrcode`).
+- [ ] Captura de tela com editor de anotações (`images.screenshot`).
+- [ ] OCR de imagem 100% offline local com API nativa do Windows ou Tesseract (`images.ocr`).
+- [ ] Removedor de fundo de imagem local via rembg sob demanda (`images.remove_bg`).
+
+### Fase 14 — Empacotamento, Distribuição e Modo Portátil
+- [ ] Fila central de tarefas assíncronas em segundo plano.
+- [ ] Build executável PyInstaller `--onedir`.
+- [ ] Suporte a Modo Portátil automático (sem uso de %APPDATA% se pasta local existir).
+- [ ] Instalador Inno Setup com integração de menu de contexto do Explorer.
+
+> **Observação sobre APIs Externas**: Ferramentas que dependem de chaves de API pagas (como LLMs de chat, geradores de imagem generativos como DALL-E, tradutores pagos e serviços de nuvem) estão intencionalmente desacopladas do fluxo principal, priorizando funcionalidades 100% locais, gratuitas e offline. A infraestrutura para consumo de tokens em `core/settings.py` permanece disponível caso o usuário decida ativá-las futuramente.
 
 ---
 
