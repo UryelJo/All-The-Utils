@@ -48,7 +48,9 @@ WinToolbox/
 │       ├── network/            # Diagnóstico, scanners, wifi, apis e utilitários de rede
 │       ├── text/               # Diff, regex, transformações e validações de documentos
 │       ├── encode/             # Hashes, encoders (Base64/Hex), JWT, geradores e timestamps
-│       └── data/               # Conversor de dados em lote e formatadores (JSON/XML/SQL)
+│       ├── data/               # Conversor de dados em lote e formatadores (JSON/XML/SQL)
+│       ├── files/              # Renomeador, duplicados, disco, shredder, split/merge e processos
+│       └── archive/            # Compactador e extrator de arquivos (ZIP, TAR, TAR.GZ)
 │
 └── tests/                      # Testes automatizados (pytest e pytest-qt)
 ```
@@ -153,24 +155,32 @@ Para evitar limitação de recursos que dependem de serviços de terceiros (como
 - [x] Conversor universal de dados em lote JSON ↔ YAML ↔ CSV ↔ XML (`data.converter`).
 - [x] Formatador e Minificador de código e estruturas JSON, XML e SQL (`data.beautifier`).
 
+### Fase 2 — Arquivos e Compactação (Concluída - 7 Ferramentas)
+- [x] Renomeador de arquivos em lote com regras empilháveis, substituição, regex, numeração e prévia (`files.rename`).
+- [x] Localizador e removedor de arquivos duplicados por tamanho, hash rápido e SHA-256 com envio seguro para a Lixeira (`files.duplicates`).
+- [x] Analisador de espaço em disco e mapeamento de maiores subpastas e tipos de extensões (`files.disk_usage`).
+- [x] Triturador seguro de arquivos com sobrescrita multi-passes (zeros, uns e bytes criptográficos) (`files.shredder`).
+- [x] Divisor e juntador de arquivos volumosos em partes sequenciais de tamanho fixo (`files.split_merge`).
+- [x] Quem Está Usando Este Arquivo? com detecção de processos bloqueadores via Windows Restart Manager API nativa (`files.lock_checker`).
+- [x] Compactador e extrator de arquivos em lote com suporte a ZIP, TAR e TAR.GZ e inspeção interna (`archive.manager`).
+
 ---
 
 ## 6. Próximas Fases do Roadmap
 
-### Fase 2 — Arquivos e Compactação (Próximo Bloco)
-- [ ] Renomeador de arquivos em lote com regras empilháveis, substituição e prévia (`files.rename`).
-- [ ] Localizador e removedor de arquivos duplicados por hash (`files.duplicates`).
-- [ ] Analisador de espaço em disco e visualizador de maiores pastas (`files.disk_usage`).
-- [ ] Triturador seguro de arquivos com sobrescrita multi-passes (`files.shredder`).
-- [ ] Divisor e juntador de arquivos volumosos em partes de N MB (`files.split_merge`).
-- [ ] Verificador de processos bloqueadores de arquivos via Restart Manager (`files.lock_checker`).
-- [ ] Compactador e descompactador multi-formato ZIP, TAR, 7z (`archive.manager`).
+### Fase 3 — Imagens Avançadas (Próximo Bloco)
+- [ ] Redimensionador e cortador de imagens em lote (`images.resize`).
+- [ ] Otimizador e compressor sem perdas visual WebP/MozJPEG/PNG (`images.compress`).
+- [ ] Removedor e visualizador de metadados EXIF (`images.exif`).
+- [ ] Gerador de paleta de cores e extrator dominante (`images.palette`).
+- [ ] Criação e conversor de Favicon / Ícone .ico multi-resolução (`images.favicon`).
+- [ ] Adicionar marca d'água em lote (texto e imagem) (`images.watermark`).
 
 ---
 
 ## 7. Métrica de Qualidade e Testes
-- **Total de Ferramentas Registradas**: 25 ferramentas operacionais.
-- **Cobertura de Testes**: 33 testes unitários e de integração executados com 100% de aprovação no `pytest`.
-- **Tempo de Execução dos Testes**: ~0.8s.
+- **Total de Ferramentas Registradas**: 32 ferramentas operacionais.
+- **Cobertura de Testes**: 40 testes unitários e de integração executados com 100% de aprovação no `pytest`.
+- **Tempo de Execução dos Testes**: ~0.76s.
 
 

@@ -223,3 +223,77 @@ Este documento mantém o inventário detalhado de todas as ferramentas disponív
   - Minificação e compactação sem perda de dados para JSON, XML e SQL.
   - Identificação de erros de sintaxe com avisos claros.
 
+---
+
+## 7. Arquivos e Pastas (`tools/files/`)
+
+### `files.rename` — Renomeador de Arquivos em Lote
+- **Tipo**: `Tool`
+- **Recursos**:
+  - Adição de arquivos avulsos ou pastas inteiras (com busca recursiva).
+  - Regras empilháveis aplicadas em cascata:
+    1. Localizar e substituir (texto literal ou Expressões Regulares Regex).
+    2. Inserção de prefixo e sufixo customizados.
+    3. Numeração sequencial com escolha de número inicial e preenchimento de zeros à esquerda (padding).
+    4. Alteração de caixa: MAIÚSCULAS, minúsculas ou Primeira Maiúscula (Title Case).
+  - Tabela com prévia dinâmica em tempo real (Nome Original, Novo Nome, Status, Caminho).
+  - Diálogo de confirmação de segurança antes da gravação física.
+
+### `files.duplicates` — Localizador de Arquivos Duplicados
+- **Tipo**: `Tool`
+- **Recursos**:
+  - Varredura ultra rápida em 3 estágios escalonados:
+    1. Filtro e agrupamento preliminar por tamanho exato em bytes (`stat().st_size`).
+    2. Cálculo de hash rápido dos primeiros 4KB para descarte imediato de arquivos diferentes.
+    3. Cálculo de hash completo SHA-256 apenas entre candidatos finais.
+  - Seleção inteligente: botões "Marcar mais recentes", "Marcar mais antigos" ou seleção manual por caixa de seleção.
+  - Exclusão segura: os arquivos marcados são movidos para a Lixeira do Windows através de `send2trash` (permitindo recuperação pelo usuário em caso de descarte acidental).
+
+### `files.disk_usage` — Analisador de Espaço em Disco
+- **Tipo**: `Tool`
+- **Recursos**:
+  - Mapeamento de diretórios e unidades de armazenamento via `os.scandir` otimizado.
+  - Aba "Maiores Pastas e Arquivos": ranking dos maiores itens com barra de progresso visual de ocupação relativa e tamanho formatado (B, KB, MB, GB).
+  - Aba "Por Tipo de Arquivo": agregação de consumo por extensão (.mp4, .zip, .iso, .exe, etc.), total de arquivos e percentual de ocupação.
+  - Ação de duplo clique ou menu de contexto para abrir o arquivo ou pasta diretamente no Windows Explorer.
+
+### `files.shredder` — Triturador Seguro de Arquivos
+- **Tipo**: `Tool`
+- **Recursos**:
+  - Destruição irrecuperável de arquivos confidenciais.
+  - Modos de sobrescrita física configuráveis:
+    - 1 Passe Rápido: Sobrescrita com bytes zero (`0x00`).
+    - 3 Passes Padrão DoD: Zeros (`0x00`), uns (`0xFF`) e sequência pseudoaleatória criptográfica (`secrets.token_bytes`).
+    - 7 Passes Gutmann Simplificado: Sobrescrita profunda multi-passes.
+  - Descarga forçada de buffers em disco (`os.fsync`) após cada passagem.
+  - Truncamento do arquivo para 0 bytes e renomeação para hash anônimo na Master File Table (MFT) antes da exclusão física definitiva.
+  - Confirmação de segurança explícita para evitar exclusão involuntária.
+
+### `files.split_merge` — Divisor e Juntador de Arquivos
+- **Tipo**: `Tool`
+- **Recursos**:
+  - **Divisão (Split)**: Divide arquivos volumosos em partes sequenciais (`.part001`, `.part002`, etc.) com tamanhos predefinidos (10 MB, 25 MB para Discord/E-mail, 50 MB, 100 MB, 700 MB para CD, 4.7 GB para DVD ou tamanho customizado em MB).
+  - **Junção (Merge)**: Reconstituição byte a byte do arquivo original a partir das partes divididas com verificação de sequência e integridade total.
+
+### `files.lock_checker` — Quem Está Usando Este Arquivo?
+- **Tipo**: `Tool`
+- **Recursos**:
+  - Identifica programas, serviços e processos do Windows que estão bloqueando e travando a exclusão ou alteração de um arquivo.
+  - Integração com a API nativa do Windows Restart Manager (`rstrtmgr.dll` via `ctypes`: `RmStartSession`, `RmRegisterResources`, `RmGetList`, `RmEndSession`) sem depender de executáveis externos como Handle ou Process Explorer.
+  - Fallback complementar de varredura via `psutil` de arquivos abertos.
+  - Tabela com PID, Nome do Processo e Serviço associado.
+  - Botão "Encerrar Processo" com confirmação para liberar o arquivo travado.
+
+---
+
+## 8. Compactação e Arquivos Comprimidos (`tools/archive/`)
+
+### `archive.manager` — Compactador e Extrator de Arquivos
+- **Tipo**: `Tool`
+- **Formatos Suportados**: ZIP (compressão deflate), TAR e TAR.GZ (`.tar.gz`, `.tgz`).
+- **Recursos**:
+  - **Aba Compactar**: Adição de arquivos e diretórios inteiros, seleção de formato e barra de progresso durante o empacotamento.
+  - **Aba Inspecionar**: Listagem de todo o conteúdo interno do arquivo compactado (nome relativo, tamanho real e tamanho comprimido) sem necessidade de descompactar.
+  - **Aba Extrair**: Extração completa com filtro de proteção contra traversals maliciosos de diretório (`filter='data'`) e relatório de progresso.
+
+

@@ -14,6 +14,8 @@ import wintoolbox.tools.network
 import wintoolbox.tools.text
 import wintoolbox.tools.encode
 import wintoolbox.tools.data
+import wintoolbox.tools.files
+import wintoolbox.tools.archive
 
 from wintoolbox.core.batch import OutputPolicy, SourceItem, discover_files, execute_batch
 from wintoolbox.core.registry import FileTool, TaskContext, get_all_tools, get_tool
@@ -99,3 +101,6 @@ def run_cli(args=None):
 
     parser.print_help()
     return 0
+
+if __name__ == "__main__":
+    sys.exit(run_cli())
