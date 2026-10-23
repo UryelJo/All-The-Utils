@@ -138,7 +138,8 @@ class FileToolPage(QWidget):
                 target_ext=target_ext,
                 process_func=self.tool.process,
                 params=params,
-                ctx=ctx
+                ctx=ctx,
+                parallel_mode=getattr(self.tool, "parallel_mode", "thread"),
             )
 
         self.runner.start_task(

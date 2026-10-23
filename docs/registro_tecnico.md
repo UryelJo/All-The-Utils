@@ -33,7 +33,8 @@ WinToolbox/
 │   │   ├── history.py          # Histórico de tarefas em SQLite (%APPDATA%/WinToolbox/history.db)
 │   │   ├── hotkey.py           # Atalho global Ctrl+Alt+T via RegisterHotKey (Win32)
 │   │   ├── context_menu.py     # Integração com pasta 'Enviar para' (SendTo)
-│   │   └── system_info.py      # Métricas de CPU, RAM e Discos via psutil
+│   │   ├── system_info.py      # Métricas de CPU, RAM e Discos via psutil
+│   │   └── hardware.py         # Detecção de GPUs (NVIDIA/AMD/Intel), NVENC/AMF/QSV e threads
 │   │
 │   ├── ui/                     # Componentes de interface do usuário
 │   │   ├── theme.py            # Tema Fluent Windows 11 (AccentColor nativo, Segoe UI)
@@ -278,8 +279,13 @@ Para evitar limitação de recursos que dependem de serviços de terceiros (como
 ## 7. Métrica de Qualidade e Testes
 - **Total de Ferramentas Registradas**: 55 ferramentas operacionais.
 - **Padrão Arquitetural de Lógica Desacoplada**: 100% das 55 ferramentas possuem divisão estrita entre UI (`tool.py`) e regras de negócio puras (`logic.py`), com zero importações de `PySide6` na camada de lógica.
-- **Cobertura de Testes**: 71 testes unitários e de integração executados com 100% de aprovação no `pytest` (incluindo `tests/test_logic_architecture.py` para garantia contínua de conformidade arquitetural).
-- **Tempo de Execução dos Testes**: ~6.9s.
+- **Aceleração por Hardware (GPU) & Paralelismo**:
+  - Detecção automática de GPUs instaladas (NVIDIA GeForce/RTX via `nvidia-smi` / WMI, AMD Radeon e Intel Arc/Iris).
+  - Aceleração por hardware no FFmpeg via **NVIDIA NVENC** (`h264_nvenc`, `hevc_nvenc`), **AMD AMF** (`h264_amf`, `hevc_amf`) e **Intel QuickSync** (`h264_qsv`) com fallback automático resiliente para CPU (`libx264`).
+  - Motor de lote concorrente (`core/batch.py`) com `ThreadPoolExecutor` dimensionado automaticamente de acordo com os núcleos da máquina (`optimal_batch_workers = min(cpu_cores, 8)`).
+  - Cálculo de hashes concorrente em lote na ferramenta de localização de arquivos duplicados (`files.duplicates`).
+- **Cobertura de Testes**: 74 testes unitários e de integração executados com 100% de aprovação no `pytest` (incluindo testes de arquitetura e validação de aceleração de hardware).
+- **Tempo de Execução dos Testes**: ~8.7s.
 
 
 

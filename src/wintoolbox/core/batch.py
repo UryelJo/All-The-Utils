@@ -180,6 +180,10 @@ def calculate_destination_path(
 
     return final_path
 
+import threading
+from concurrent.futures import ThreadPoolExecutor, as_completed
+
+
 def execute_batch(
     files: List[DiscoveredFile],
     output_policy: OutputPolicy,
@@ -187,28 +191,44 @@ def execute_batch(
     process_func: Callable[[Path, Path, Dict, TaskContext], ItemResult],
     params: Dict,
     ctx: TaskContext,
-    max_workers: int = 4
+    max_workers: Optional[int] = None,
+    parallel_mode: str = "thread",
 ) -> ToolResult:
     """
-    Executa o lote com suporte a concorrência, cancelamento e progresso.
+    Executa o lote com suporte a concorrência paralela multi-core, cancelamento e progresso.
     """
     total = len(files)
     if total == 0:
         return ToolResult(success=True, message="Nenhum arquivo para processar.")
 
+    if max_workers is None or max_workers <= 0:
+        try:
+            from wintoolbox.core.hardware import get_hardware_capabilities
+            max_workers = get_hardware_capabilities().optimal_batch_workers
+        except Exception:
+            max_workers = min(os.cpu_count() or 4, 8)
+
+    # Força modo serial se a ferramenta for explicitamente serial ou tiver apenas 1 arquivo
+    if parallel_mode == "serial" or total == 1 or max_workers <= 1:
+        workers = 1
+    else:
+        workers = min(max_workers, total)
+
     results: List[ItemResult] = []
     success_count = 0
     failed_count = 0
     skipped_count = 0
+    completed_count = 0
+    lock = threading.Lock()
 
-    ctx.on_progress(0, total, f"Iniciando lote ({total} itens)...")
+    ctx.on_progress(0, total, f"Iniciando lote ({total} itens, {workers} worker(s) em paralelo)...")
 
-    for idx, item in enumerate(files, start=1):
+    def _process_single(item: DiscoveredFile) -> ItemResult:
+        nonlocal success_count, failed_count, skipped_count, completed_count
+
         if ctx.is_cancelled():
-            ctx.on_log("WARN", "Operação cancelada pelo usuário.")
-            break
+            return ItemResult(success=False, source_path=item.source_path, error="Operação cancelada.")
 
-        # Espera se estiver pausado
         while ctx.is_paused() and not ctx.is_cancelled():
             time.sleep(0.2)
 
@@ -217,17 +237,18 @@ def execute_batch(
 
         # Política de pular arquivo existente
         if output_policy.conflict == "skip" and dst.exists():
-            skipped_count += 1
-            ctx.on_log("INFO", f"Ignorado (já existe): {src.name}")
-            results.append(ItemResult(success=True, source_path=src, output_path=dst, message="Ignorado (já existe)"))
-            ctx.on_progress(idx, total, f"Ignorado {idx}/{total}: {src.name}")
-            continue
+            with lock:
+                skipped_count += 1
+                completed_count += 1
+                res = ItemResult(success=True, source_path=src, output_path=dst, message="Ignorado (já existe)")
+                results.append(res)
+                ctx.on_log("INFO", f"Ignorado (já existe): {src.name}")
+                ctx.on_progress(completed_count, total, f"Ignorado {completed_count}/{total}: {src.name}")
+            return res
 
-        # Garante que o diretório de destino exista
+        # Garante diretório de destino
         dst.parent.mkdir(parents=True, exist_ok=True)
-
-        # Caminho temporário atômico para gravação segura
-        tmp_dst = dst.with_name(f"{dst.name}.tmp_wtbx")
+        tmp_dst = dst.with_name(f"{dst.name}_{os.getpid()}_{threading.get_ident()}.tmp_wtbx")
 
         try:
             res = process_func(src, tmp_dst, params, ctx)
@@ -244,28 +265,58 @@ def execute_batch(
                     except Exception:
                         pass
 
-                success_count += 1
-                ctx.on_log("INFO", f"OK: {src.name} -> {dst.name}")
+                with lock:
+                    success_count += 1
+                    completed_count += 1
+                    results.append(res)
+                    ctx.on_log("INFO", f"OK: {src.name} -> {dst.name}")
+                    ctx.on_progress(completed_count, total, f"Processado {completed_count}/{total}: {src.name}")
             else:
                 if tmp_dst.exists():
-                    tmp_dst.unlink()
-                failed_count += 1
-                ctx.on_log("ERROR", f"Falha: {src.name} ({res.error or 'Erro desconhecido'})")
-
-            results.append(res)
+                    try:
+                        tmp_dst.unlink()
+                    except Exception:
+                        pass
+                with lock:
+                    failed_count += 1
+                    completed_count += 1
+                    results.append(res)
+                    ctx.on_log("ERROR", f"Falha: {src.name} ({res.error or 'Erro desconhecido'})")
+                    ctx.on_progress(completed_count, total, f"Falha {completed_count}/{total}: {src.name}")
+            return res
         except Exception as e:
             if tmp_dst.exists():
                 try:
                     tmp_dst.unlink()
                 except Exception:
                     pass
-            failed_count += 1
-            ctx.on_log("ERROR", f"Exceção em {src.name}: {str(e)}")
-            results.append(ItemResult(success=False, source_path=src, error=str(e)))
+            with lock:
+                failed_count += 1
+                completed_count += 1
+                res = ItemResult(success=False, source_path=src, error=str(e))
+                results.append(res)
+                ctx.on_log("ERROR", f"Exceção em {src.name}: {str(e)}")
+                ctx.on_progress(completed_count, total, f"Erro {completed_count}/{total}: {src.name}")
+            return res
 
-        ctx.on_progress(idx, total, f"Processado {idx}/{total}: {src.name}")
+    if workers == 1:
+        for it in files:
+            if ctx.is_cancelled():
+                ctx.on_log("WARN", "Operação cancelada pelo usuário.")
+                break
+            _process_single(it)
+    else:
+        with ThreadPoolExecutor(max_workers=workers) as executor:
+            futures = [executor.submit(_process_single, it) for it in files]
+            for fut in as_completed(futures):
+                if ctx.is_cancelled():
+                    break
+                try:
+                    fut.result()
+                except Exception:
+                    pass
 
-    msg = f"Lote concluído. Sucessos: {success_count} | Falhas: {failed_count} | Pulados: {skipped_count}"
+    msg = f"Lote concluído ({workers} threads). Sucessos: {success_count} | Falhas: {failed_count} | Pulados: {skipped_count}"
     ctx.on_log("INFO", msg)
 
     return ToolResult(

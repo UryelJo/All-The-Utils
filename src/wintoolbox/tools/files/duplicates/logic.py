@@ -68,27 +68,49 @@ def scan_duplicates(
         if len(files) > 1:
             candidates.extend(files)
 
+    from concurrent.futures import ThreadPoolExecutor
+
+    # 2. Hashes rápidos concorrentes
+    def _compute_quick(fpath: Path):
+        try:
+            sz = fpath.stat().st_size
+            qh = get_file_quick_hash(fpath)
+            return fpath, sz, qh
+        except Exception:
+            return fpath, 0, ""
+
     by_quick = defaultdict(list)
-    for idx, f in enumerate(candidates):
-        qh = get_file_quick_hash(f)
-        if qh:
-            by_quick[(f.stat().st_size, qh)].append(f)
-        if progress_cb and idx % 20 == 0:
-            progress_cb(30 + int((idx / max(len(candidates), 1)) * 30), "Verificando hashes rápidos...")
+    if candidates:
+        workers = min(len(candidates), 8)
+        with ThreadPoolExecutor(max_workers=workers) as pool:
+            for idx, (f, sz, qh) in enumerate(pool.map(_compute_quick, candidates)):
+                if qh and sz > 0:
+                    by_quick[(sz, qh)].append(f)
+                if progress_cb and idx % 20 == 0:
+                    progress_cb(30 + int((idx / max(len(candidates), 1)) * 30), "Verificando hashes rápidos...")
+
+    # 3. SHA-256 completo concorrente
+    group_candidates = [flist for flist in by_quick.values() if len(flist) > 1]
+    all_final_candidates = [f for flist in group_candidates for f in flist]
+    total_cand = len(all_final_candidates)
+
+    def _compute_full(fpath: Path):
+        try:
+            sz = fpath.stat().st_size
+            fh = get_file_full_hash(fpath)
+            return fpath, sz, fh
+        except Exception:
+            return fpath, 0, ""
 
     final_groups = defaultdict(list)
-    group_candidates = [flist for flist in by_quick.values() if len(flist) > 1]
-    total_cand = sum(len(fl) for fl in group_candidates)
-    done_cand = 0
-
-    for flist in group_candidates:
-        for f in flist:
-            fh = get_file_full_hash(f)
-            if fh:
-                final_groups[(f.stat().st_size, fh)].append(f)
-            done_cand += 1
-            if progress_cb:
-                progress_cb(60 + int((done_cand / max(total_cand, 1)) * 40), "Calculando SHA-256...")
+    if all_final_candidates:
+        workers = min(len(all_final_candidates), 8)
+        with ThreadPoolExecutor(max_workers=workers) as pool:
+            for idx, (f, sz, fh) in enumerate(pool.map(_compute_full, all_final_candidates)):
+                if fh and sz > 0:
+                    final_groups[(sz, fh)].append(f)
+                if progress_cb and idx % 10 == 0:
+                    progress_cb(60 + int((idx / max(total_cand, 1)) * 40), "Calculando SHA-256...")
 
     return [flist for flist in final_groups.values() if len(flist) > 1]
 
