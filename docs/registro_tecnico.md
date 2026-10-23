@@ -225,9 +225,14 @@ Para evitar limitação de recursos que dependem de serviços de terceiros (como
 - [x] Ajustes rápidos do Windows: arquivos ocultos, extensões, modo escuro e atalhos (`system.quick_tweaks`).
 - [x] Gerenciador rápido de tarefas agendadas do Windows (`system.task_scheduler`).
 
-### Fase 8 — Segurança e Cofre Local
-- [ ] Cofre local de senhas criptografado com senha mestra AES-GCM em SQLite (`security.password_vault`).
-- [ ] Autenticador de dois fatores (2FA / TOTP) local com códigos de 30s (`security.totp_manager`).
+### Fase 8 — Ferramentas Adicionais de Imagem e Desktop (Concluída)
+- [x] Montador de GIFs animados e extrator de frames (`images.gif_tools`).
+- [x] Colagens e montagens de imagens em grade com preview (`images.collage`).
+- [x] Conta-gotas de tela com hotkey global e lupa de zoom (`images.color_picker`).
+- [x] Gerador e leitor de QR Code / código de barras (`images.qrcode`).
+- [x] Captura de tela com editor de anotações (`images.screenshot`).
+- [x] OCR de imagem 100% offline local com API nativa do Windows ou Tesseract (`images.ocr`).
+- [x] Removedor de fundo de imagem local via rembg sob demanda (`images.remove_bg`).
 
 ### Fase 9 — Ferramentas para Desenvolvedores
 - [ ] Gerador de dados fictícios para testes em lote e Lorem Ipsum (`dev.fake_data`).
@@ -257,14 +262,10 @@ Para evitar limitação de recursos que dependem de serviços de terceiros (como
 - [ ] Gerenciador de janelas: sempre no topo, transparência e reposicionamento (`automation.window_manager`).
 - [ ] Executor de scripts em lote (.bat, .ps1, .py) com console em tempo real (`automation.script_runner`).
 
-### Fase 13 — Ferramentas Adicionais de Imagem e Desktop
-- [ ] Montador de GIFs animados e extrator de frames (`images.gif_tools`).
-- [ ] Colagens e montagens de imagens em grade com preview (`images.collage`).
-- [ ] Conta-gotas de tela com hotkey global e lupa de zoom (`images.color_picker`).
-- [ ] Gerador e leitor de QR Code / código de barras (`images.qrcode`).
-- [ ] Captura de tela com editor de anotações (`images.screenshot`).
-- [ ] OCR de imagem 100% offline local com API nativa do Windows ou Tesseract (`images.ocr`).
-- [ ] Removedor de fundo de imagem local via rembg sob demanda (`images.remove_bg`).
+### Fase 13 — Segurança e Cofre Local
+- [ ] Cofre local de senhas criptografado com senha mestra AES-GCM em SQLite (`security.password_vault`).
+- [ ] Autenticador de dois fatores (2FA / TOTP) local com códigos de 30s (`security.totp_manager`).
+
 
 ### Fase 14 — Empacotamento, Distribuição e Modo Portátil
 - [ ] Fila central de tarefas assíncronas em segundo plano.
@@ -277,15 +278,16 @@ Para evitar limitação de recursos que dependem de serviços de terceiros (como
 ---
 
 ## 7. Métrica de Qualidade e Testes
-- **Total de Ferramentas Registradas**: 72 ferramentas operacionais.
-- **Padrão Arquitetural de Lógica Desacoplada**: 100% das 72 ferramentas possuem divisão estrita entre UI (`tool.py`) e regras de negócio puras (`logic.py`), com zero importações de `PySide6` na camada de lógica.
+- **Total de Ferramentas Registradas**: 79 ferramentas operacionais.
+- **Padrão Arquitetural de Lógica Desacoplada**: 100% das 79 ferramentas possuem divisão estrita entre UI (`tool.py`) e regras de negócio puras (`logic.py`), com zero importações de `PySide6` na camada de lógica.
 - **Aceleração por Hardware (GPU) & Paralelismo**:
   - Detecção automática de GPUs instaladas (NVIDIA GeForce/RTX via `nvidia-smi` / WMI, AMD Radeon e Intel Arc/Iris).
   - Aceleração por hardware no FFmpeg via **NVIDIA NVENC** (`h264_nvenc`, `hevc_nvenc`), **AMD AMF** (`h264_amf`, `hevc_amf`) e **Intel QuickSync** (`h264_qsv`) com fallback automático resiliente para CPU (`libx264`).
   - Motor de lote concorrente (`core/batch.py`) com `ThreadPoolExecutor` dimensionado automaticamente de acordo com os núcleos da máquina (`optimal_batch_workers = min(cpu_cores, 8)`).
   - Cálculo de hashes concorrente em lote na ferramenta de localização de arquivos duplicados (`files.duplicates`).
-- **Cobertura de Testes**: 93 testes unitários e de integração executados com 100% de aprovação no `pytest` (incluindo testes de arquitetura, testes de aceleração de hardware e cobertura das 10 ferramentas da Fase 7).
-- **Tempo de Execução dos Testes**: ~20.0s.
+- **Cobertura de Testes**: 101 testes unitários e de integração executados com 100% de aprovação no `pytest` (incluindo testes de arquitetura, aceleração de hardware e cobertura das 7 ferramentas da Fase 8).
+- **Tempo de Execução dos Testes**: ~22.0s.
+
 
 ---
 

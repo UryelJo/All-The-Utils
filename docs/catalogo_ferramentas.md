@@ -72,7 +72,57 @@ Este documento mantém o inventário detalhado de todas as ferramentas disponív
   - Cards com preview visual, códigos HEX, RGB, HSL e porcentagem de presença na imagem.
   - Botão de cópia rápida por cor e exportação da paleta completa como: Variáveis CSS (`:root`), JSON estruturado ou imagem contínua PNG.
 
+### `images.gif_tools` — Montador e Extrator de GIF
+- **Tipo**: `Tool` (Painel com Abas)
+- **Recursos**:
+  - **Aba Criar GIF Animado**: Sequenciamento de múltiplas fotos com reordenação manual, ajuste de duração por frame (ms), opções de repetição em loop (infinito ou quantidade fixa) e compilação otimizada com paleta quantizada.
+  - **Aba Extrair Frames**: Decomposição automática de arquivos GIF em todos os seus quadros individuais salvos em PNG, JPEG, WEBP ou BMP.
+
+### `images.collage` — Colagens e Montagens de Fotos
+- **Tipo**: `Tool` (Painel Interativo)
+- **Recursos**:
+  - Montagem de múltiplas fotos em grade organizada (1 a 10 colunas).
+  - Controle de espaçamento entre células em pixels e seletor visual de cor de fundo com cálculo dinâmico de contraste.
+  - Modos de Encaixe: "Preencher e Cortar (Quadrado uniforme)" ou "Ajustar Completo (Com bordas e proporção original)".
+
+### `images.color_picker` — Conta-Gotas de Tela e Seletor de Cores
+- **Tipo**: `Tool` (Painel Interativo em Tempo Real)
+- **Recursos**:
+  - Lupa de zoom 5x em tempo real com retículo de mira mostrando os pixels ao redor do cursor.
+  - Captura instantânea com leitura via API nativa GDI do Windows.
+  - Exibição e cópia em 1 clique em múltiplos formatos: HEX, RGB, HSL, HSV e CMYK.
+  - Histórico de cores capturadas com amostras visuais interativas.
+
+### `images.qrcode` — Gerador e Leitor de QR Code
+- **Tipo**: `Tool` (Painel com Abas)
+- **Recursos**:
+  - **Aba Gerador**: Geração dinâmica de QR Codes a partir de textos, URLs ou chaves PIX com personalização de cores do código e de fundo, ajuste de tamanho e margens, botão "Copiar Imagem" para a área de transferência e salvamento em PNG.
+  - **Aba Leitor**: Leitura e decodificação de QR Codes a partir de arquivos de imagem no disco ou colados diretamente da área de transferência (Ctrl+V).
+
+### `images.screenshot` — Captura de Tela e Anotações
+- **Tipo**: `Tool` (Painel Interativo)
+- **Recursos**:
+  - Captura em alta resolução da tela inteira com suporte a multi-monitores via Pillow ImageGrab.
+  - Temporizador de atraso configurável (0 a 10 segundos).
+  - Visualizador integrado com botões de cópia direta para a área de transferência e salvamento em PNG/JPEG.
+
+### `images.ocr` — OCR de Imagem (Reconhecimento de Texto)
+- **Tipo**: `Tool` (Painel Interativo 100% Offline)
+- **Recursos**:
+  - Reconhecimento óptico de caracteres 100% local utilizando o motor de OCR nativo do Windows (`Windows.Media.Ocr.OcrEngine`) via WinRT em português do Brasil e inglês, sem necessidade de internet ou serviços de nuvem.
+  - Prévia da imagem carregada lado a lado com o texto extraído.
+  - Contagem de caracteres e palavras, botão de cópia rápida e exportação para arquivo `.txt`.
+
+### `images.remove_bg` — Removedor de Fundo de Imagem
+- **Tipo**: `Tool` (Painel Interativo)
+- **Recursos**:
+  - Remoção de fundo e geração de imagem com canal alpha transparente (PNG).
+  - Modos de operação: Detecção automática baseada na média dos 4 cantos da imagem, Fundo Branco/Claro, Fundo Preto/Escuro ou Cor Específica (Chroma Key).
+  - Sliders de tolerância de cor e suavização de bordas (feathering) para evitar serrilhado.
+  - Prévia lado a lado da foto original e do resultado com fundo xadrez indicando transparência.
+
 ---
+
 
 ## 2. Sistema Windows e Manutenção (`tools/system/`)
 
