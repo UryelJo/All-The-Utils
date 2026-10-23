@@ -9,6 +9,10 @@ from PySide6.QtWidgets import QApplication
 import wintoolbox.tools.images.convert
 import wintoolbox.tools.system.tools
 import wintoolbox.tools.system.monitor
+import wintoolbox.tools.network
+import wintoolbox.tools.text
+import wintoolbox.tools.encode
+import wintoolbox.tools.data
 
 from wintoolbox.core.settings import load_settings
 from wintoolbox.ui.main_window import MainWindow

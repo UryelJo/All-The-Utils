@@ -10,6 +10,10 @@ from pathlib import Path
 import wintoolbox.tools.images.convert
 import wintoolbox.tools.system.tools
 import wintoolbox.tools.system.monitor
+import wintoolbox.tools.network
+import wintoolbox.tools.text
+import wintoolbox.tools.encode
+import wintoolbox.tools.data
 
 from wintoolbox.core.batch import OutputPolicy, SourceItem, discover_files, execute_batch
 from wintoolbox.core.registry import FileTool, TaskContext, get_all_tools, get_tool
