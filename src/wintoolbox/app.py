@@ -5,8 +5,7 @@ import sys
 from PySide6.QtCore import Qt
 from PySide6.QtWidgets import QApplication
 
-# Importa as ferramentas para disparar os decoradores @register
-import wintoolbox.tools.images.convert
+import wintoolbox.tools.images
 import wintoolbox.tools.system.tools
 import wintoolbox.tools.system.monitor
 import wintoolbox.tools.network

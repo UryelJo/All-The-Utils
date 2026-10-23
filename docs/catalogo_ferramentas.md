@@ -18,6 +18,60 @@ Este documento mantém o inventário detalhado de todas as ferramentas disponív
   - Remoção opcional de transparência com fundo branco sólido.
   - Gravação atômica (`.tmp_wtbx`) e estratégia de conflito (sobrescrever, renomear numerado, pular).
 
+### `images.resize` — Redimensionador e Cortador de Imagens
+- **Tipo**: `FileTool` (Processamento em Lote Automatizado)
+- **Extensões Suportadas**: `.png`, `.jpg`, `.jpeg`, `.webp`, `.bmp`, `.tiff`, `.ico`
+- **Recursos**:
+  - 4 Modos de dimensionamento: Porcentagem (1-1000%), Largura Máxima, Altura Máxima e Caixa Exata (Largura x Altura).
+  - Modos de Encaixe: Ajustar com Barras (Fit), Preencher e Cortar (Fill / Crop) e Distorcer (Stretch).
+  - Filtros de Interpolação: Lanczos (alta fidelidade), Bicúbica, Bilinear e Vizinho Mais Próximo.
+  - Rotação: 90° horário, 180°, 270° ou Orientação Automática EXIF (`ImageOps.exif_transpose`).
+  - Espelhamento Horizontal e Vertical independentes.
+
+### `images.compress` — Otimizador e Compressor de Imagens
+- **Tipo**: `FileTool` (Processamento em Lote Automatizado)
+- **Extensões Suportadas**: `.png`, `.jpg`, `.jpeg`, `.webp`
+- **Recursos**:
+  - Modos de Compressão: "Qualidade Visual Balanceada" (slider 10-100%), "Otimização Sem Perdas (Lossless)" e "Meta de Tamanho Máximo em KB" (busca binária de convergência de tamanho).
+  - Quantização de paleta para PNG (redução para 256 cores adaptativas).
+  - Remoção opcional de metadados EXIF para economia máxima de bytes.
+  - Suporte a JPEG progressivo e compressão otimizada de tabelas Huffman.
+
+### `images.watermark` — Aplicador de Marca d'Água em Lote
+- **Tipo**: `FileTool` (Processamento em Lote Automatizado)
+- **Extensões Suportadas**: `.png`, `.jpg`, `.jpeg`, `.webp`, `.bmp`, `.tiff`
+- **Recursos**:
+  - Marca de Texto: conteúdo customizado, tamanho de fonte, cor HEX com seletor visual, rotação (-90° a +90°) e suporte a fontes TrueType do sistema.
+  - Marca de Imagem: seleção de logo PNG transparente com escala ajustável (% da imagem base).
+  - Posição: 9 âncoras (inferior, superior, centro) ou "Mosaico Repetido (Tiled)" sobre toda a área da foto.
+  - Opacidade (5% a 100%) e controle de margem/padding das bordas em pixels.
+
+### `images.effects` — Filtros e Ajustes de Imagem
+- **Tipo**: `FileTool` (Processamento em Lote Automatizado)
+- **Extensões Suportadas**: `.png`, `.jpg`, `.jpeg`, `.webp`, `.bmp`, `.tiff`
+- **Recursos**:
+  - Sliders com reset em 1 clique: Brilho (0.2x a 2.5x), Contraste (0.2x a 2.5x), Saturação (0.0x a 2.5x) e Nitidez (0.0x a 3.0x).
+  - Filtros Artísticos: Preto e Branco (tons de cinza), Sépia Vintage, Inversão de Cores (negativo), Desfoque Gaussiano com raio configurável, Auto-Contraste Dinâmico, Detecção de Bordas e Realce de Detalhes.
+
+### `images.exif` — Metadados EXIF e Privacidade
+- **Tipo**: `Tool` (Interativo e Lote)
+- **Recursos**:
+  - **Aba Inspecionar**: Detecção de fabricante, modelo da câmera, abertura f/, exposição, ISO, distância focal, data/hora original, coordenadas GPS com link direto para o Google Maps e tabela completa de tags brutas.
+  - **Aba Remoção em Lote**: Anonimização total (remoção de todos os metadados), remoção seletiva de GPS, ou renomeação automática de fotos pelo padrão `AAAA-MM-DD_HH-MM-SS` da data de captura.
+
+### `images.favicon` — Gerador de Ícones e Favicons
+- **Tipo**: `Tool`
+- **Recursos**:
+  - Geração de arquivo `.ico` nativo do Windows multi-resolução contendo tamanhos 16x16, 24x24, 32x32, 48x48, 64x64, 128x128 e 256x256 embutidos no mesmo arquivo.
+  - Geração de pacote completo Web Favicon: `favicon.ico`, `favicon-16x16.png`, `favicon-32x32.png`, `apple-touch-icon.png`, `android-chrome-192x192.png`, `android-chrome-512x512.png`, `site.webmanifest` e snippet de código HTML pronto para copiar e colar na tag `<head>`.
+
+### `images.palette` — Extrator de Paleta de Cores Dominantes
+- **Tipo**: `Tool`
+- **Recursos**:
+  - Extração inteligente de 3 a 12 cores predominantes via quantização mediana do Pillow.
+  - Cards com preview visual, códigos HEX, RGB, HSL e porcentagem de presença na imagem.
+  - Botão de cópia rápida por cor e exportação da paleta completa como: Variáveis CSS (`:root`), JSON estruturado ou imagem contínua PNG.
+
 ---
 
 ## 2. Sistema Windows e Manutenção (`tools/system/`)

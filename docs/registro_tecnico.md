@@ -164,23 +164,32 @@ Para evitar limitação de recursos que dependem de serviços de terceiros (como
 - [x] Quem Está Usando Este Arquivo? com detecção de processos bloqueadores via Windows Restart Manager API nativa (`files.lock_checker`).
 - [x] Compactador e extrator de arquivos em lote com suporte a ZIP, TAR e TAR.GZ e inspeção interna (`archive.manager`).
 
+### Fase 3 — Imagens Avançadas (Concluída - 7 Novas Ferramentas, 8 no Total)
+- [x] Redimensionador e cortador de fotos e imagens em lote com interpolação Lanczos, rotação e espelhamento (`images.resize`).
+- [x] Otimizador e compressor de imagens com qualidade balanceada, lossless, meta de KB e quantização PNG (`images.compress`).
+- [x] Aplicador de marca d'água de texto ou logo em lote com opacidade, rotação e modo mosaico (`images.watermark`).
+- [x] Filtros e ajustes de imagem em lote: brilho, contraste, saturação, nitidez, sépia, P&B e desfoque (`images.effects`).
+- [x] Inspetor e removedor de metadados EXIF e GPS com anonimização e renomeação por data de captura (`images.exif`).
+- [x] Gerador de ícones .ico multi-resolução para Windows e pacote completo Web Favicon + Manifest PWA (`images.favicon`).
+- [x] Extrator de paleta de cores dominante com exportação para variáveis CSS, JSON e imagem PNG (`images.palette`).
+
 ---
 
 ## 6. Próximas Fases do Roadmap
 
-### Fase 3 — Imagens Avançadas (Próximo Bloco)
-- [ ] Redimensionador e cortador de imagens em lote (`images.resize`).
-- [ ] Otimizador e compressor sem perdas visual WebP/MozJPEG/PNG (`images.compress`).
-- [ ] Removedor e visualizador de metadados EXIF (`images.exif`).
-- [ ] Gerador de paleta de cores e extrator dominante (`images.palette`).
-- [ ] Criação e conversor de Favicon / Ícone .ico multi-resolução (`images.favicon`).
-- [ ] Adicionar marca d'água em lote (texto e imagem) (`images.watermark`).
+### Fase 4 — PDF e Documentos (Próximo Bloco)
+- [ ] Divisor e juntador de páginas de PDF em lote (`pdf.split_merge`).
+- [ ] Conversor de imagens para documento PDF em lote (`pdf.images_to_pdf`).
+- [ ] Extrator de imagens e texto em lote de arquivos PDF (`pdf.extract`).
+- [ ] Compressor e otimizador de peso de PDFs (`pdf.compress`).
+- [ ] Girador e organizador de páginas de PDF (`pdf.rotate`).
+- [ ] Proteção, criptografia com senha e remoção de senhas de PDF (`pdf.security`).
 
 ---
 
 ## 7. Métrica de Qualidade e Testes
-- **Total de Ferramentas Registradas**: 32 ferramentas operacionais.
-- **Cobertura de Testes**: 40 testes unitários e de integração executados com 100% de aprovação no `pytest`.
-- **Tempo de Execução dos Testes**: ~0.76s.
+- **Total de Ferramentas Registradas**: 39 ferramentas operacionais.
+- **Cobertura de Testes**: 49 testes unitários e de integração executados com 100% de aprovação no `pytest`.
+- **Tempo de Execução dos Testes**: ~1.1s.
 
 

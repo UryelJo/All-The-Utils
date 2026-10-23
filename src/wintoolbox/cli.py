@@ -7,7 +7,7 @@ import argparse
 from pathlib import Path
 
 # Registra as ferramentas
-import wintoolbox.tools.images.convert
+import wintoolbox.tools.images
 import wintoolbox.tools.system.tools
 import wintoolbox.tools.system.monitor
 import wintoolbox.tools.network
