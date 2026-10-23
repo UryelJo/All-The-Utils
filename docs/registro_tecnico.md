@@ -291,22 +291,26 @@ Para evitar limitação de recursos que dependem de serviços de terceiros (como
 
 ---
 
-## 8. Rebranding e Modernização da UI (Fluent Windows 11 Dark)
+## 8. Rebranding e Modernização da UI (Fluent 2.0 / WinUI 3)
 
-A interface passou por uma revisão completa de design e usabilidade, sanando problemas de truncamento de texto, organização de navegação e densidade de informação:
+A interface passou por uma evolução arquitetural completa inspirada no **WinUI 3 (Microsoft PowerToys / DevToys 2.0)** e **Raycast**:
 
-1. **Sidebar com Categorias Colapsáveis (`QTreeWidget`)**:
-   - A lista plana anterior (que continha 62 itens contínuos gerando rolagem excessiva) foi substituída por uma árvore hierárquica por categorias com ícones visuais (`🖼️ Imagens`, `📁 Arquivos e Pastas`, `🌐 Rede e Internet`, `💻 Sistema Windows`, `📝 Texto e Código`, etc.).
-   - As categorias possuem contagem de ferramentas e suporte a expandir/recolher individualmente ou em massa.
-   - Largura da barra lateral expandida de 230px para **280px**, eliminando truncamento de títulos longos.
-
-2. **Filtro Instantâneo na Sidebar**:
-   - Campo de busca em tempo real (`txt_filter`) no topo da sidebar. Conforme o usuário digita, as ferramentas que não correspondem ao termo são ocultadas e as categorias correspondentes são auto-expandidas, oferecendo acesso imediato a qualquer utilitário.
-
-3. **Menus de Contexto com Botão Direito**:
-   - **Sobre ferramentas**: Opções para "⭐ Adicionar aos Favoritos" / "❌ Remover dos Favoritos", "Abrir Ferramenta", "Copiar Nome da Ferramenta" e "Copiar ID da Ferramenta".
-   - **Sobre categorias/fundo**: Opções para "Expandir Todas as Categorias" e "Recolher Todas as Categorias".
-
-4. **Correção de Textos Cortados**:
-   - **Configurações (`settings_page.py`)**: Rótulos das chaves de API expandidos de 260px para 310px; botões "Mostrar/Ocultar" agora utilizam `setMinimumWidth(80)` (anteriormente `setFixedWidth(65)` truncava a palavra "Mostrar" para "Mostra"); botões "Limpar" com `setMinimumWidth(75)`.
-   - **Home Page (`home_page.py`)**: Redesenhada com Hero Banner informativo e grade moderna responsiva em duas colunas com cards elegantes (`ToolCardWidget`), badges coloridos por tipo ("Lote" vs "Painel") e descrições sem truncamento.
+1. **Design System com Tokens Semânticos (`ui/theme.py`)**:
+   - Remoção de estilos escuros fixos (hardcoded) nos componentes e adoção de `ThemeTokens` dinâmicos.
+   - Suporte nativo a **Modo Escuro**, **Modo Claro** e **Automático (Seguir o Windows)**, além de **Seletor de Cor de Destaque** (DWM AccentColor ou paletas predefinidas).
+2. **Motor de Ícones Vetoriais Nativos (`ui/icons.py`)**:
+   - Substituição total de emojis por glifos vetoriais nativos das fontes `Segoe Fluent Icons` (Windows 11) e `Segoe MDL2 Assets` (Windows 10), renderizados em High-DPI e adaptados automaticamente ao tema.
+3. **Kit de Micro-Componentes Fluent (`ui/widgets/`)**:
+   - `ToggleSwitch`: Interruptor deslizante animado estilo Windows 11.
+   - `SettingCard`: Cartão horizontal de configurações (Ícone + Título/Descrição + Controle à direita).
+   - `ToastWidget` / `show_toast`: Notificações flutuantes não-bloqueantes no canto superior direito da janela.
+   - `BatchInputWidget`: Empty State com Dropzone visual tracejada, chips das extensões aceitas e remoção individual de itens por linha.
+   - `CommandPaletteDialog` (`Ctrl+K`): Busca *fuzzy* tolerante a erros de digitação e acentos via `rapidfuzz`, priorizando Favoritos e Recentes.
+4. **App Shell Contextual (`ui/main_window.py`)**:
+   - **Sidebar Retrátil (`Ctrl+B`)**: Alterna entre o modo expandido (`280px`) e o modo compacto (`60px`).
+   - **Topbar Contextual**: Botão Voltar (`Alt+Esquerda`), Breadcrumb clicável, indicador ao vivo de tarefas em execução em segundo plano, atalho de busca `Ctrl+K` e alternador rápido de tema.
+5. **Tela Inicial Personalizável (`ui/pages/home_page.py` & `ui/widgets/smart_drop_dialog.py`)**:
+   - **Smart Dropzone Universal**: Soltar qualquer arquivo (PDF, imagem, vídeo, áudio, planilha, compactado ou pasta) analisa as extensões e sugere todas as ferramentas compatíveis do catálogo.
+   - **Mini-Monitor de Recursos**: Barras compactas em tempo real de CPU, Memória RAM e Disco Principal.
+   - **Acesso Rápido**: Seções de Favoritos Fixados e Usados Recentemente, com botão de estrela direto em cada card.
+   - **Catálogo com Chips de Categoria + Modos de Densidade**: Filtro por chips horizontais, alternância entre modo **Confortável** e **Compacto**, grade responsiva (2 a 4 colunas) e modal **"Personalizar Tela Inicial"** persistido em `settings.json`.

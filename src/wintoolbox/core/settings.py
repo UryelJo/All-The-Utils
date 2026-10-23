@@ -10,7 +10,17 @@ from pathlib import Path
 from typing import Any, Dict, List
 
 DEFAULT_SETTINGS: Dict[str, Any] = {
-    "theme": "dark",  # 'dark', 'light'
+    "theme": "dark",  # 'dark', 'light', 'system'
+    "accent_override": "",  # Vazio = cor do Windows (DWM), ou HEX ex: '#0078d4'
+    "sidebar_collapsed": False,
+    "home_layout": {
+        "show_smart_drop": False,
+        "show_system_health": False,
+        "show_favorites_recents": True,
+        "card_density": "comfortable",
+        "startup_view": "home",         # 'home' | 'last_tool'
+        "last_opened_tool": "",
+    },
     "default_output_mode": "subfolder",  # 'subfolder', 'custom', 'same_folder'
     "default_subfolder_name": "convertidos",
     "default_conflict": "rename",  # 'rename', 'overwrite', 'skip'
@@ -75,7 +85,32 @@ def add_recent_tool(tool_id: str):
         recents.remove(tool_id)
     recents.insert(0, tool_id)
     st["recent_tools"] = recents[:10]  # Limita aos 10 mais recentes
+    hl = dict(DEFAULT_SETTINGS["home_layout"])
+    if isinstance(st.get("home_layout"), dict):
+        hl.update(st["home_layout"])
+    hl["last_opened_tool"] = tool_id
+    st["home_layout"] = hl
     save_settings(st)
+
+
+def get_home_layout() -> Dict[str, Any]:
+    """Retorna as preferências de personalização da tela inicial com fallback seguro."""
+    st = load_settings()
+    layout = dict(DEFAULT_SETTINGS["home_layout"])
+    saved = st.get("home_layout")
+    if isinstance(saved, dict):
+        layout.update(saved)
+    return layout
+
+
+def update_home_layout(updates: Dict[str, Any]) -> Dict[str, Any]:
+    """Atualiza e persiste as preferências de personalização da tela inicial."""
+    st = load_settings()
+    layout = get_home_layout()
+    layout.update(updates)
+    st["home_layout"] = layout
+    save_settings(st)
+    return layout
 
 def toggle_favorite(tool_id: str) -> bool:
     """Alterna o status de favorito de uma ferramenta e retorna o novo estado."""

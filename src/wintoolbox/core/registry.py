@@ -110,6 +110,32 @@ class FileTool(BaseTool):
 # Registro global de ferramentas
 _TOOLS: Dict[str, BaseTool] = {}
 _CATEGORIES: Dict[str, List[str]] = {}
+_LOADED: bool = False
+
+
+def _ensure_loaded() -> None:
+    """Garante que todos os pacotes de ferramentas foram importados e registrados."""
+    global _LOADED
+    if _LOADED:
+        return
+    _LOADED = True
+    for pkg in (
+        "wintoolbox.tools.images",
+        "wintoolbox.tools.system",
+        "wintoolbox.tools.network",
+        "wintoolbox.tools.text",
+        "wintoolbox.tools.encode",
+        "wintoolbox.tools.data",
+        "wintoolbox.tools.files",
+        "wintoolbox.tools.archive",
+        "wintoolbox.tools.pdf",
+        "wintoolbox.tools.media",
+    ):
+        try:
+            __import__(pkg)
+        except Exception:
+            pass
+
 
 def register(tool_cls: Type[BaseTool]):
     """Decorador para registrar uma ferramenta automaticamente."""
@@ -117,19 +143,29 @@ def register(tool_cls: Type[BaseTool]):
     if not instance.id:
         raise ValueError(f"Ferramenta {tool_cls.__name__} precisa ter um 'id' único.")
     _TOOLS[instance.id] = instance
-    _CATEGORIES.setdefault(instance.category, []).append(instance.id)
+    if instance.id not in _CATEGORIES.setdefault(instance.category, []):
+        _CATEGORIES[instance.category].append(instance.id)
     return tool_cls
+
 
 def get_tool(tool_id: str) -> Optional[BaseTool]:
     """Retorna uma ferramenta registrada pelo seu ID."""
+    if not _LOADED:
+        _ensure_loaded()
     return _TOOLS.get(tool_id)
+
 
 def get_all_tools() -> List[BaseTool]:
     """Retorna todas as ferramentas registradas."""
+    if not _LOADED:
+        _ensure_loaded()
     return list(_TOOLS.values())
+
 
 def get_categories() -> Dict[str, List[BaseTool]]:
     """Retorna as ferramentas agrupadas por categoria."""
+    if not _LOADED:
+        _ensure_loaded()
     grouped: Dict[str, List[BaseTool]] = {}
     for cat, tool_ids in _CATEGORIES.items():
         grouped[cat] = [_TOOLS[tid] for tid in tool_ids if tid in _TOOLS]

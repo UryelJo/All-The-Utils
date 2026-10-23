@@ -1,6 +1,7 @@
 """
 Template de Página para Ferramentas baseadas em Arquivos (FileToolPage).
-Conecta BatchInput, Opções, OutputPicker, ActionBar, LogPanel, SQLite e Favoritos.
+Conecta BatchInput, Opções, OutputPicker, ActionBar, LogPanel, SQLite,
+Toasts não-bloqueantes e Indicador de Tarefas em Segundo Plano.
 """
 import time
 from pathlib import Path
@@ -15,15 +16,20 @@ from wintoolbox.core.history import record_job
 from wintoolbox.core.registry import FileTool, TaskContext, ToolResult
 from wintoolbox.core.settings import is_favorite, toggle_favorite
 from wintoolbox.core.tasks import TaskRunner
+from wintoolbox.ui.icons import get_glyph, get_icon_font
 from wintoolbox.ui.widgets.action_bar import ActionBarWidget
 from wintoolbox.ui.widgets.batch_input import BatchInputWidget
 from wintoolbox.ui.widgets.log_panel import LogPanelWidget
 from wintoolbox.ui.widgets.output_picker import OutputPickerWidget
+from wintoolbox.ui.widgets.toast import show_toast
+
 
 class FileToolPage(QWidget):
     """Página completa e modular para qualquer FileTool."""
-    favorite_toggled = Signal(str, bool)  # tool_id, is_fav
-    task_completed = Signal(str, str, bool)  # title, message, is_error
+    favorite_toggled = Signal(str, bool)       # tool_id, is_fav
+    task_started = Signal(str, str)            # tool_id, tool_name
+    task_progress = Signal(str, int, int)      # tool_id, current, total
+    task_completed = Signal(str, str, bool)    # title, message, is_error
 
     def __init__(self, tool: FileTool, parent: Optional[QWidget] = None):
         super().__init__(parent)
@@ -33,7 +39,7 @@ class FileToolPage(QWidget):
 
         self._build_ui()
 
-    def _build_ui(self):
+    def _build_ui(self) -> None:
         root_layout = QVBoxLayout(self)
         root_layout.setContentsMargins(0, 0, 0, 0)
         root_layout.setSpacing(0)
@@ -44,7 +50,7 @@ class FileToolPage(QWidget):
 
         content = QWidget()
         layout = QVBoxLayout(content)
-        layout.setContentsMargins(20, 20, 20, 20)
+        layout.setContentsMargins(24, 20, 24, 24)
         layout.setSpacing(14)
 
         # Cabeçalho da Ferramenta com Botão de Favorito
@@ -56,9 +62,8 @@ class FileToolPage(QWidget):
         header_row.addStretch()
 
         self.btn_fav = QPushButton()
-        self._update_fav_button()
         self.btn_fav.clicked.connect(self._on_toggle_fav)
-        self.btn_fav.setStyleSheet("padding: 4px 10px; font-size: 12px;")
+        self._update_fav_button()
         header_row.addWidget(self.btn_fav)
         layout.addLayout(header_row)
 
@@ -66,7 +71,7 @@ class FileToolPage(QWidget):
         lbl_desc.setProperty("class", "secondary")
         layout.addWidget(lbl_desc)
 
-        # 1. Widget de Entrada (Arquivos e Pastas)
+        # 1. Widget de Entrada (Arquivos e Pastas com Dropzone)
         self.input_widget = BatchInputWidget(allowed_extensions=self.tool.accepts)
         layout.addWidget(self.input_widget)
 
@@ -94,32 +99,36 @@ class FileToolPage(QWidget):
         scroll.setWidget(content)
         root_layout.addWidget(scroll)
 
-    def _update_fav_button(self):
+    def _update_fav_button(self) -> None:
         fav = is_favorite(self.tool.id)
         if fav:
-            self.btn_fav.setText("★ Favorito")
-            self.btn_fav.setStyleSheet("padding: 4px 10px; font-size: 12px; color: #f59e0b;")
+            self.btn_fav.setText("Remover dos Favoritos")
+            self.btn_fav.setProperty("class", "primary")
+            self.btn_fav.setStyleSheet("padding: 5px 12px; font-size: 12px;")
         else:
-            self.btn_fav.setText("☆ Favoritar")
-            self.btn_fav.setStyleSheet("padding: 4px 10px; font-size: 12px; color: #888888;")
+            self.btn_fav.setText("Fixar nos Favoritos")
+            self.btn_fav.setProperty("class", "")
+            self.btn_fav.setStyleSheet("padding: 5px 12px; font-size: 12px;")
 
-    def _on_toggle_fav(self):
+    def _on_toggle_fav(self) -> None:
         new_state = toggle_favorite(self.tool.id)
         self._update_fav_button()
         self.favorite_toggled.emit(self.tool.id, new_state)
+        msg = "Adicionada aos Favoritos." if new_state else "Removida dos Favoritos."
+        show_toast(self, self.tool.name, msg, kind="info", duration_ms=2200)
 
-    def add_paths(self, paths: List[Path]):
+    def add_paths(self, paths: List[Path]) -> None:
         """Adiciona arquivos diretamente à ferramenta."""
         self.input_widget.add_paths(paths)
 
-    def _on_start(self):
+    def _on_start(self) -> None:
         files = self.input_widget.get_discovered_files()
         if not files:
-            QMessageBox.warning(
+            show_toast(
                 self,
-                "Aviso",
-                "Nenhum arquivo válido encontrado para processamento.\n"
-                "Adicione arquivos ou selecione uma pasta."
+                "Nenhum arquivo selecionado",
+                "Adicione arquivos ou selecione uma pasta antes de iniciar.",
+                kind="warning",
             )
             return
 
@@ -130,6 +139,7 @@ class FileToolPage(QWidget):
         self._start_time = time.time()
         self.action_bar.set_running(True)
         self.log_panel.append_log("INFO", f"Iniciando processamento de {len(files)} arquivo(s)...")
+        self.task_started.emit(self.tool.id, self.tool.name)
 
         def worker_fn(ctx: TaskContext) -> ToolResult:
             return execute_batch(
@@ -142,19 +152,23 @@ class FileToolPage(QWidget):
                 parallel_mode=getattr(self.tool, "parallel_mode", "thread"),
             )
 
+        def _handle_progress(cur: int, tot: int, msg: str) -> None:
+            self.action_bar.update_progress(cur, tot, msg)
+            self.task_progress.emit(self.tool.id, cur, tot)
+
         self.runner.start_task(
             task_fn=worker_fn,
-            on_progress=lambda cur, tot, msg: self.action_bar.update_progress(cur, tot, msg),
+            on_progress=_handle_progress,
             on_log=lambda lvl, msg: self.log_panel.append_log(lvl, msg),
             on_finished=self._on_finished,
-            on_error=self._on_error
+            on_error=self._on_error,
         )
 
-    def _on_cancel(self):
+    def _on_cancel(self) -> None:
         self.runner.cancel_current()
         self.log_panel.append_log("WARN", "Solicitação de cancelamento enviada.")
 
-    def _on_finished(self, result: ToolResult):
+    def _on_finished(self, result: ToolResult) -> None:
         duration = time.time() - self._start_time
         policy = self.output_picker.get_policy()
         out_dir = policy.custom_dir
@@ -167,7 +181,6 @@ class FileToolPage(QWidget):
         self.action_bar.set_finished(out_dir)
         self.log_panel.append_log("INFO", result.message)
 
-        # Salva no histórico SQLite
         status = "Sucesso" if result.success else "Falha"
         record_job(
             tool_id=self.tool.id,
@@ -176,13 +189,18 @@ class FileToolPage(QWidget):
             items_failed=result.items_failed,
             duration_sec=duration,
             status=status,
-            message=result.message
+            message=result.message,
         )
 
-        # Emite notificação de conclusão
+        show_toast(
+            self,
+            self.tool.name,
+            result.message,
+            kind="success" if result.success else "warning",
+        )
         self.task_completed.emit(self.tool.name, result.message, not result.success)
 
-    def _on_error(self, err_msg: str):
+    def _on_error(self, err_msg: str) -> None:
         duration = time.time() - self._start_time
         self.action_bar.set_running(False)
         self.log_panel.append_log("ERROR", f"Erro fatal na tarefa: {err_msg}")
@@ -193,7 +211,8 @@ class FileToolPage(QWidget):
             items_failed=1,
             duration_sec=duration,
             status="Erro Fatal",
-            message=err_msg
+            message=err_msg,
         )
         self.task_completed.emit(self.tool.name, f"Erro: {err_msg}", True)
+        show_toast(self, f"Erro em {self.tool.name}", err_msg, kind="error", duration_ms=5000)
         QMessageBox.critical(self, "Erro", f"Ocorreu um erro durante a execução:\n{err_msg}")

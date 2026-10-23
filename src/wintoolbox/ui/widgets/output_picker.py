@@ -13,6 +13,7 @@ from PySide6.QtWidgets import (
 
 from wintoolbox.core.batch import OutputPolicy
 from wintoolbox.core.settings import load_settings
+from wintoolbox.ui.widgets.toggle_switch import ToggleSwitch
 
 class OutputPickerWidget(QFrame):
     """Componente para configurar o destino do processamento em lote."""
@@ -68,7 +69,7 @@ class OutputPickerWidget(QFrame):
         row2 = QHBoxLayout()
         row2.setSpacing(8)
 
-        self.chk_mirror = QCheckBox("Espelhar estrutura de subpastas")
+        self.chk_mirror = ToggleSwitch("Espelhar estrutura de subpastas")
         self.chk_mirror.setChecked(True)
         row2.addWidget(self.chk_mirror)
 

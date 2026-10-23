@@ -9,29 +9,11 @@ from PySide6.QtWidgets import QApplication, QMenu, QSystemTrayIcon
 
 from wintoolbox.core.registry import get_tool
 from wintoolbox.core.settings import load_settings
+from wintoolbox.ui.icons import get_app_icon
 
 def create_tray_icon_pixmap() -> QIcon:
-    """Cria um ícone procedural nítido e leve de 32x32 para a bandeja."""
-    pix = QPixmap(32, 32)
-    pix.fill(Qt.transparent)
-    painter = QPainter(pix)
-    painter.setRenderHint(QPainter.Antialiasing)
-
-    # Fundo azul accent
-    painter.setBrush(QColor("#0078d4"))
-    painter.setPen(Qt.NoPen)
-    painter.drawRoundedRect(2, 2, 28, 28, 6, 6)
-
-    # Letra 'A' centralizada em branco
-    painter.setPen(QColor("#ffffff"))
-    font = painter.font()
-    font.setPixelSize(18)
-    font.setBold(True)
-    painter.setFont(font)
-    painter.drawText(pix.rect(), Qt.AlignCenter, "A")
-    painter.end()
-
-    return QIcon(pix)
+    """Retorna o ícone oficial da aplicação (ui/Icon.png) para a bandeja do sistema."""
+    return get_app_icon()
 
 class SystemTrayManager:
     """Gerencia o ícone da bandeja, menu de contexto e notificações."""
@@ -50,8 +32,8 @@ class SystemTrayManager:
     def _build_menu(self):
         menu = QMenu()
 
-        # Abrir All the Utils
-        act_open = QAction("Abrir All the Utils", menu)
+        # Abrir All the Utils com ícone oficial
+        act_open = QAction(get_app_icon(), "Abrir All the Utils", menu)
         act_open.triggered.connect(self.on_show_window)
         menu.addAction(act_open)
 

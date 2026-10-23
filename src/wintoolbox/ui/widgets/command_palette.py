@@ -1,14 +1,21 @@
 """
-Paleta de Comandos Rápida (Command Palette - Ctrl+K).
-Modal de busca instantânea para encontrar e abrir qualquer ferramenta.
+Paleta de Comandos Rápida (Command Palette - Ctrl+K) estilo Raycast / PowerToys Run.
+Suporta busca fuzzy tolerante a acentos e erros de digitação via rapidfuzz,
+priorizando Favoritos e Recentes no topo.
 """
-from typing import Callable, List, Optional
+from typing import List, Optional, Tuple
 from PySide6.QtCore import Qt, Signal
 from PySide6.QtWidgets import (
-    QDialog, QFrame, QLabel, QLineEdit, QListWidget, QListWidgetItem, QVBoxLayout, QWidget
+    QDialog, QFrame, QHBoxLayout, QLabel, QLineEdit,
+    QListWidget, QListWidgetItem, QVBoxLayout, QWidget
 )
+from rapidfuzz import fuzz
 
 from wintoolbox.core.registry import BaseTool, get_all_tools
+from wintoolbox.core.settings import load_settings
+from wintoolbox.ui.icons import get_category_icon, get_glyph, get_icon_font, make_fluent_icon, normalize_text
+from wintoolbox.ui.theme import get_current_tokens
+
 
 class CommandPaletteDialog(QDialog):
     """Diálogo modal acionado por Ctrl+K para busca e navegação rápida."""
@@ -18,105 +25,135 @@ class CommandPaletteDialog(QDialog):
         super().__init__(parent)
         self.setWindowFlags(Qt.FramelessWindowHint | Qt.Dialog)
         self.setAttribute(Qt.WA_TranslucentBackground, True)
-        self.setFixedSize(540, 360)
+        self.setFixedSize(580, 400)
 
         self._tools: List[BaseTool] = get_all_tools()
         self._build_ui()
 
-    def _build_ui(self):
+    def _build_ui(self) -> None:
+        t = get_current_tokens()
         root_layout = QVBoxLayout(self)
         root_layout.setContentsMargins(0, 0, 0, 0)
 
         container = QFrame(self)
-        container.setStyleSheet("""
-            QFrame {
-                background-color: #252526;
-                border: 1px solid #0078d4;
-                border-radius: 8px;
-            }
-        """)
+        container.setObjectName("commandPaletteContainer")
         c_layout = QVBoxLayout(container)
-        c_layout.setContentsMargins(12, 12, 12, 12)
-        c_layout.setSpacing(8)
+        c_layout.setContentsMargins(14, 14, 14, 12)
+        c_layout.setSpacing(10)
 
-        # Campo de entrada
+        # Barra de busca limpa
+        search_row = QHBoxLayout()
+        search_row.setSpacing(8)
+
         self.txt_search = QLineEdit()
-        self.txt_search.setPlaceholderText("Digite o nome ou finalidade da ferramenta...")
-        self.txt_search.setStyleSheet("""
-            QLineEdit {
-                background-color: #1e1e1e;
-                border: 1px solid #3e3e42;
-                border-radius: 4px;
-                padding: 8px;
-                font-size: 14px;
-                color: #ffffff;
-            }
-        """)
+        self.txt_search.setClearButtonEnabled(True)
+        self.txt_search.setPlaceholderText("Pesquisar ferramenta, categoria ou ação (ex: pdf, wifi, hash, dns)...")
         self.txt_search.textChanged.connect(self._filter_tools)
-        c_layout.addWidget(self.txt_search)
+        search_row.addWidget(self.txt_search, stretch=1)
+        c_layout.addLayout(search_row)
 
         # Lista de resultados
         self.list_results = QListWidget()
-        self.list_results.setStyleSheet("""
-            QListWidget {
-                background-color: #1e1e1e;
-                border: 1px solid #333333;
-                border-radius: 4px;
-                color: #f1f1f1;
-            }
-            QListWidget::item {
-                padding: 8px;
-                border-bottom: 1px solid #2a2a2a;
-            }
-            QListWidget::item:selected {
-                background-color: #094771;
-            }
-        """)
         self.list_results.itemActivated.connect(self._on_item_activated)
-        c_layout.addWidget(self.list_results)
+        self.list_results.itemClicked.connect(self._on_item_activated)
+        c_layout.addWidget(self.list_results, stretch=1)
 
-        # Dica de atalhos
-        lbl_hint = QLabel("Pressione Enter para abrir, Esc para fechar, ↑ ↓ para navegar")
-        lbl_hint.setStyleSheet("color: #888888; font-size: 11px;")
-        c_layout.addWidget(lbl_hint)
+        # Rodapé de atalhos
+        footer = QHBoxLayout()
+        lbl_hint = QLabel("Enter para abrir  |  Setas para navegar  |  Esc para fechar")
+        lbl_hint.setProperty("class", "muted")
+        footer.addWidget(lbl_hint)
+        footer.addStretch()
+
+        lbl_count = QLabel(f"{len(self._tools)} ferramentas no catálogo")
+        lbl_count.setProperty("class", "muted")
+        self.lbl_count = lbl_count
+        footer.addWidget(lbl_count)
+        c_layout.addLayout(footer)
 
         root_layout.addWidget(container)
-        self._populate_list(self._tools)
+        self._populate_default_list()
+        self.txt_search.setFocus()
 
-    def _populate_list(self, tools: List[BaseTool]):
+    def _populate_default_list(self) -> None:
+        """Exibe Favoritos e Recentes no topo seguidos do catálogo completo."""
+        st = load_settings()
+        fav_ids = set(st.get("favorites", []))
+        recent_ids = st.get("recent_tools", [])
+
+        ordered: List[Tuple[BaseTool, str]] = []
+        seen = set()
+
+        for tid in fav_ids:
+            for tool in self._tools:
+                if tool.id == tid and tool.id not in seen:
+                    ordered.append((tool, "Favorito"))
+                    seen.add(tool.id)
+
+        for tid in recent_ids[:5]:
+            for tool in self._tools:
+                if tool.id == tid and tool.id not in seen:
+                    ordered.append((tool, "Recente"))
+                    seen.add(tool.id)
+
+        for tool in self._tools:
+            if tool.id not in seen:
+                ordered.append((tool, ""))
+                seen.add(tool.id)
+
+        self._render_items(ordered)
+
+    def _render_items(self, items: List[Tuple[BaseTool, str]]) -> None:
         self.list_results.clear()
-        for t in tools:
-            item = QListWidgetItem(f"{t.name}  [{t.category}]")
+        for t, tag in items:
+            tag_prefix = f"[{tag}]  " if tag else ""
+            label = f"{tag_prefix}{t.name}   —   {t.category}\n{t.description}"
+            item = QListWidgetItem(get_category_icon(t.category, size=18), label)
             item.setData(Qt.UserRole, t.id)
             self.list_results.addItem(item)
+
+        self.lbl_count.setText(f"{len(items)} resultado(s)")
         if self.list_results.count() > 0:
             self.list_results.setCurrentRow(0)
 
-    def _filter_tools(self, query: str):
-        query = query.strip().lower()
-        if not query:
-            self._populate_list(self._tools)
+    def _filter_tools(self, query: str) -> None:
+        q = normalize_text(query)
+        if not q:
+            self._populate_default_list()
             return
 
-        filtered = []
+        scored: List[Tuple[float, BaseTool]] = []
         for t in self._tools:
-            match = False
-            if query in t.name.lower() or query in t.description.lower() or query in t.category.lower():
-                match = True
-            elif any(query in kw.lower() for kw in t.keywords):
-                match = True
-            if match:
-                filtered.append(t)
+            norm_name = normalize_text(t.name)
+            norm_cat = normalize_text(t.category)
+            norm_desc = normalize_text(t.description)
+            norm_id = normalize_text(t.id)
+            norm_kw = " ".join(normalize_text(k) for k in t.keywords)
 
-        self._populate_list(filtered)
+            # Match direto tem prioridade máxima
+            if q in norm_name or q in norm_id:
+                score = 100.0 + (20.0 if norm_name.startswith(q) else 0.0)
+            elif q in norm_kw or q in norm_cat or q in norm_desc:
+                score = 88.0
+            else:
+                # Busca fuzzy tolerante a erros de digitação
+                s_name = fuzz.partial_ratio(q, norm_name)
+                s_kw = fuzz.partial_ratio(q, norm_kw) if norm_kw else 0.0
+                score = max(s_name, s_kw * 0.95)
 
-    def _on_item_activated(self, item: QListWidgetItem):
+            if score >= 68.0:
+                scored.append((score, t))
+
+        scored.sort(key=lambda x: x[0], reverse=True)
+        self._render_items([(tool, "") for _, tool in scored])
+
+    def _on_item_activated(self, item: QListWidgetItem) -> None:
         tool_id = item.data(Qt.UserRole)
         if tool_id:
             self.tool_selected.emit(tool_id)
             self.accept()
 
-    def keyPressEvent(self, event):
+    def keyPressEvent(self, event) -> None:
         if event.key() == Qt.Key_Escape:
             self.reject()
         elif event.key() in (Qt.Key_Return, Qt.Key_Enter):
