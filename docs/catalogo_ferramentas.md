@@ -336,9 +336,75 @@ Este documento mantém o inventário detalhado de todas as ferramentas disponív
   - Integração com a API nativa do Windows Restart Manager (`rstrtmgr.dll` via `ctypes`: `RmStartSession`, `RmRegisterResources`, `RmGetList`, `RmEndSession`) sem depender de executáveis externos como Handle ou Process Explorer.
   - Fallback complementar de varredura via `psutil` de arquivos abertos.
   - Tabela com PID, Nome do Processo e Serviço associado.
-  - Botão "Encerrar Processo" com confirmação para liberar o arquivo travado.
+### `files.auto_organize` — Organizador Automático de Pastas
+- **Tipo**: `Tool`
+- **Recursos**:
+  - Organização automática de pastas desordenadas (como a pasta Downloads) por Categorias (Imagens, Vídeos, Documentos, Áudios, Compactados, Código, Instaladores), por Extensão Específica (.PNG, .PDF, .MP4), por Data de Modificação (Ano/Mês) ou por Ano.
+  - Suporte a busca recursiva em subpastas.
+  - Modos de operação: Mover arquivos ou Copiar arquivos preservando os originais.
+  - Simulação prévia obrigatória (Dry-Run): lista todos os destinos planejados e categorias em tabela antes de aplicar qualquer alteração em disco.
+  - Resolução automática de conflitos de nomes no destino.
+
+### `files.search` — Pesquisa Avançada de Arquivos e Conteúdo
+- **Tipo**: `Tool`
+- **Recursos**:
+  - Localização rápida de arquivos no disco através de múltiplos filtros combinados.
+  - Filtro por nome: suporte a curingas glob (`*.pdf`, `relatorio_*.xlsx`) e diferenciação opcional de maiúsculas/minúsculas.
+  - Filtro por tamanho de arquivo: qualquer tamanho, pequeno (< 1 MB), médio (1 a 50 MB) ou grande (> 50 MB).
+  - Filtro por data de modificação: últimas 24 horas, últimos 7 dias, últimos 30 dias ou último ano.
+  - Busca por conteúdo de texto interno: varredura em streaming em arquivos de texto, código e dados (.txt, .py, .csv, .json, .log, .md, .xml) sem carregar arquivos gigantescos na memória.
+  - Tabela com exibição do snippet da linha encontrada, ações de abrir arquivo ou abrir na pasta do Windows Explorer em um clique.
+
+### `files.sync` — Comparador e Sincronizador de Pastas
+- **Tipo**: `Tool`
+- **Recursos**:
+  - Comparação recursiva lado a lado entre duas pastas (Origem A e Destino B).
+  - Modos de Sincronismo:
+    - **Espelhamento (Mirror)**: Torna a pasta de destino idêntica à de origem, copiando arquivos novos e modificados e excluindo arquivos órfãos do destino.
+    - **Atualização (Update)**: Copia apenas arquivos novos e mais recentes da origem para o destino, sem excluir nada.
+    - **Bidirecional**: Sincroniza ambas as pastas com a versão mais recente de cada arquivo.
+  - Opção de comparação por Hash MD5 de conteúdo para máxima precisão além de data/tamanho.
+  - Tabela de prévia detalhada com status colorido (Novo, Modificado, Órfão, Idêntico) antes da execução física.
+
+### `files.encrypt` — Criptografia Local de Arquivos (AES-256)
+- **Tipo**: `Tool` (Interface em Abas)
+- **Recursos**:
+  - **Aba Criptografar**: Criptografia de qualquer tipo de arquivo com AES-256-GCM de padrão militar e derivação de chave segura PBKDF2 com 100.000 iterações de HMAC-SHA256 e salt aleatório de 16 bytes.
+  - Opção para exclusão segura do arquivo original após a conclusão bem-sucedida da criptografia.
+  - **Aba Descriptografar**: Restauração com validação de autenticidade e integridade AEAD (rejeita imediatamente senhas incorretas ou arquivos corrompidos).
+  - Campos de senha protegidos com alternador de visibilidade (Mostrar/Ocultar).
+
+### `files.timestamp_editor` — Modificador de Datas de Arquivos (Timestamp)
+- **Tipo**: `Tool`
+- **Recursos**:
+  - Modificação em lote de atributos de data e hora de arquivos e pastas no Windows.
+  - Suporte à alteração de Data de Criação (`ctime` via API Win32 `kernel32.SetFileTime`), Data de Modificação (`mtime`) e Data de Último Acesso (`atime`).
+  - Três modos de ajuste:
+    - Data e Hora Específica Fixa com seletor de calendário pop-up.
+    - Definir para o momento atual (Agora).
+    - Deslocar tempo relativamente (+/- N horas ou dias).
+  - Tabela com valores antes e depois para conferência.
+
+### `files.folder_watcher` — Monitor de Pastas em Tempo Real
+- **Tipo**: `Tool`
+- **Recursos**:
+  - Monitoramento contínuo em tempo real de eventos em diretórios com diferencial de snapshot leve em segundo plano (consumo de CPU < 0.1%).
+  - Detecção imediata de arquivos criados (verde), modificados (azul) e excluídos (vermelho).
+  - Tabela histórica com carimbo de data/hora, tipo de evento, nome do arquivo e detalhes de alteração de tamanho.
+  - Suporte a notificações na área de notificação do Windows (Bandeja / Tray).
+  - Exportação completa do histórico de eventos em relatório no formato `.CSV`.
+
+### `files.backup` — Assistente de Backup Incremental
+- **Tipo**: `Tool`
+- **Recursos**:
+  - Criação de backups locais com gestão de histórico e diferencial inteligente através de manifesto JSON (`.wtx_backup_manifest.json`).
+  - Dois formatos de saída:
+    - **Arquivo Compactado ZIP (Snapshot)**: Empacota a pasta inteira com compressão Deflate e carimbo de data e hora no nome (`backup_PASTA_YYYY-MM-DD_HHMMSS.zip`).
+    - **Pasta Incremental Espelhada**: Copia apenas os arquivos novos ou com tamanho/mtime alterados desde o último backup, economizando espaço em disco e tempo de transferência.
+  - Tabela de histórico da sessão com contagem de arquivos transferidos, bytes transferidos e botão de acesso direto à pasta no Explorer.
 
 ---
+
 
 ## 8. Compactação e Arquivos Comprimidos (`tools/archive/`)
 

@@ -204,16 +204,16 @@ Para evitar limitação de recursos que dependem de serviços de terceiros (como
 
 ## 6. Próximas Fases do Roadmap
 
-### Fase 6 — Arquivos Avançados e Organização Inteligente (Próximo Bloco)
-- [ ] Organizador automático de pastas por extensão ou data com simulação prévia (`files.auto_organize`).
-- [ ] Pesquisa rápida de arquivos por nome, tamanho, data e conteúdo de texto (`files.search`).
-- [ ] Comparador e sincronizador de pastas com preview visual estilo diff (`files.sync`).
-- [ ] Criptografia e descriptografia local de arquivos com AES-256 (`files.encrypt`).
-- [ ] Modificador em lote de datas de criação, modificação e acesso (`files.timestamp_editor`).
-- [ ] Monitor de pastas em tempo real com alertas na bandeja (`files.folder_watcher`).
-- [ ] Assistente de backup incremental de pastas locais (`files.backup`).
+### Fase 6 — Arquivos Avançados e Organização Inteligente (Concluída)
+- [x] Organizador automático de pastas por extensão ou data com simulação prévia (`files.auto_organize`).
+- [x] Pesquisa rápida de arquivos por nome, tamanho, data e conteúdo de texto (`files.search`).
+- [x] Comparador e sincronizador de pastas com preview visual estilo diff (`files.sync`).
+- [x] Criptografia e descriptografia local de arquivos com AES-256 (`files.encrypt`).
+- [x] Modificador em lote de datas de criação, modificação e acesso (`files.timestamp_editor`).
+- [x] Monitor de pastas em tempo real com alertas na bandeja (`files.folder_watcher`).
+- [x] Assistente de backup incremental de pastas locais (`files.backup`).
 
-### Fase 7 — Sistema, Processos e Manutenção Avançada
+### Fase 7 — Sistema, Processos e Manutenção Avançada (Próximo Bloco)
 - [ ] Gerenciador de processos nativo com monitor de CPU/RAM e árvore de processos (`system.process_manager`).
 - [ ] Gerenciador de Serviços do Windows: listar, iniciar, parar, reiniciar e tipo de boot (`system.services_manager`).
 - [ ] Gerenciador de inicialização do Windows (Registro + pasta Startup) (`system.startup_manager`).
@@ -277,15 +277,15 @@ Para evitar limitação de recursos que dependem de serviços de terceiros (como
 ---
 
 ## 7. Métrica de Qualidade e Testes
-- **Total de Ferramentas Registradas**: 55 ferramentas operacionais.
-- **Padrão Arquitetural de Lógica Desacoplada**: 100% das 55 ferramentas possuem divisão estrita entre UI (`tool.py`) e regras de negócio puras (`logic.py`), com zero importações de `PySide6` na camada de lógica.
+- **Total de Ferramentas Registradas**: 62 ferramentas operacionais.
+- **Padrão Arquitetural de Lógica Desacoplada**: 100% das 62 ferramentas possuem divisão estrita entre UI (`tool.py`) e regras de negócio puras (`logic.py`), com zero importações de `PySide6` na camada de lógica.
 - **Aceleração por Hardware (GPU) & Paralelismo**:
   - Detecção automática de GPUs instaladas (NVIDIA GeForce/RTX via `nvidia-smi` / WMI, AMD Radeon e Intel Arc/Iris).
   - Aceleração por hardware no FFmpeg via **NVIDIA NVENC** (`h264_nvenc`, `hevc_nvenc`), **AMD AMF** (`h264_amf`, `hevc_amf`) e **Intel QuickSync** (`h264_qsv`) com fallback automático resiliente para CPU (`libx264`).
   - Motor de lote concorrente (`core/batch.py`) com `ThreadPoolExecutor` dimensionado automaticamente de acordo com os núcleos da máquina (`optimal_batch_workers = min(cpu_cores, 8)`).
   - Cálculo de hashes concorrente em lote na ferramenta de localização de arquivos duplicados (`files.duplicates`).
-- **Cobertura de Testes**: 74 testes unitários e de integração executados com 100% de aprovação no `pytest` (incluindo testes de arquitetura e validação de aceleração de hardware).
-- **Tempo de Execução dos Testes**: ~8.7s.
+- **Cobertura de Testes**: 81 testes unitários e de integração executados com 100% de aprovação no `pytest` (incluindo testes de arquitetura, testes de aceleração de hardware e cobertura das 7 ferramentas da Fase 6).
+- **Tempo de Execução dos Testes**: ~9.0s.
 
 
 
