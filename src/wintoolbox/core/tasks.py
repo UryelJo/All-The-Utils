@@ -81,3 +81,18 @@ class TaskRunner:
     def cancel_current(self):
         if self.current_worker:
             self.current_worker.cancel()
+
+def run_task(
+    task_fn: Callable[[TaskContext], Any],
+    on_done: Optional[Callable[[Any, Optional[Exception]], None]] = None,
+    on_progress: Optional[Callable[[int, int, str], None]] = None
+) -> TaskWorker:
+    """Helper global para disparar uma tarefa assíncrona no pool com callback unificado on_done(result, exc)."""
+    runner = TaskRunner()
+    def _finished(res):
+        if on_done:
+            on_done(res, None)
+    def _error(err_msg):
+        if on_done:
+            on_done(None, Exception(err_msg))
+    return runner.start_task(task_fn, on_progress=on_progress, on_finished=_finished, on_error=_error)

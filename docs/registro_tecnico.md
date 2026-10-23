@@ -173,21 +173,21 @@ Para evitar limitação de recursos que dependem de serviços de terceiros (como
 - [x] Gerador de ícones .ico multi-resolução para Windows e pacote completo Web Favicon + Manifest PWA (`images.favicon`).
 - [x] Extrator de paleta de cores dominante com exportação para variáveis CSS, JSON e imagem PNG (`images.palette`).
 
+### Fase 4 — PDF e Documentos (Concluída - 8 Novas Ferramentas, 100% Offline)
+- [x] Divisor de PDF por páginas e juntador em lote com suporte a marcadores (`pdf.split_merge`).
+- [x] Conversor de fotos e digitalizações em lote para documento PDF com ajuste de página e margens (`pdf.images_to_pdf`).
+- [x] Extrator de texto e imagens embutidas em alta fidelidade (`pdf.extract`).
+- [x] Compressor e otimizador de peso de PDFs via recompressão de streams e eliminação de duplicatas (`pdf.compress`).
+- [x] Rotação de páginas de PDF em 90°, 180° e 270° em lote (`pdf.rotate`).
+- [x] Proteção criptográfica AES com senha e desbloqueio livre permanente (`pdf.security`).
+- [x] Conversor e visualizador em dois painéis de Markdown para HTML autônomo com estilos Fluent (`data.doc_converter`).
+- [x] Conversor de documentos Word, Excel e PowerPoint para PDF de alta fidelidade via automação COM (`pdf.office_convert`).
+
 ---
 
 ## 6. Próximas Fases do Roadmap
 
-### Fase 4 — PDF e Documentos (Próximo Bloco - 100% Offline)
-- [ ] Divisor de PDF por páginas e juntador em lote (`pdf.split_merge`).
-- [ ] Conversor de imagens em lote para documento PDF com margens (`pdf.images_to_pdf`).
-- [ ] Extrator de imagens embutidas e texto por página de PDF (`pdf.extract`).
-- [ ] Compressor e otimizador de peso de PDFs via recompressão de streams (`pdf.compress`).
-- [ ] Rotação de páginas de PDF em 90°, 180° e 270° (`pdf.rotate`).
-- [ ] Proteção com senha AES e remoção de restrições (`pdf.security`).
-- [ ] Conversor de Markdown para HTML estilizado e PDF (`data.doc_converter`).
-- [ ] Conversor de arquivos Office (Word, Excel, PowerPoint) para PDF via automação COM (`pdf.office_convert`).
-
-### Fase 5 — Sistema, Processos e Manutenção Avançada
+### Fase 5 — Sistema, Processos e Manutenção Avançada (Próximo Bloco)
 - [ ] Gerenciador de processos nativo com monitor de CPU/RAM e árvore de processos (`system.process_manager`).
 - [ ] Gerenciador de Serviços do Windows: listar, iniciar, parar, reiniciar e tipo de boot (`system.services_manager`).
 - [ ] Gerenciador de inicialização do Windows (Registro + pasta Startup) (`system.startup_manager`).
@@ -270,8 +270,9 @@ Para evitar limitação de recursos que dependem de serviços de terceiros (como
 ---
 
 ## 7. Métrica de Qualidade e Testes
-- **Total de Ferramentas Registradas**: 39 ferramentas operacionais.
-- **Cobertura de Testes**: 49 testes unitários e de integração executados com 100% de aprovação no `pytest`.
-- **Tempo de Execução dos Testes**: ~1.1s.
+- **Total de Ferramentas Registradas**: 47 ferramentas operacionais.
+- **Cobertura de Testes**: 58 testes unitários e de integração executados com 100% de aprovação no `pytest`.
+- **Tempo de Execução dos Testes**: ~1.5s.
+
 
 

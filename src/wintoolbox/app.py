@@ -14,6 +14,7 @@ import wintoolbox.tools.encode
 import wintoolbox.tools.data
 import wintoolbox.tools.files
 import wintoolbox.tools.archive
+import wintoolbox.tools.pdf
 
 from wintoolbox.core.settings import load_settings
 from wintoolbox.ui.main_window import MainWindow

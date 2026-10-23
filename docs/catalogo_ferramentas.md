@@ -350,4 +350,89 @@ Este documento mantém o inventário detalhado de todas as ferramentas disponív
   - **Aba Inspecionar**: Listagem de todo o conteúdo interno do arquivo compactado (nome relativo, tamanho real e tamanho comprimido) sem necessidade de descompactar.
   - **Aba Extrair**: Extração completa com filtro de proteção contra traversals maliciosos de diretório (`filter='data'`) e relatório de progresso.
 
+---
+
+## 9. PDF e Documentos (`tools/pdf/` e `tools/data/`)
+
+### `pdf.split_merge` — Divisor e Juntador de PDF
+- **Tipo**: `Tool` (Interface em Abas)
+- **Recursos**:
+  - **Aba Juntar PDFs (Merge)**:
+    - Adiciona múltiplos arquivos PDF à lista com reordenação arrastável (subir/descer) ou manual.
+    - Opção de criar automaticamente marcadores de índice (bookmarks/outline) com o nome de cada arquivo unificado.
+    - Execução assíncrona com barra de progresso e geração atômica de PDF único.
+  - **Aba Dividir PDF (Split)**:
+    - Exibe total de páginas e tamanho do arquivo PDF de entrada.
+    - 3 Estratégias de divisão:
+      - Todas as páginas individuais (1 arquivo por página).
+      - Intervalos customizados (ex: `1-3, 5, 8-10`).
+      - Agrupamento em blocos a cada N páginas (ex: a cada 2 ou 5 páginas).
+    - Definição customizada de pasta de destino e prefixo do nome dos arquivos gerados.
+
+### `pdf.images_to_pdf` — Imagens para PDF
+- **Tipo**: `Tool`
+- **Extensões Suportadas**: `.png`, `.jpg`, `.jpeg`, `.webp`, `.bmp`, `.tiff`
+- **Recursos**:
+  - Converte fotos, capturas e digitalizações em lote para um único documento PDF compilado.
+  - Suporte a tamanhos padrão de papel: A4 (210x297mm), Carta (Letter), Ofício (Legal) e Tamanho Original da Imagem.
+  - Orientação da folha: Automática (segue proporção da foto), Retrato (Vertical) ou Paisagem (Horizontal).
+  - Controle de margem interna em pontos (pt).
+  - Reordenação interativa de páginas (Mover para Cima/Baixo).
+
+### `pdf.extract` — Extrator de Texto e Imagens de PDF
+- **Tipo**: `Tool`
+- **Recursos**:
+  - **Aba Extrair Texto**:
+    - Extrai todo o texto contido no PDF página a página.
+    - Opção de cabeçalhos identificadores por página (`--- Página X ---`).
+    - Visualizador de texto integrado com botões "Copiar Texto" e "Salvar como .txt".
+  - **Aba Extrair Imagens**:
+    - Varre o documento e extrai todas as imagens embutidas em alta fidelidade.
+    - Filtro de dimensão mínima em pixels para descartar ícones minúsculos e bordas decorativas.
+    - Exporta como PNG ou JPG para a pasta indicada.
+
+### `pdf.compress` — Compressor de PDF
+- **Tipo**: `FileTool` (Processamento em Lote Automatizado)
+- **Extensões Suportadas**: `.pdf`
+- **Recursos**:
+  - Otimização e redução de peso de PDFs em lote com suporte a pastas recursivas e espelhamento de saída.
+  - Compressão de fluxos internos de texto e vetores (Content Streams).
+  - Eliminação de objetos e fontes idênticas duplicadas via `compress_identical_objects`.
+  - Remoção opcional de metadados internos e histórico de edições para redução máxima de bytes.
+  - Relatório de compressão indicando tamanho antes, depois e porcentagem de economia.
+
+### `pdf.rotate` — Rotacionador de PDF
+- **Tipo**: `FileTool` (Processamento em Lote Automatizado)
+- **Extensões Suportadas**: `.pdf`
+- **Recursos**:
+  - Gira páginas de PDFs em lote no sentido horário: 90°, 180° (inversão) ou 270° (90° anti-horário).
+  - Modos de aplicação seletiva: Todas as páginas, Apenas páginas ímpares, Apenas páginas pares ou Intervalo customizado (ex: `1, 3, 5-8`).
+
+### `pdf.security` — Segurança e Senhas de PDF
+- **Tipo**: `Tool`
+- **Recursos**:
+  - **Aba Proteger com Senha**:
+    - Criptografa o arquivo PDF com chave AES de alta segurança.
+    - Define senha de leitura (User Password) com confirmação e botões de alternar visualização (Mostrar/Ocultar).
+    - Opção de permissão de impressão.
+  - **Aba Desbloquear / Remover Senha**:
+    - Descriptografa documentos protegidos cuja senha seja conhecida, gerando uma cópia permanente livre de restrições.
+
+### `pdf.office_convert` — Conversor de Office para PDF
+- **Tipo**: `FileTool` (Processamento em Lote Automatizado)
+- **Extensões Suportadas**: `.docx`, `.doc`, `.xlsx`, `.xls`, `.pptx`, `.ppt`
+- **Recursos**:
+  - Conversão em lote de documentos do Word, planilhas do Excel e apresentações do PowerPoint para PDF de alta fidelidade.
+  - Integração com a automação COM nativa do Microsoft Office no Windows (`win32com.client`), preservando exatamente fontes, tabelas, cabeçalhos e diagramação originais.
+  - Gerenciamento seguro de instâncias headless com fechamento automático de processos e liberação de memória.
+
+### `data.doc_converter` — Conversor de Markdown para HTML
+- **Tipo**: `Tool`
+- **Recursos**:
+  - Editor de Markdown com pré-visualização em tempo real em dois painéis lado a lado.
+  - Estilização completa alinhada ao Windows 11 Fluent Design e suporte a temas claro/escuro.
+  - Suporte a tabelas, listas, citações e blocos de código com fontes monoespaçadas.
+  - Botão de carregar arquivo `.md`, copiar HTML gerado ou exportar diretamente como página autônoma `.html`.
+
+
 
