@@ -70,7 +70,7 @@ class SettingsPage(QWidget):
         l_theme.setSpacing(8)
 
         lbl_sec1 = QLabel("Aparência")
-        lbl_sec1.setStyleSheet("font-weight: 600; font-size: 13px;")
+        lbl_sec1.setStyleSheet("background: transparent; font-weight: 600; font-size: 13px;")
         l_theme.addWidget(lbl_sec1)
 
         row_theme = QHBoxLayout()
@@ -91,7 +91,7 @@ class SettingsPage(QWidget):
         l_sys.setSpacing(10)
 
         lbl_sec2 = QLabel("Comportamento e Integração")
-        lbl_sec2.setStyleSheet("font-weight: 600; font-size: 13px;")
+        lbl_sec2.setStyleSheet("background: transparent; font-weight: 600; font-size: 13px;")
         l_sys.addWidget(lbl_sec2)
 
         self.chk_tray = QCheckBox("Minimizar para a bandeja do sistema ao fechar a janela")
@@ -127,7 +127,7 @@ class SettingsPage(QWidget):
         l_tok.setSpacing(10)
 
         lbl_sec_tok = QLabel("Chaves de API e Tokens de Serviços")
-        lbl_sec_tok.setStyleSheet("font-weight: 600; font-size: 13px;")
+        lbl_sec_tok.setStyleSheet("background: transparent; font-weight: 600; font-size: 13px;")
         l_tok.addWidget(lbl_sec_tok)
 
         lbl_tok_sub = QLabel(
@@ -165,7 +165,7 @@ class SettingsPage(QWidget):
         l_bak.setSpacing(10)
 
         lbl_sec3 = QLabel("Backup, Restauração e Dados")
-        lbl_sec3.setStyleSheet("font-weight: 600; font-size: 13px;")
+        lbl_sec3.setStyleSheet("background: transparent; font-weight: 600; font-size: 13px;")
         l_bak.addWidget(lbl_sec3)
 
         row_bak = QHBoxLayout()
@@ -226,7 +226,7 @@ class SettingsPage(QWidget):
         row = QHBoxLayout()
         lbl = QLabel(f"{label_text}:")
         lbl.setFixedWidth(310)
-        lbl.setStyleSheet("font-weight: 500;")
+        lbl.setStyleSheet("background: transparent; font-weight: 500;")
         row.addWidget(lbl)
 
         txt = QLineEdit(initial_value)

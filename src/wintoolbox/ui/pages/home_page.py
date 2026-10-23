@@ -44,6 +44,9 @@ class ToolCardWidget(QFrame):
                 background-color: #323238;
                 border-color: #0078d4;
             }
+            ToolCardWidget QLabel {
+                background-color: transparent;
+            }
         """)
 
         layout = QVBoxLayout(self)
@@ -52,7 +55,7 @@ class ToolCardWidget(QFrame):
 
         r_top = QHBoxLayout()
         lbl_name = QLabel(tool.name)
-        lbl_name.setStyleSheet("font-size: 13px; font-weight: 600; color: #ffffff;")
+        lbl_name.setStyleSheet("background-color: transparent; font-size: 13px; font-weight: 600; color: #ffffff;")
         r_top.addWidget(lbl_name)
         r_top.addStretch()
 
@@ -72,7 +75,7 @@ class ToolCardWidget(QFrame):
 
         lbl_desc = QLabel(tool.description)
         lbl_desc.setWordWrap(True)
-        lbl_desc.setStyleSheet("font-size: 12px; color: #a1a1aa;")
+        lbl_desc.setStyleSheet("background-color: transparent; font-size: 12px; color: #a1a1aa;")
         layout.addWidget(lbl_desc)
 
     def mousePressEvent(self, event):
@@ -111,18 +114,22 @@ class HomePage(QWidget):
                 border: 1px solid #2d4560;
                 border-radius: 10px;
             }
+            QFrame#heroCard QLabel {
+                background-color: transparent;
+            }
         """)
         l_hero = QVBoxLayout(hero)
         l_hero.setContentsMargins(20, 18, 20, 18)
         l_hero.setSpacing(6)
 
         lbl_welcome = QLabel("All the Utils — Central de Produtividade")
-        lbl_welcome.setStyleSheet("font-size: 20px; font-weight: 700; color: #ffffff;")
+        lbl_welcome.setStyleSheet("background-color: transparent; font-size: 20px; font-weight: 700; color: #ffffff;")
         l_hero.addWidget(lbl_welcome)
 
         total_count = len(get_all_tools())
         lbl_desc = QLabel(f"São {total_count} ferramentas nativas para Windows com aceleração de hardware e processamento paralelo.")
-        lbl_desc.setStyleSheet("font-size: 13px; color: #b4c7dc;")
+        lbl_desc.setStyleSheet("background-color: transparent; font-size: 13px; color: #b4c7dc;")
+
         l_hero.addWidget(lbl_desc)
 
         layout.addWidget(hero)
@@ -139,7 +146,7 @@ class HomePage(QWidget):
 
             r_cat_hdr = QHBoxLayout()
             lbl_cat = QLabel(f"{icon}  {cat_name} ({len(tools)})")
-            lbl_cat.setStyleSheet("font-weight: 700; font-size: 15px; color: #ffffff;")
+            lbl_cat.setStyleSheet("background: transparent; font-weight: 700; font-size: 15px; color: #ffffff;")
             r_cat_hdr.addWidget(lbl_cat)
             r_cat_hdr.addStretch()
             cat_layout.addLayout(r_cat_hdr)

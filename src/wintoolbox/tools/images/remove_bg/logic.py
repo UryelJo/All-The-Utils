@@ -28,7 +28,8 @@ def remove_image_background(
 
     # 1. Tenta rembg se instalado no ambiente
     try:
-        import rembg
+        import importlib
+        rembg = importlib.import_module("rembg")
         with open(input_path, "rb") as inp_f:
             inp_bytes = inp_f.read()
             out_bytes = rembg.remove(inp_bytes)

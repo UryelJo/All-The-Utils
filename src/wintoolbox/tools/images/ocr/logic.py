@@ -19,9 +19,10 @@ def perform_ocr_on_image(image_path: Path) -> str:
     if not image_path.is_file():
         raise FileNotFoundError(f"Arquivo de imagem não encontrado: {image_path}")
 
-    # 1. Tenta pytesseract se o usuário tiver configurado
+    # 1. Tenta pytesseract se o usuário tiver instalado
     try:
-        import pytesseract
+        import importlib
+        pytesseract = importlib.import_module("pytesseract")
         from PIL import Image
         with Image.open(image_path) as img:
             txt = pytesseract.image_to_string(img, lang="por+eng")

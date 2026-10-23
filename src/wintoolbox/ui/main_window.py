@@ -86,11 +86,11 @@ class MainWindow(QMainWindow):
         header_box.setSpacing(2)
 
         lbl_app = QLabel("All the Utils")
-        lbl_app.setStyleSheet("font-size: 17px; font-weight: 700; color: #ffffff;")
+        lbl_app.setStyleSheet("background: transparent; font-size: 17px; font-weight: 700; color: #ffffff;")
         header_box.addWidget(lbl_app)
 
         lbl_subtitle = QLabel("Caixa de Ferramentas Windows")
-        lbl_subtitle.setStyleSheet("font-size: 11px; color: #8f8f9d;")
+        lbl_subtitle.setStyleSheet("background: transparent; font-size: 11px; color: #8f8f9d;")
         header_box.addWidget(lbl_subtitle)
         sb_layout.addLayout(header_box)
 

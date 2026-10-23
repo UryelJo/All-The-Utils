@@ -64,7 +64,7 @@ class SystemToolsView(QWidget):
 
         admin_status = "Executando como Administrador" if is_admin() else "Executando como Usuário Padrão"
         self.lbl_admin = QLabel(f"Status UAC: {admin_status}")
-        self.lbl_admin.setStyleSheet("font-weight: 500;")
+        self.lbl_admin.setStyleSheet("font-weight: 500; background: transparent;")
         admin_layout.addWidget(self.lbl_admin)
 
         admin_layout.addStretch()

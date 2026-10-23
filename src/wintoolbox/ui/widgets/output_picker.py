@@ -32,7 +32,7 @@ class OutputPickerWidget(QFrame):
         layout.setSpacing(8)
 
         lbl_header = QLabel("Destino e Política de Saída")
-        lbl_header.setStyleSheet("font-weight: 600; font-size: 13px;")
+        lbl_header.setStyleSheet("background: transparent; font-weight: 600; font-size: 13px;")
         layout.addWidget(lbl_header)
 
         # Linha 1: Modo de Destino e Caminho

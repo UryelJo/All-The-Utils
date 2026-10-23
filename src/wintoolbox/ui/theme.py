@@ -59,17 +59,48 @@ def apply_theme(app: QApplication, mode: str = "dark"):
         item_selected = "#0078d4"
 
     qss = f"""
-    QMainWindow, QWidget {{
+    QMainWindow, QWidget#centralWidget, QStackedWidget {{
         background-color: {bg_main};
         color: {text_primary};
         font-family: 'Segoe UI Variable Text', 'Segoe UI', -apple-system, sans-serif;
     }}
 
-    QFrame.card {{
+    QScrollArea {{
+        background-color: transparent;
+        border: none;
+    }}
+    QScrollArea > QWidget > QWidget {{
+        background-color: transparent;
+    }}
+
+    QWidget {{
+        color: {text_primary};
+        font-family: 'Segoe UI Variable Text', 'Segoe UI', -apple-system, sans-serif;
+    }}
+
+    /* Labels e Textos sempre com fundo transparente para evitar faixas pretas */
+    QLabel {{
+        background-color: transparent;
+        background: transparent;
+        color: {text_primary};
+    }}
+
+    QCheckBox, QRadioButton {{
+        background-color: transparent;
+        background: transparent;
+        color: {text_primary};
+    }}
+
+    QFrame[class="card"], QFrame.card, .card {{
         background-color: {bg_card};
         border: 1px solid {border_color};
         border-radius: 8px;
     }}
+    QFrame[class="card"] QLabel, QFrame.card QLabel, .card QLabel {{
+        background-color: transparent;
+        background: transparent;
+    }}
+
 
     /* Sidebar Específica */
     QFrame#sidebarFrame {{
@@ -283,14 +314,18 @@ def apply_theme(app: QApplication, mode: str = "dark"):
     }}
 
     /* Tipografia de Cabeçalhos */
-    QLabel.secondary {{
+    QLabel[class="secondary"], QLabel.secondary {{
         color: {text_secondary};
         font-size: 12px;
+        background-color: transparent;
+        background: transparent;
     }}
-    QLabel.title {{
+    QLabel[class="title"], QLabel.title {{
         font-size: 20px;
         font-weight: 700;
         letter-spacing: -0.2px;
+        background-color: transparent;
+        background: transparent;
     }}
     """
     app.setStyleSheet(qss)

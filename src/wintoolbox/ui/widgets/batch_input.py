@@ -34,7 +34,7 @@ class BatchInputWidget(QFrame):
 
         # Cabeçalho da seção
         lbl_header = QLabel("Arquivos e Pastas de Origem")
-        lbl_header.setStyleSheet("font-weight: 600; font-size: 13px;")
+        lbl_header.setStyleSheet("background: transparent; font-weight: 600; font-size: 13px;")
         layout.addWidget(lbl_header)
 
         # Tabela de origens
