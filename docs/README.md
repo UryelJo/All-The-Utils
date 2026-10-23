@@ -1,6 +1,6 @@
-# Documentação Oficial e Base de Conhecimento — WinToolbox
+# Documentação Oficial e Base de Conhecimento — All the Utils
 
-Bem-vindo à pasta de documentação e preservação de contexto do **WinToolbox**.
+Bem-vindo à pasta de documentação e preservação de contexto do **All the Utils**.
 
 Este diretório foi estruturado no raiz do projeto para manter o registro contínuo de todas as implementações, decisões de arquitetura e instruções para prompts futuros, assegurando que o projeto nunca sofra com inconsistências ou perdas de requisitos.
 

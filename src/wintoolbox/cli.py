@@ -23,8 +23,8 @@ from wintoolbox.core.registry import FileTool, TaskContext, get_all_tools, get_t
 def run_cli(args=None):
     """Executa a interface de linha de comando."""
     parser = argparse.ArgumentParser(
-        prog="wintoolbox",
-        description="WinToolbox - Ferramentas de automação e conversão para Windows"
+        prog="all-the-utils",
+        description="All the Utils - Suíte completa de ferramentas utilitárias para Windows"
     )
     parser.add_argument("--list", action="store_true", help="Lista todas as ferramentas disponíveis")
     
@@ -42,7 +42,7 @@ def run_cli(args=None):
     parsed = parser.parse_args(args)
 
     if parsed.list:
-        print("\nFerramentas registradas no WinToolbox:")
+        print("\nFerramentas registradas no All the Utils:")
         print("--------------------------------------------------")
         for t in get_all_tools():
             print(f"- {t.id:<20} | {t.name} ({t.category})")

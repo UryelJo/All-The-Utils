@@ -1,4 +1,4 @@
-# WinToolbox — Registro Técnico e Base de Conhecimento do Projeto
+# All the Utils — Registro Técnico e Base de Conhecimento do Projeto
 
 Este diretório armazena a especificação detalhada de todas as funcionalidades, decisões de arquitetura, contratos de código e estado das fases para garantir consistência e evitar retrabalho em iterações futuras.
 

@@ -22,13 +22,13 @@ def create_tray_icon_pixmap() -> QIcon:
     painter.setPen(Qt.NoPen)
     painter.drawRoundedRect(2, 2, 28, 28, 6, 6)
 
-    # Letra 'W' centralizada em branco
+    # Letra 'A' centralizada em branco
     painter.setPen(QColor("#ffffff"))
     font = painter.font()
     font.setPixelSize(18)
     font.setBold(True)
     painter.setFont(font)
-    painter.drawText(pix.rect(), Qt.AlignCenter, "W")
+    painter.drawText(pix.rect(), Qt.AlignCenter, "A")
     painter.end()
 
     return QIcon(pix)
@@ -41,7 +41,7 @@ class SystemTrayManager:
         self.on_search = on_search
 
         self.tray = QSystemTrayIcon(create_tray_icon_pixmap(), QApplication.instance())
-        self.tray.setToolTip("WinToolbox - Caixa de Ferramentas")
+        self.tray.setToolTip("All the Utils - Caixa de Ferramentas")
         self.tray.activated.connect(self._on_tray_activated)
 
         self._build_menu()
@@ -50,8 +50,8 @@ class SystemTrayManager:
     def _build_menu(self):
         menu = QMenu()
 
-        # Abrir WinToolbox
-        act_open = QAction("Abrir WinToolbox", menu)
+        # Abrir All the Utils
+        act_open = QAction("Abrir All the Utils", menu)
         act_open.triggered.connect(self.on_show_window)
         menu.addAction(act_open)
 

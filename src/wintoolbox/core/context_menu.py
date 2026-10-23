@@ -16,7 +16,7 @@ def get_sendto_dir() -> Path:
     return Path.home() / "AppData" / "Roaming" / "Microsoft" / "Windows" / "SendTo"
 
 def get_sendto_shortcut_path() -> Path:
-    return get_sendto_dir() / "WinToolbox.cmd"
+    return get_sendto_dir() / "All The Utils.cmd"
 
 def is_sendto_installed() -> bool:
     """Verifica se o atalho na pasta 'Enviar para' está presente."""

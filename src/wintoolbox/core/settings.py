@@ -29,9 +29,15 @@ def get_settings_dir() -> Path:
     """Retorna o diretório de dados da aplicação."""
     appdata = os.environ.get("APPDATA")
     if appdata:
-        base = Path(appdata) / "WinToolbox"
+        base = Path(appdata) / "AllTheUtils"
+        legacy = Path(appdata) / "WinToolbox"
+        if not base.exists() and legacy.exists():
+            try:
+                shutil.copytree(legacy, base)
+            except Exception:
+                pass
     else:
-        base = Path.home() / ".wintoolbox"
+        base = Path.home() / ".alltheutils"
     base.mkdir(parents=True, exist_ok=True)
     return base
 

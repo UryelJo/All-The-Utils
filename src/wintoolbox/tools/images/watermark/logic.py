@@ -47,7 +47,7 @@ def apply_watermark_to_image(src: Path, dst: Path, params: Dict[str, Any]) -> No
         watermark_layer = Image.new("RGBA", (bw, bh), (0, 0, 0, 0))
 
         if wm_type == "Texto":
-            text = params.get("text", "WinToolbox")
+            text = params.get("text", "All the Utils")
             font_size = params.get("font_size", 36)
             font = _get_font(font_size)
             rotation = params.get("rotation", 0)

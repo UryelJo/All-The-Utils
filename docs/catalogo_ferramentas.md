@@ -1,6 +1,6 @@
-# WinToolbox — Catálogo Completo de Ferramentas Implementadas
+# All the Utils — Catálogo Completo de Ferramentas Implementadas
 
-Este documento mantém o inventário detalhado de todas as ferramentas disponíveis no WinToolbox, seus identificadores, parâmetros e recursos, servindo de referência para desenvolvimento e futuros prompts.
+Este documento mantém o inventário detalhado de todas as ferramentas disponíveis no All the Utils, seus identificadores, parâmetros e recursos, servindo de referência para desenvolvimento e futuros prompts.
 
 ---
 

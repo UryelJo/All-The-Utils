@@ -23,7 +23,7 @@ def generate_multi_size_ico(src: Path, dst: Path, sizes: List[int] = None) -> No
 def generate_web_favicon_package(
     src: Path,
     out_dir: Path,
-    app_name: str = "WinToolbox App",
+    app_name: str = "All the Utils App",
     theme_color: str = "#0078D4"
 ) -> Dict[str, str]:
     """Gera o pacote completo de favicons para web e mobile com manifest e snippet HTML."""
@@ -73,7 +73,7 @@ def generate_web_favicon_package(
     manifest_path.write_text(json.dumps(manifest_data, indent=2, ensure_ascii=False), encoding="utf-8")
 
     # 4. Snippet HTML
-    html_snippet = f"""<!-- Favicon gerado pelo WinToolbox -->
+    html_snippet = f"""<!-- Favicon gerado pelo All the Utils -->
 <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
 <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
 <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">

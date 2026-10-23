@@ -1,11 +1,11 @@
-# WinToolbox — Guia de Contexto para Novos Prompts
+# All the Utils — Guia de Contexto para Novos Prompts
 
-Este documento foi criado para servir como fonte única de verdade ao iniciar novas sessões de trabalho ou novos prompts no repositório **WinToolbox**. Copie ou consulte as diretrizes abaixo para evitar perda de contexto, inconsistências ou retrabalho.
+Este documento foi criado para servir como fonte única de verdade ao iniciar novas sessões de trabalho ou novos prompts no repositório **All the Utils**. Copie ou consulte as diretrizes abaixo para evitar perda de contexto, inconsistências ou retrabalho.
 
 ---
 
 ## 1. Visão Geral do Projeto
-O **WinToolbox** é uma caixa de ferramentas utilitárias completa e moderna para Windows desenvolvida em Python 3.12 com **PySide6 (Qt)**.
+O **All the Utils** é uma caixa de ferramentas utilitárias completa e moderna para Windows desenvolvida em Python 3.12 com **PySide6 (Qt)**.
 O projeto foca em utilidade prática para o dia a dia: conversão e edição em lote, diagnósticos avançados de hardware e sistema operacional, testes de rede e automações de arquivos.
 
 ### Princípios Irrevogáveis do Projeto

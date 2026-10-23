@@ -1,6 +1,6 @@
-# WinToolbox - Caixa de Ferramentas para Windows
+# All the Utils - Caixa de Ferramentas para Windows
 
-Caixa de ferramentas para Windows desenvolvida em Python com **PySide6 (Qt)**, arquitetura modular, suporte a processamento em lote nativo e interface com design sóbrio no padrão **Windows 11 Fluent**.
+Caixa de ferramentas completa e moderna para Windows desenvolvida em Python com **PySide6 (Qt)**, arquitetura modular, suporte a processamento em lote nativo e interface com design sóbrio no padrão **Windows 11 Fluent**.
 
 ---
 

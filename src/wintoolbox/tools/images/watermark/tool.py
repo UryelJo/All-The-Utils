@@ -57,7 +57,7 @@ class ImageWatermarkTool(FileTool):
         # --- Seção Texto ---
         self.lbl_text = QLabel("Texto da marca:")
         grid.addWidget(self.lbl_text, 1, 0)
-        self.txt_watermark = QLineEdit("© WinToolbox")
+        self.txt_watermark = QLineEdit("© All the Utils")
         grid.addWidget(self.txt_watermark, 1, 1)
 
         self.lbl_font_size = QLabel("Tamanho da fonte:")

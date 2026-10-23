@@ -23,8 +23,8 @@ def run_gui():
     """Inicia a aplicação gráfica PySide6."""
     # Configuração de High-DPI no Qt
     app = QApplication(sys.argv)
-    app.setApplicationName("WinToolbox")
-    app.setOrganizationName("WinToolbox")
+    app.setApplicationName("All the Utils")
+    app.setOrganizationName("All the Utils")
 
     # Carrega configurações salvas de tema
     st = load_settings()

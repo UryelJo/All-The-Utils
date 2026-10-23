@@ -27,7 +27,7 @@ class MainWindow(QMainWindow):
     """Janela principal do WinToolbox."""
     def __init__(self):
         super().__init__()
-        self.setWindowTitle("Windows Toolbox")
+        self.setWindowTitle("All the Utils")
         self.resize(1040, 700)
         self.setMinimumSize(880, 580)
         self.setAcceptDrops(True)
@@ -65,7 +65,7 @@ class MainWindow(QMainWindow):
         sb_layout.setSpacing(8)
 
         # Título
-        lbl_app = QLabel("WinToolbox")
+        lbl_app = QLabel("All the Utils")
         lbl_app.setStyleSheet("font-size: 16px; font-weight: 700; color: #ffffff; padding: 4px;")
         sb_layout.addWidget(lbl_app)
 

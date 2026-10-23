@@ -3,9 +3,9 @@ requires = ["setuptools>=61.0"]
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "wintoolbox"
+name = "all-the-utils"
 version = "1.0.0"
-description = "Caixa de Ferramentas completa para Windows em Python com PySide6"
+description = "All the Utils - Caixa de Ferramentas completa para Windows em Python com PySide6"
 readme = "README.md"
 requires-python = ">=3.10"
 dependencies = [
@@ -24,6 +24,7 @@ dev = [
 ]
 
 [project.scripts]
+all-the-utils = "wintoolbox.__main__:main"
 wintoolbox = "wintoolbox.__main__:main"
 
 [tool.setuptools.packages.find]

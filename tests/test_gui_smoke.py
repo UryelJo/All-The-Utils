@@ -9,7 +9,7 @@ def test_main_window_startup(qtbot):
     qtbot.addWidget(window)
     window.show()
 
-    assert window.windowTitle() == "Windows Toolbox"
+    assert window.windowTitle() == "All the Utils"
     assert window.nav_list.count() >= 4  # Início + 3 ferramentas
 
     # Testa navegação programática para as páginas

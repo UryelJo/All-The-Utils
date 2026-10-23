@@ -54,7 +54,7 @@ class SettingsPage(QWidget):
         layout.setSpacing(16)
 
         # Cabeçalho
-        lbl_title = QLabel("Configurações do WinToolbox")
+        lbl_title = QLabel("Configurações do All the Utils")
         lbl_title.setProperty("class", "title")
         layout.addWidget(lbl_title)
 
