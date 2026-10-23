@@ -3,8 +3,8 @@ Testes unitários de persistência de configurações, backup e favoritos.
 """
 from pathlib import Path
 from wintoolbox.core.settings import (
-    export_settings, import_settings, is_favorite, load_settings,
-    save_settings, toggle_favorite
+    export_settings, get_all_api_tokens, get_api_token, import_settings,
+    is_favorite, load_settings, save_settings, set_api_token, toggle_favorite
 )
 
 def test_settings_save_and_load():
@@ -53,3 +53,19 @@ def test_export_and_import_settings(tmp_path: Path):
     ok_imp = import_settings(backup_file)
     assert ok_imp is True
     assert load_settings()["default_subfolder_name"] == "teste_backup_123"
+
+def test_api_tokens_management():
+    set_api_token("virustotal", "token_vt_123456")
+    assert get_api_token("virustotal") == "token_vt_123456"
+
+    set_api_token("OPENAI", "sk-teste-999")  # case-insensitive
+    assert get_api_token("openai") == "sk-teste-999"
+
+    all_toks = get_all_api_tokens()
+    assert "virustotal" in all_toks
+    assert "openai" in all_toks
+
+    # Remover passando vazio
+    set_api_token("virustotal", "")
+    assert get_api_token("virustotal") == ""
+

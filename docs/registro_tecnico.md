@@ -75,7 +75,32 @@ Toda ferramenta herda de `BaseTool` e utiliza o decorador `@register`:
 
 ---
 
-## 3. Diretrizes de Design e Usabilidade
+## 3. Gerenciador Central de Chaves de API e Tokens
+
+Para evitar limitação de recursos que dependem de serviços de terceiros (como VirusTotal, OpenAI, Anthropic Claude, Google Gemini, GitHub, Hugging Face, OpenWeatherMap, Shodan, etc.), o sistema conta com uma central de credenciais unificada:
+
+1. **Localização e Persistência**:
+   - Armazenado no arquivo `%APPDATA%/WinToolbox/settings.json` na chave `"api_tokens": { ... }`.
+   - Incluído automaticamente nas rotinas de backup e restauração (`export_settings` e `import_settings`).
+
+2. **Como Consumir em Qualquer Ferramenta**:
+   ```python
+   from wintoolbox.core.settings import get_api_token
+
+   vt_key = get_api_token("virustotal")
+   if not vt_key:
+       # Informa o usuário de forma amigável com orientação para configurar em Configurações
+       pass
+   ```
+
+3. **Interface Gráfica (`SettingsPage`)**:
+   - Localizada na aba **Configurações > Chaves de API e Tokens de Serviços**.
+   - Campos com máscara de senha (`QLineEdit.Password`), botão de alternar visibilidade ("Mostrar/Ocultar") e botão de limpar.
+   - Pré-configurações com rótulos amigáveis para serviços populares e botão "Adicionar Outro Serviço..." para cadastrar qualquer chave customizada informando um identificador livre.
+
+---
+
+## 4. Diretrizes de Design e Usabilidade
 - **Sem cara de IA**: Proibido uso de emojis em botões/títulos, sem badges "AI/PRO", sem gradientes exagerados.
 - **Identidade Windows 11 Fluent**: Bordas de 4-6px, paleta neutra sóbria, cor de destaque lida de `HKCU\Software\Microsoft\Windows\DWM\AccentColor`.
 - **Lazy Loading**: Nenhuma ferramenta pesada é importada no startup. O tempo de inicialização da aplicação deve permanecer abaixo de 200 ms.
@@ -83,7 +108,8 @@ Toda ferramenta herda de `BaseTool` e utiliza o decorador `@register`:
 
 ---
 
-## 4. Estado das Implementações
+
+## 5. Estado das Implementações
 
 ### Fase 0 — Fundação (Concluída)
 - [x] PySide6 Fluent Design System (Dark/Light).
@@ -129,7 +155,7 @@ Toda ferramenta herda de `BaseTool` e utiliza o decorador `@register`:
 
 ---
 
-## 5. Próximas Fases do Roadmap
+## 6. Próximas Fases do Roadmap
 
 ### Fase 2 — Arquivos e Compactação (Próximo Bloco)
 - [ ] Renomeador de arquivos em lote com regras empilháveis, substituição e prévia (`files.rename`).
@@ -142,9 +168,9 @@ Toda ferramenta herda de `BaseTool` e utiliza o decorador `@register`:
 
 ---
 
-## 6. Métrica de Qualidade e Testes
+## 7. Métrica de Qualidade e Testes
 - **Total de Ferramentas Registradas**: 25 ferramentas operacionais.
-- **Cobertura de Testes**: 32 testes unitários e de integração executados com 100% de aprovação no `pytest`.
+- **Cobertura de Testes**: 33 testes unitários e de integração executados com 100% de aprovação no `pytest`.
 - **Tempo de Execução dos Testes**: ~0.8s.
 
 

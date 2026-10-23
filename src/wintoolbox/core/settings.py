@@ -21,7 +21,8 @@ DEFAULT_SETTINGS: Dict[str, Any] = {
     "notifications_enabled": True, # Exibir notificações no Windows
     "global_hotkey_enabled": True, # Atalho global (Ctrl+Alt+T) para abrir a toolbox
     "favorites": [],               # IDs das ferramentas favoritas
-    "recent_tools": []             # IDs das ferramentas usadas recentemente (máx 10)
+    "recent_tools": [],            # IDs das ferramentas usadas recentemente (máx 10)
+    "api_tokens": {}               # Tokens e chaves de API centralizados { "servico": "token" }
 }
 
 def get_settings_dir() -> Path:
@@ -115,3 +116,30 @@ def import_settings(source_path: Path) -> bool:
             return True
     except Exception:
         return False
+
+def get_api_token(service_id: str, default: str = "") -> str:
+    """Obtém o token ou chave de API configurada para um serviço específico."""
+    st = load_settings()
+    tokens = st.get("api_tokens", {})
+    return tokens.get(service_id.lower().strip(), default)
+
+def set_api_token(service_id: str, token_value: str) -> None:
+    """Salva ou remove a chave de API de um serviço."""
+    st = load_settings()
+    tokens = st.get("api_tokens", {})
+    clean_key = service_id.lower().strip()
+    clean_val = token_value.strip()
+
+    if clean_val:
+        tokens[clean_key] = clean_val
+    else:
+        tokens.pop(clean_key, None)
+
+    st["api_tokens"] = tokens
+    save_settings(st)
+
+def get_all_api_tokens() -> Dict[str, str]:
+    """Retorna todas as chaves de API cadastradas."""
+    st = load_settings()
+    return dict(st.get("api_tokens", {}))
+

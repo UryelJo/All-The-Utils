@@ -20,6 +20,8 @@ O projeto foca em utilidade prática para o dia a dia: conversão e edição em 
 4. **Thread-Safety Estrito**:
    - NUNCA manipular widgets Qt a partir de threads secundárias.
    - Toda operação demorada de rede, disco ou subprocesso DEVE usar o `TaskRunner` (`src/wintoolbox/core/tasks.py`), que gerencia o `QThreadPool` e se comunica de forma segura através de sinais Qt (`Signal`).
+5. **Centralização de Tokens e Chaves de API**:
+   - Qualquer ferramenta que necessite de chave de terceiros (VirusTotal, OpenAI, Gemini, Claude, GitHub, etc.) deve consumir de forma padronizada via `get_api_token("nome_servico")` de `wintoolbox.core.settings`. As chaves são gerenciadas visualmente pelo usuário na aba de Configurações.
 
 ---
 
@@ -39,7 +41,10 @@ WinToolbox/
 │   └── tools/                  # Plugins de ferramentas organizados por categoria
 │       ├── images/             # Manipulação de imagens
 │       ├── system/             # Ferramentas e monitor do sistema
-│       └── network/            # Utilitários, diagnóstico e scanners de rede
+│       ├── network/            # Utilitários, diagnóstico e scanners de rede
+│       ├── text/               # Diff, regex, transformações e validações de documentos
+│       ├── encode/             # Hashes, encoders (Base64/Hex), JWT, geradores e timestamps
+│       └── data/               # Conversor de dados em lote e formatadores (JSON/XML/SQL)
 └── tests/                      # Testes automatizados (pytest e pytest-qt)
 ```
 
