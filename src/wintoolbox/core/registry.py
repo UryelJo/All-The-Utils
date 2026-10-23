@@ -14,6 +14,25 @@ class TaskContext:
     is_cancelled: Callable[[], bool]
     is_paused: Callable[[], bool] = lambda: False
 
+    def progress(self, current: int, total: int, message: str = "") -> None:
+        """Reporta progresso para a UI de forma thread-safe."""
+        if callable(self.on_progress):
+            self.on_progress(current, total, message)
+
+    def log(self, level: str, message: str) -> None:
+        """Envia mensagem de log thread-safe."""
+        if callable(self.on_log):
+            self.on_log(level, message)
+
+    def cancelled(self) -> bool:
+        """Verifica se a tarefa foi cancelada."""
+        return self.is_cancelled() if callable(self.is_cancelled) else bool(self.is_cancelled)
+
+    def paused(self) -> bool:
+        """Verifica se a tarefa foi pausada."""
+        return self.is_paused() if callable(self.is_paused) else bool(self.is_paused)
+
+
 @dataclass
 class ItemResult:
     """Resultado do processamento de um único arquivo/item."""

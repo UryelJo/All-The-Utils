@@ -209,4 +209,8 @@ class ImagesToPdfTool(Tool):
                     f"PDF gerado com sucesso contendo {count} páginas!\nArquivo: {result}"
                 )
 
-        run_task(_work, on_done=_done)
+        def _on_prog(cur: int, tot: int, msg: str):
+            if msg:
+                self.lbl_status.setText(msg)
+
+        run_task(_work, on_done=_done, on_progress=_on_prog)
