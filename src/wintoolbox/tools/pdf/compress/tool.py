@@ -5,7 +5,7 @@ Implementação completa herdando de FileTool com automação de pastas e espelh
 from pathlib import Path
 from typing import Any, Dict, Optional
 from PySide6.QtWidgets import (
-    QCheckBox, QFrame, QGridLayout, QLabel, QSlider, QVBoxLayout, QWidget
+    QCheckBox, QComboBox, QFrame, QGridLayout, QLabel, QSlider, QVBoxLayout, QWidget
 )
 from PySide6.QtCore import Qt
 
@@ -46,13 +46,23 @@ class PdfCompressTool(FileTool):
         self.chk_remove_meta.setChecked(False)
         grid.addWidget(self.chk_remove_meta, 1, 0, 1, 2)
 
+        grid.addWidget(QLabel("Imagens internas (PDFs escaneados):"), 2, 0)
+        self.cmb_image_quality = QComboBox()
+        self.cmb_image_quality.addItem("Qualidade alta (JPEG 85)", 85)
+        self.cmb_image_quality.addItem("Equilibrado (JPEG 70) - recomendado", 70)
+        self.cmb_image_quality.addItem("Tamanho mínimo (JPEG 50)", 50)
+        self.cmb_image_quality.addItem("Não recomprimir imagens", 100)
+        self.cmb_image_quality.setCurrentIndex(1)
+        grid.addWidget(self.cmb_image_quality, 2, 1)
+
         layout.addLayout(grid)
         return panel
 
-    def get_params(self) -> Dict[str, Any]:
+    def get_options(self) -> Dict[str, Any]:
         return {
             "compress_streams": self.chk_compress_streams.isChecked(),
             "remove_metadata": self.chk_remove_meta.isChecked(),
+            "image_quality": self.cmb_image_quality.currentData(),
         }
 
     def output_ext(self, params: Dict[str, Any]) -> str:
@@ -70,7 +80,8 @@ class PdfCompressTool(FileTool):
                 src,
                 dst,
                 compress_streams=params.get("compress_streams", True),
-                remove_metadata=params.get("remove_metadata", False)
+                remove_metadata=params.get("remove_metadata", False),
+                image_quality=params.get("image_quality", 70),
             )
 
             src_kb = res["src_size"] / 1024
@@ -79,11 +90,13 @@ class PdfCompressTool(FileTool):
 
             return ItemResult(
                 success=True,
+                source_path=src,
                 output_path=dst,
                 message=f"Reduzido de {src_kb:.1f} KB para {dst_kb:.1f} KB ({pct:.1f}% economia)"
             )
         except Exception as e:
             return ItemResult(
                 success=False,
+                source_path=src,
                 error=f"Falha ao comprimir {src.name}: {e}"
             )

@@ -23,7 +23,7 @@ class ImageResizeTool(FileTool):
     category = "Imagens"
     description = "Redimensione, corte, rotacione e espelhe fotos e imagens em lote com alta qualidade"
     keywords = ["redimensionar", "imagem", "escala", "cortar", "crop", "rotacionar", "espelhar", "lanczos", "fotos"]
-    accepts = [".png", ".jpg", ".jpeg", ".webp", ".bmp", ".tiff", ".ico"]
+    accepts = [".png", ".jpg", ".jpeg", ".webp", ".bmp", ".tiff", ".ico", ".heic", ".heif", ".avif"]
     batch_kind = "per_file"
     parallel_mode = "process"
 
@@ -144,14 +144,14 @@ class ImageResizeTool(FileTool):
             ow, oh, nw, nh = resize_single_image(src, dst, params)
             return ItemResult(
                 success=True,
-                src=src,
-                dst=dst,
+                source_path=src,
+                output_path=dst,
                 message=f"Redimensionado de {ow}x{oh} para {nw}x{nh}"
             )
         except Exception as e:
             return ItemResult(
                 success=False,
-                src=src,
-                dst=dst,
-                message=f"Erro ao redimensionar: {str(e)}"
+                source_path=src,
+                output_path=dst,
+                error=f"Erro ao redimensionar: {str(e)}"
             )

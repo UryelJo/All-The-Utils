@@ -6,7 +6,7 @@ from pathlib import Path
 from typing import Optional
 from PySide6.QtCore import Qt
 from PySide6.QtWidgets import (
-    QApplication, QCheckBox, QFileDialog, QFrame, QGridLayout,
+    QApplication, QCheckBox, QComboBox, QFileDialog, QFrame, QGridLayout,
     QGroupBox, QHBoxLayout, QLabel, QLineEdit, QMessageBox,
     QPushButton, QSpinBox, QTabWidget, QTextEdit, QVBoxLayout,
     QWidget
@@ -15,7 +15,7 @@ from PySide6.QtWidgets import (
 from wintoolbox.core.registry import TaskContext, Tool, register
 from wintoolbox.core.tasks import run_task
 from wintoolbox.tools.pdf.extract.logic import (
-    extract_images_from_pdf, extract_text_from_pdf
+    extract_images_from_pdf, extract_text_from_pdf, render_pdf_pages
 )
 
 
@@ -24,8 +24,9 @@ class PdfExtractTool(Tool):
     id = "pdf.extract"
     name = "Extrator de Texto e Imagens de PDF"
     category = "PDF"
-    description = "Extraia texto integral página a página ou extraia todas as fotos e ilustrações embutidas em PDFs"
-    keywords = ["pdf", "extrair", "texto", "imagens", "descompactar", "ocr", "figuras", "fotos"]
+    description = "Extraia texto, fotos embutidas ou converta páginas de PDFs em imagens (PNG/JPG/WEBP)"
+    keywords = ["pdf", "extrair", "texto", "imagens", "descompactar", "ocr", "figuras", "fotos",
+                "converter", "pdf para imagem", "png", "jpg", "renderizar", "páginas"]
 
     def build_view(self, parent: Optional[QWidget] = None) -> QWidget:
         container = QFrame(parent)
@@ -40,6 +41,7 @@ class PdfExtractTool(Tool):
         tabs = QTabWidget()
         tabs.addTab(self._build_text_tab(), "Extrair Texto")
         tabs.addTab(self._build_images_tab(), "Extrair Imagens")
+        tabs.addTab(self._build_render_tab(), "Páginas como Imagem")
         main_layout.addWidget(tabs)
 
         return container
@@ -252,3 +254,112 @@ class PdfExtractTool(Tool):
                 )
 
         run_task(_work, on_done=_done)
+
+
+    # -------------------------------------------------------------------------
+    # Aba 3: Páginas como Imagem (pypdfium2)
+    # -------------------------------------------------------------------------
+    def _build_render_tab(self) -> QWidget:
+        tab = QWidget()
+        layout = QVBoxLayout(tab)
+        layout.setContentsMargins(12, 12, 12, 12)
+        layout.setSpacing(10)
+
+        grp_box = QGroupBox("Converter Páginas do PDF em Imagens")
+        grid = QGridLayout(grp_box)
+        grid.setSpacing(10)
+
+        grid.addWidget(QLabel("PDF de entrada:"), 0, 0)
+        self.txt_render_src = QLineEdit()
+        self.txt_render_src.setPlaceholderText("Selecione o arquivo PDF...")
+        grid.addWidget(self.txt_render_src, 0, 1, 1, 3)
+        btn_src = QPushButton("Procurar...")
+        btn_src.clicked.connect(self._on_browse_render_src)
+        grid.addWidget(btn_src, 0, 4)
+
+        grid.addWidget(QLabel("Pasta de destino:"), 1, 0)
+        self.txt_render_out = QLineEdit()
+        grid.addWidget(self.txt_render_out, 1, 1, 1, 3)
+        btn_out = QPushButton("Procurar...")
+        btn_out.clicked.connect(self._on_browse_render_out)
+        grid.addWidget(btn_out, 1, 4)
+
+        grid.addWidget(QLabel("Formato:"), 2, 0)
+        self.cmb_render_fmt = QComboBox()
+        self.cmb_render_fmt.addItems(["PNG", "JPG", "WEBP"])
+        grid.addWidget(self.cmb_render_fmt, 2, 1)
+
+        grid.addWidget(QLabel("Resolução:"), 2, 2)
+        self.spin_render_dpi = QSpinBox()
+        self.spin_render_dpi.setRange(36, 600)
+        self.spin_render_dpi.setValue(150)
+        self.spin_render_dpi.setSuffix(" dpi")
+        self.spin_render_dpi.setToolTip("150 dpi: tela e compartilhamento | 300 dpi: impressão")
+        grid.addWidget(self.spin_render_dpi, 2, 3)
+
+        grid.addWidget(QLabel("Páginas:"), 3, 0)
+        self.txt_render_pages = QLineEdit()
+        self.txt_render_pages.setPlaceholderText("Todas (ou ex: 1-3, 5, 8-)")
+        grid.addWidget(self.txt_render_pages, 3, 1, 1, 3)
+
+        layout.addWidget(grp_box)
+
+        act_box = QHBoxLayout()
+        self.btn_render = QPushButton("Converter Páginas")
+        self.btn_render.setProperty("class", "primary")
+        self.btn_render.clicked.connect(self._on_run_render)
+        act_box.addWidget(self.btn_render)
+        self.lbl_render_status = QLabel("")
+        act_box.addWidget(self.lbl_render_status)
+        act_box.addStretch()
+        layout.addLayout(act_box)
+        layout.addStretch()
+        return tab
+
+    def _on_browse_render_src(self):
+        file, _ = QFileDialog.getOpenFileName(None, "Selecionar PDF", "", "Arquivos PDF (*.pdf)")
+        if file:
+            p = Path(file)
+            self.txt_render_src.setText(str(p))
+            if not self.txt_render_out.text():
+                self.txt_render_out.setText(str(p.parent / f"{p.stem}_paginas"))
+
+    def _on_browse_render_out(self):
+        folder = QFileDialog.getExistingDirectory(None, "Selecionar Pasta de Destino")
+        if folder:
+            self.txt_render_out.setText(folder)
+
+    def _on_run_render(self):
+        src = self.txt_render_src.text().strip()
+        out_dir = self.txt_render_out.text().strip()
+        if not src or not Path(src).is_file():
+            QMessageBox.warning(None, "Aviso", "Selecione um arquivo PDF válido.")
+            return
+        if not out_dir:
+            QMessageBox.warning(None, "Aviso", "Informe a pasta de saída.")
+            return
+
+        fmt = self.cmb_render_fmt.currentText().lower()
+        dpi = self.spin_render_dpi.value()
+        selection = self.txt_render_pages.text()
+        self.btn_render.setEnabled(False)
+        self.lbl_render_status.setText("Renderizando páginas...")
+
+        def _work(ctx: TaskContext):
+            return render_pdf_pages(
+                Path(src), Path(out_dir), dpi=dpi, img_format=fmt, selection=selection,
+                progress_cb=lambda cur, tot, name: ctx.progress(cur, tot, name),
+            )
+
+        def _progress(cur, tot, msg):
+            self.lbl_render_status.setText(f"Página {cur} de {tot}: {msg}")
+
+        def _done(result, exc):
+            self.btn_render.setEnabled(True)
+            if exc:
+                self.lbl_render_status.setText(f"Erro: {exc}")
+                QMessageBox.critical(None, "Erro", f"Falha ao converter páginas: {exc}")
+                return
+            self.lbl_render_status.setText(f"{len(result)} página(s) convertida(s) em {out_dir}")
+
+        run_task(_work, on_done=_done, on_progress=_progress)

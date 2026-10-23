@@ -3,7 +3,7 @@ Lógica pura da ferramenta Formatador e Minificador de Dados (JSON, XML, SQL).
 Sem acoplamento com interface gráfica.
 """
 import json
-import xml.dom.minidom
+from defusedxml import minidom as defused_minidom
 
 
 def beautify_code(text: str, code_type: str, indent: int = 2) -> str:
@@ -13,7 +13,7 @@ def beautify_code(text: str, code_type: str, indent: int = 2) -> str:
         parsed = json.loads(text)
         return json.dumps(parsed, indent=indent, ensure_ascii=False)
     elif t == "XML":
-        dom = xml.dom.minidom.parseString(text.encode("utf-8"))
+        dom = defused_minidom.parseString(text.encode("utf-8"))
         pretty = dom.toprettyxml(indent=" " * indent)
         return "\n".join([line for line in pretty.splitlines() if line.strip()])
     elif t == "SQL":
@@ -37,7 +37,7 @@ def minify_code(text: str, code_type: str) -> str:
         parsed = json.loads(text)
         return json.dumps(parsed, separators=(",", ":"), ensure_ascii=False)
     elif t == "XML":
-        dom = xml.dom.minidom.parseString(text.encode("utf-8"))
+        dom = defused_minidom.parseString(text.encode("utf-8"))
         return "".join([l.strip() for l in dom.toxml().splitlines() if l.strip()])
     elif t == "SQL":
         try:

@@ -4,12 +4,21 @@ Inspeção SSL, Whois e verificação de disponibilidade HTTP sem acoplamento ao
 """
 from dataclasses import dataclass
 import datetime
+import re
 import socket
 import ssl
 import time
 from typing import Dict, Optional, Tuple
 import urllib.error
 import urllib.request
+
+
+_HOST_RE = re.compile(r"^[A-Za-z0-9:](?:[A-Za-z0-9.\-:%]{0,252})$")
+
+
+def is_safe_host(host: str) -> bool:
+    """Aceita apenas hostname, IPv4 ou IPv6 (sem espaços, opções '-x' ou metacaracteres de shell)."""
+    return bool(_HOST_RE.match(host or ""))
 
 
 @dataclass

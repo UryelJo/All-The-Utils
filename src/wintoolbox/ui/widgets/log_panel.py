@@ -5,6 +5,7 @@ adaptando-se automaticamente ao Tema Escuro e Claro.
 """
 import time
 from typing import Optional
+from PySide6.QtCore import Signal
 from PySide6.QtGui import QFont, QTextCursor
 from PySide6.QtWidgets import (
     QApplication, QFrame, QHBoxLayout, QPlainTextEdit, QPushButton, QVBoxLayout, QWidget
@@ -16,10 +17,14 @@ from wintoolbox.ui.widgets.toast import show_toast
 class LogPanelWidget(QFrame):
     """Componente recolhível para exibição de logs e saídas de terminal."""
 
+    # Permite chamar append_log de threads de trabalho (ex: servidor HTTP) com segurança
+    _log_requested = Signal(str, str)
+
     def __init__(self, parent: Optional[QWidget] = None):
         super().__init__(parent)
         self.setProperty("class", "card")
         self._is_collapsed = False
+        self._log_requested.connect(self._append_log_ui)
 
         self._build_ui()
 
@@ -71,6 +76,9 @@ class LogPanelWidget(QFrame):
             self.btn_toggle.setText("Log de Execução (Ocultar)")
 
     def append_log(self, level: str, message: str) -> None:
+        self._log_requested.emit(level, message)
+
+    def _append_log_ui(self, level: str, message: str) -> None:
         now = time.strftime("%H:%M:%S")
         prefix = f"[{now}] [{level.upper()}]"
         self.txt_log.appendPlainText(f"{prefix} {message}")

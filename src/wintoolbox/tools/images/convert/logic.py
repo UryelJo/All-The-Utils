@@ -3,9 +3,9 @@ Lógica pura de conversão de imagens usando Pillow.
 Independente de interface gráfica para uso em batch, threads e CLI.
 """
 from pathlib import Path
-from PIL import Image
+from PIL import Image, ImageOps
 
-SUPPORTED_OUTPUTS = ["WEBP", "JPG", "PNG", "ICO", "BMP", "TIFF", "PDF"]
+SUPPORTED_OUTPUTS = ["WEBP", "AVIF", "JPG", "PNG", "ICO", "BMP", "TIFF", "PDF"]
 
 def convert_single_image(
     source_path: Path,
@@ -21,7 +21,9 @@ def convert_single_image(
     if target_format == "JPG":
         target_format = "JPEG"
 
-    with Image.open(source_path) as img:
+    with Image.open(source_path) as opened:
+        # Aplica a rotação do EXIF (fotos de celular/HEIC chegam "deitadas" sem isso)
+        img = ImageOps.exif_transpose(opened)
         # Tratamento de canal alfa para JPEG e PDF
         if target_format in ("JPEG", "PDF"):
             if img.mode in ("RGBA", "LA") or (img.mode == "P" and "transparency" in img.info):
@@ -35,7 +37,7 @@ def convert_single_image(
             img = img.convert("RGBA")
 
         save_kwargs = {}
-        if target_format in ("JPEG", "WEBP"):
+        if target_format in ("JPEG", "WEBP", "AVIF"):
             save_kwargs["quality"] = max(10, min(100, quality))
             if target_format == "JPEG":
                 save_kwargs["optimize"] = True

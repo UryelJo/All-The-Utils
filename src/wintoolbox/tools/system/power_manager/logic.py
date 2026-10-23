@@ -7,6 +7,8 @@ import subprocess
 from typing import Any, Dict, List, Optional, Tuple
 import psutil
 
+from wintoolbox.core.shell import CONSOLE_ENCODING, CREATE_NO_WINDOW
+
 
 def get_power_plans() -> List[Dict[str, Any]]:
     """
@@ -14,7 +16,7 @@ def get_power_plans() -> List[Dict[str, Any]]:
     """
     plans: List[Dict[str, Any]] = []
     try:
-        res = subprocess.run(["powercfg", "/list"], capture_output=True, text=True, timeout=10)
+        res = subprocess.run(["powercfg", "/list"], capture_output=True, text=True, encoding=CONSOLE_ENCODING, errors="replace", timeout=10, creationflags=CREATE_NO_WINDOW)
         if res.returncode == 0:
             lines = res.stdout.splitlines()
             # Padrão: GUID do Esquema de Energia: 381b4222-f694-41f0-9685-ff5bb260df2e  (Equilibrado) *
@@ -46,7 +48,7 @@ def set_active_power_plan(plan_guid: str) -> Tuple[bool, str]:
         return False, "GUID do plano inválido."
 
     try:
-        res = subprocess.run(["powercfg", "/setactive", plan_guid], capture_output=True, text=True, timeout=10)
+        res = subprocess.run(["powercfg", "/setactive", plan_guid], capture_output=True, text=True, encoding=CONSOLE_ENCODING, errors="replace", timeout=10, creationflags=CREATE_NO_WINDOW)
         if res.returncode == 0:
             return True, "Plano de energia ativado com sucesso."
         return False, f"Falha ao alterar plano: {res.stderr or res.stdout}"
@@ -62,22 +64,26 @@ def schedule_system_action(action: str, delay_seconds: int) -> Tuple[bool, str]:
     try:
         if action == "shutdown":
             cmd = ["shutdown", "/s", "/t", str(max(0, delay_seconds))]
-            subprocess.run(cmd, check=True)
+            subprocess.run(cmd, check=True, creationflags=CREATE_NO_WINDOW)
             mins = round(delay_seconds / 60, 1)
             return True, f"Desligamento agendado para daqui a {mins} minutos."
 
         elif action == "restart":
             cmd = ["shutdown", "/r", "/t", str(max(0, delay_seconds))]
-            subprocess.run(cmd, check=True)
+            subprocess.run(cmd, check=True, creationflags=CREATE_NO_WINDOW)
             mins = round(delay_seconds / 60, 1)
             return True, f"Reinício agendado para daqui a {mins} minutos."
 
         elif action == "lock":
-            subprocess.run(["rundll32.exe", "user32.dll,LockWorkStation"])
+            subprocess.run(["rundll32.exe", "user32.dll,LockWorkStation"], creationflags=CREATE_NO_WINDOW)
             return True, "Estação de trabalho bloqueada com sucesso."
 
         elif action == "sleep":
-            subprocess.run(["rundll32.exe", "powrprof.dll,SetSuspendState", "0,1,0"])
+            # rundll32 não repassa os argumentos de SetSuspendState e o PC hiberna quando a
+            # hibernação/Inicialização Rápida está ativa; a chamada direta garante suspensão (S3)
+            import ctypes
+            if not ctypes.windll.powrprof.SetSuspendState(False, False, False):
+                return False, "O Windows recusou a suspensão (verifique as políticas de energia)."
             return True, "Modo de suspensão ativado."
 
         return False, f"Ação desconhecida: {action}"
@@ -88,7 +94,7 @@ def schedule_system_action(action: str, delay_seconds: int) -> Tuple[bool, str]:
 def cancel_scheduled_shutdown() -> Tuple[bool, str]:
     """Cancela qualquer desligamento ou reinício previamente agendado no Windows."""
     try:
-        res = subprocess.run(["shutdown", "/a"], capture_output=True, text=True)
+        res = subprocess.run(["shutdown", "/a"], capture_output=True, text=True, encoding=CONSOLE_ENCODING, errors="replace", creationflags=CREATE_NO_WINDOW)
         if res.returncode == 0:
             return True, "Desligamento/reinício agendado cancelado com sucesso."
         return False, "Nenhum desligamento agendado estava ativo."

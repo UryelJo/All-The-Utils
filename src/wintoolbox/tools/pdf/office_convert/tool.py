@@ -52,15 +52,17 @@ class OfficeToPdfTool(FileTool):
         ctx: TaskContext
     ) -> ItemResult:
         try:
-            ctx.progress(20, 100, f"Convertendo {src.name} via Office COM...")
+            ctx.log("INFO", f"Convertendo {src.name} via Office COM...")
             convert_office_doc_to_pdf(src, dst)
             return ItemResult(
                 success=True,
+                source_path=src,
                 output_path=dst,
                 message=f"Convertido com sucesso: {dst.name}"
             )
         except Exception as e:
             return ItemResult(
                 success=False,
+                source_path=src,
                 error=f"Falha ao converter {src.name}: {e}"
             )

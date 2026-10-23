@@ -11,7 +11,10 @@ from pathlib import Path
 from typing import Callable, Dict, Iterator, List, Optional, Set, Tuple
 from concurrent.futures import ThreadPoolExecutor, as_completed
 
+from wintoolbox.core.logging_setup import get_logger
 from wintoolbox.core.registry import ItemResult, TaskContext, ToolResult
+
+_log = get_logger("batch")
 
 @dataclass
 class SourceItem:
@@ -126,14 +129,18 @@ def calculate_destination_path(
     item: DiscoveredFile,
     output_policy: OutputPolicy,
     target_ext: str,
-    extra_vars: Optional[Dict[str, str]] = None
+    extra_vars: Optional[Dict[str, str]] = None,
+    reserved: Optional[Set[str]] = None
 ) -> Path:
     """
     Calcula o caminho de destino exato para um item baseado na política de saída,
     espelhamento relativo de subpastas e resolução de conflitos de nome.
     """
     src = item.source_path
-    if not target_ext.startswith('.'):
+    if not target_ext:
+        # Ferramentas que preservam o formato (redimensionar, comprimir...) retornam ""
+        target_ext = src.suffix
+    elif not target_ext.startswith('.'):
         target_ext = f".{target_ext}"
 
     # 1. Determina a pasta base de destino
@@ -171,14 +178,24 @@ def calculate_destination_path(
     target_filename = f"{formatted_name}{target_ext}"
     final_path = base_dest / target_filename
 
-    # 3. Resolução de conflitos
-    if output_policy.conflict == "rename" and final_path.exists():
+    # 3. Resolução de conflitos (inclui destinos já reservados por outros itens do lote)
+    def _taken(p: Path) -> bool:
+        return p.exists() or (reserved is not None and _norm_key(p) in reserved)
+
+    if output_policy.conflict == "rename" and _taken(final_path):
         counter = 1
-        while final_path.exists():
+        while _taken(final_path):
             final_path = base_dest / f"{formatted_name} ({counter}){target_ext}"
             counter += 1
 
+    if reserved is not None:
+        reserved.add(_norm_key(final_path))
     return final_path
+
+
+def _norm_key(p: Path) -> str:
+    """Chave de comparação de caminhos insensível a maiúsculas (NTFS)."""
+    return os.path.normcase(str(p))
 
 import threading
 from concurrent.futures import ThreadPoolExecutor, as_completed
@@ -220,6 +237,7 @@ def execute_batch(
     skipped_count = 0
     completed_count = 0
     lock = threading.Lock()
+    reserved: Set[str] = set()
 
     ctx.on_progress(0, total, f"Iniciando lote ({total} itens, {workers} worker(s) em paralelo)...")
 
@@ -233,10 +251,14 @@ def execute_batch(
             time.sleep(0.2)
 
         src = item.source_path
-        dst = calculate_destination_path(item, output_policy, target_ext)
+        with lock:
+            # Reserva o destino sob lock: dois itens paralelos (ex: foto.png e foto.jpg -> foto.webp)
+            # não podem receber o mesmo caminho.
+            already_reserved = _norm_key(calculate_destination_path(item, output_policy, target_ext)) in reserved
+            dst = calculate_destination_path(item, output_policy, target_ext, reserved=reserved)
 
         # Política de pular arquivo existente
-        if output_policy.conflict == "skip" and dst.exists():
+        if output_policy.conflict == "skip" and (dst.exists() or already_reserved):
             with lock:
                 skipped_count += 1
                 completed_count += 1
@@ -248,17 +270,26 @@ def execute_batch(
 
         # Garante diretório de destino
         dst.parent.mkdir(parents=True, exist_ok=True)
-        tmp_dst = dst.with_name(f"{dst.name}_{os.getpid()}_{threading.get_ident()}.tmp_wtbx")
+        # O temporário mantém a extensão final: Pillow, ffmpeg e o Office deduzem o formato por ela
+        tmp_dst = dst.with_name(f"{dst.stem}.wtbx-{os.getpid()}-{threading.get_ident()}.tmp{dst.suffix}")
 
         try:
             res = process_func(src, tmp_dst, params, ctx)
-            if res.success and tmp_dst.exists():
-                if dst.exists() and output_policy.conflict == "overwrite":
-                    dst.unlink()
-                tmp_dst.rename(dst)
-                res.output_path = dst
+            # Ferramentas que geram várias saídas (ex: extrator de quadros) escrevem em output_path
+            wrote_elsewhere = (
+                res.success and not tmp_dst.exists()
+                and res.output_path is not None and Path(res.output_path).exists()
+            )
+            if res.success and (tmp_dst.exists() or wrote_elsewhere):
+                if tmp_dst.exists():
+                    if dst.exists() and output_policy.conflict != "overwrite":
+                        raise FileExistsError(f"Destino já existe: {dst}")
+                    os.replace(tmp_dst, dst)
+                    res.output_path = dst
+                else:
+                    dst = Path(res.output_path)
 
-                if output_policy.preserve_timestamps:
+                if output_policy.preserve_timestamps and dst.is_file():
                     try:
                         stat = src.stat()
                         os.utime(dst, (stat.st_atime, stat.st_mtime))
@@ -296,6 +327,7 @@ def execute_batch(
                 res = ItemResult(success=False, source_path=src, error=str(e))
                 results.append(res)
                 ctx.on_log("ERROR", f"Exceção em {src.name}: {str(e)}")
+                _log.exception("Exceção ao processar '%s' com %s", src, getattr(process_func, "__qualname__", process_func))
                 ctx.on_progress(completed_count, total, f"Erro {completed_count}/{total}: {src.name}")
             return res
 

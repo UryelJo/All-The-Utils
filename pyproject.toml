@@ -10,17 +10,45 @@ readme = "README.md"
 requires-python = ">=3.10"
 dependencies = [
     "PySide6>=6.7.0",
-    "Pillow>=10.0.0",
+    "Pillow>=11.3.0",
     "psutil>=5.9.0",
     "pywin32>=306",
     "rapidfuzz>=3.0.0",
+    "qrcode>=7.4.0",
+    "paramiko>=3.4.0",
+    "sqlparse>=0.5.0",
+    "cryptography>=42.0.0",
+    "pypdf>=4.0.0",
+    "PyYAML>=6.0",
+    "mutagen>=1.47.0",
+    "yt-dlp>=2024.1.0",
+    "pyttsx3>=2.90",
+    "markdown>=3.5",
+    "Send2Trash>=1.8.0",
+    "pikepdf>=8.0.0",
+    "pypdfium2>=4.20.0",
+    "pillow-heif>=0.16.0",
+    "zxing-cpp>=2.2.0",
+    "defusedxml>=0.7.1",
+    "winrt-runtime>=3.0.0",
+    "winrt-Windows.Foundation>=3.0.0",
+    "winrt-Windows.Foundation.Collections>=3.0.0",
+    "winrt-Windows.Globalization>=3.0.0",
+    "winrt-Windows.Graphics.Imaging>=3.0.0",
+    "winrt-Windows.Media.Ocr>=3.0.0",
+    "winrt-Windows.Media.SpeechSynthesis>=3.0.0",
+    "winrt-Windows.Storage>=3.0.0",
+    "winrt-Windows.Storage.Streams>=3.0.0",
 ]
 
 [project.optional-dependencies]
+extras = [
+    "static-ffmpeg>=2.5",           # ffmpeg/ffprobe para as ferramentas de mídia
+]
 dev = [
     "pytest>=8.0.0",
     "pytest-qt>=4.4.0",
-    "pyinstaller>=6.0.0",
+    "pyinstaller>=6.6.0",
 ]
 
 [project.scripts]
@@ -29,3 +57,7 @@ wintoolbox = "wintoolbox.__main__:main"
 
 [tool.setuptools.packages.find]
 where = ["src"]
+
+[tool.pytest.ini_options]
+pythonpath = ["src"]
+testpaths = ["tests"]

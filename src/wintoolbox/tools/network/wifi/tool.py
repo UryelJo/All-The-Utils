@@ -177,7 +177,10 @@ class WifiView(QWidget):
         if 0 <= row < len(self._profiles):
             p = self._profiles[row]
             self.txt_qr_ssid.setText(p.ssid)
-            self.txt_qr_pass.setText(p.password if p.password != "(Sem senha / Aberta)" else "")
+            is_open = p.password == "(Sem senha / Aberta)"
+            self.txt_qr_pass.setText("" if is_open else p.password)
+            # Sem isso, uma rede aberta gerava QR "WPA" com senha vazia (o celular não conecta)
+            self.cmb_qr_auth.setCurrentText("Aberta" if is_open else ("WEP" if "WEP" in p.auth.upper() else "WPA"))
             self.tabs.setCurrentIndex(1)
             self._generate_qr()
 

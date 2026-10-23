@@ -5,6 +5,7 @@ Compatível com criptografia AES via pypdf.
 from pathlib import Path
 from typing import Optional
 from pypdf import PdfReader, PdfWriter
+from pypdf.constants import UserAccessPermissions
 
 
 def protect_pdf(
@@ -35,11 +36,15 @@ def protect_pdf(
 
     owner_pwd = owner_password or user_password
 
-    # Criptografa usando algoritmo padrão seguro AES
+    # Sem 'algorithm' o pypdf usa RC4-128 (/V 2); AES-256 exige o pacote 'cryptography'
+    permissions = UserAccessPermissions.all()
+    if not allow_printing:
+        permissions &= ~(UserAccessPermissions.PRINT | UserAccessPermissions.PRINT_TO_REPRESENTATION)
     writer.encrypt(
         user_password=user_password,
         owner_password=owner_pwd,
-        use_128bit=True
+        permissions_flag=permissions,
+        algorithm="AES-256"
     )
 
     with open(dst_path, "wb") as f_out:

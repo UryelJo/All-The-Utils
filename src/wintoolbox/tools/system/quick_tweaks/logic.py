@@ -8,6 +8,8 @@ import time
 from typing import Dict, Tuple
 import winreg
 
+from wintoolbox.core.shell import CONSOLE_ENCODING, CREATE_NO_WINDOW
+
 
 def get_quick_tweaks_state() -> Dict[str, bool]:
     """
@@ -124,7 +126,7 @@ def restart_windows_explorer() -> Tuple[bool, str]:
     Reinicia o processo do Windows Explorer para que alterações visuais entrem em vigor imediatamente.
     """
     try:
-        subprocess.run(["taskkill", "/f", "/im", "explorer.exe"], capture_output=True, timeout=5)
+        subprocess.run(["taskkill", "/f", "/im", "explorer.exe"], capture_output=True, timeout=5, creationflags=CREATE_NO_WINDOW)
         time.sleep(1)
         subprocess.Popen("explorer.exe")
         return True, "Windows Explorer reiniciado com sucesso."

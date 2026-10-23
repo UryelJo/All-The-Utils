@@ -91,7 +91,7 @@ class MediaConvertTool(FileTool):
             if fmt not in AUDIO_FORMATS:
                 self.cmb_format.setCurrentText("MP3")
 
-    def get_params(self) -> Dict[str, Any]:
+    def get_options(self) -> Dict[str, Any]:
         return {
             "format": self.cmb_format.currentText().lower(),
             "extract_audio": self.chk_extract_audio.isChecked(),
@@ -128,11 +128,13 @@ class MediaConvertTool(FileTool):
             sz_mb = dst.stat().st_size / (1024 * 1024)
             return ItemResult(
                 success=True,
+                source_path=src,
                 output_path=dst,
                 message=f"Convertido com sucesso ({sz_mb:.2f} MB)"
             )
         except Exception as e:
             return ItemResult(
                 success=False,
+                source_path=src,
                 error=f"Falha ao converter {src.name}: {e}"
             )

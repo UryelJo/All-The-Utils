@@ -221,7 +221,7 @@ class SplitMergeView(QWidget):
                 ctx.send_progress(p, "")
             return split_file(src, part_bytes, dst, on_progress)
 
-        def on_task_progress(percent, _):
+        def on_task_progress(percent, _total, _msg):
             self.progress_bar.setValue(percent)
 
         def on_done(parts: List[Path]):
@@ -277,7 +277,7 @@ class SplitMergeView(QWidget):
                 ctx.send_progress(p, "")
             merge_files(self.selected_merge_parts, out_file, on_progress)
 
-        def on_task_progress(percent, _):
+        def on_task_progress(percent, _total, _msg):
             self.progress_bar.setValue(percent)
 
         def on_done(_):

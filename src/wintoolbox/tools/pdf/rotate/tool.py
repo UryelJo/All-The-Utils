@@ -71,7 +71,7 @@ class PdfRotateTool(FileTool):
         self.lbl_range.setVisible(is_range)
         self.txt_range.setVisible(is_range)
 
-    def get_params(self) -> Dict[str, Any]:
+    def get_options(self) -> Dict[str, Any]:
         return {
             "angle": self.cmb_angle.currentData(),
             "pages_mode": self.cmb_pages_mode.currentData(),
@@ -98,11 +98,13 @@ class PdfRotateTool(FileTool):
             )
             return ItemResult(
                 success=True,
+                source_path=src,
                 output_path=dst,
                 message=f"Páginas rotacionadas em {params.get('angle', 90)}°"
             )
         except Exception as e:
             return ItemResult(
                 success=False,
+                source_path=src,
                 error=f"Falha ao rotacionar {src.name}: {e}"
             )

@@ -9,8 +9,12 @@ from PySide6.QtWidgets import (
     QScrollArea, QTableWidget, QTableWidgetItem, QVBoxLayout, QWidget
 )
 
+from wintoolbox.core.logging_setup import get_logger
 from wintoolbox.core.registry import Tool, register
+from wintoolbox.ui.widgets.data_table import BackgroundLoader
 from .logic import DiskMetricItem, SystemMetricsSnapshot, collect_hardware_metrics
+
+_log = get_logger("monitor")
 
 @register
 class HardwareMonitorTool(Tool):
@@ -30,10 +34,13 @@ class HardwareMonitorView(QWidget):
         self._build_ui()
 
         # Timer para atualização periódica a cada 2 segundos
+        # Coleta fora da thread da UI: disk_usage em unidade de rede desconectada pode bloquear
+        self._loader = BackgroundLoader(collect_hardware_metrics, self)
+        self._loader.loaded.connect(self._apply_metrics)
         self.timer = QTimer(self)
-        self.timer.timeout.connect(self._update_metrics)
+        self.timer.timeout.connect(self._loader.request)
         self.timer.start(2000)
-        self._update_metrics()
+        self._loader.request()
 
     def _build_ui(self):
         root_layout = QVBoxLayout(self)
@@ -135,8 +142,10 @@ class HardwareMonitorView(QWidget):
         root_layout.addWidget(scroll)
 
     def _update_metrics(self):
+        self._loader.request()
+
+    def _apply_metrics(self, m: SystemMetricsSnapshot):
         try:
-            m = collect_hardware_metrics()
             # Atualiza CPU
             cpu_val = int(m.cpu_percent)
             self.lbl_cpu_detail.setText(f"Uso: {cpu_val}% | Núcleos lógicos: {m.cpu_count}")
@@ -157,14 +166,16 @@ class HardwareMonitorView(QWidget):
                 self.table_disks.setItem(row, 2, QTableWidgetItem(f"{d.total_gb} GB"))
                 self.table_disks.setItem(row, 3, QTableWidgetItem(f"{d.free_gb} GB livre"))
 
-                # Barra de uso na tabela
-                bar = QProgressBar()
-                bar.setRange(0, 100)
+                # Barra de uso na tabela (reaproveitada entre atualizações)
+                bar = self.table_disks.cellWidget(row, 4)
+                if not isinstance(bar, QProgressBar):
+                    bar = QProgressBar()
+                    bar.setRange(0, 100)
+                    self.table_disks.setCellWidget(row, 4, bar)
                 bar.setValue(int(d.percent))
                 bar.setFormat(f"{d.percent}%")
-                self.table_disks.setCellWidget(row, 4, bar)
         except Exception:
-            pass
+            _log.exception("Falha ao atualizar métricas do monitor")
 
     def hideEvent(self, event):
         # Pausa o timer quando a tela não estiver visível para economizar CPU

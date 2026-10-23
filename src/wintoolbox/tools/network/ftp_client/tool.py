@@ -344,7 +344,7 @@ class FtpClientView(QWidget):
 
             self.client.download_file(item.name, save_path, on_progress)
 
-        def on_task_progress(percent: int, _):
+        def on_task_progress(percent: int, _total: int, _msg: str):
             self.progress_bar.setValue(percent)
 
         def on_done(_):
@@ -381,7 +381,7 @@ class FtpClientView(QWidget):
             self.client.upload_file(str(local_file), remote_name, on_progress)
             return self.client.list_dir()
 
-        def on_task_progress(percent: int, _):
+        def on_task_progress(percent: int, _total: int, _msg: str):
             self.progress_bar.setValue(percent)
 
         def on_done(items):

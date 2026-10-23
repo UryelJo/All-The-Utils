@@ -19,7 +19,7 @@ class ImageConverterTool(FileTool):
     category = "Imagens"
     description = "Conversão de imagens individuais ou pastas completas (WEBP, JPG, PNG, ICO, PDF, etc.)"
     keywords = ["imagem", "foto", "converter", "webp", "jpeg", "png", "ico", "lote", "pasta"]
-    accepts = [".png", ".jpg", ".jpeg", ".webp", ".bmp", ".tiff", ".gif", ".ico"]
+    accepts = [".png", ".jpg", ".jpeg", ".webp", ".bmp", ".tiff", ".gif", ".ico", ".heic", ".heif", ".avif"]
     batch_kind = "per_file"
     parallel_mode = "process"
 

@@ -6,10 +6,11 @@ nativa do Windows (DWM) ou personalizada, sem estilos hardcoded nos componentes.
 import winreg
 from dataclasses import dataclass
 from typing import Dict, List, Optional, Tuple
-from PySide6.QtGui import QFont
+from PySide6.QtCore import Qt
+from PySide6.QtGui import QColor, QFont, QPalette
 from PySide6.QtWidgets import QApplication
 
-from wintoolbox.core.settings import load_settings
+from wintoolbox.core.settings import get_settings_dir, load_settings
 
 # Cores de destaque predefinidas para escolha opcional do usuário
 ACCENT_PRESETS: List[Tuple[str, str]] = [
@@ -154,6 +155,94 @@ def get_current_tokens() -> ThemeTokens:
     return _ACTIVE_TOKENS
 
 
+def _build_palette(t: ThemeTokens) -> QPalette:
+    """Paleta Qt coerente com os tokens, usada por widgets/diálogos que o QSS não cobre."""
+    pal = QPalette()
+    roles = {
+        QPalette.Window: t.bg_main,
+        QPalette.WindowText: t.text_primary,
+        QPalette.Base: t.bg_input,
+        QPalette.AlternateBase: t.bg_card,
+        QPalette.ToolTipBase: t.bg_card,
+        QPalette.ToolTipText: t.text_primary,
+        QPalette.PlaceholderText: t.text_muted,
+        QPalette.Text: t.text_primary,
+        QPalette.Button: t.bg_input,
+        QPalette.ButtonText: t.text_primary,
+        QPalette.BrightText: "#ffffff",
+        QPalette.Highlight: t.accent,
+        QPalette.HighlightedText: "#ffffff",
+        QPalette.Link: t.accent,
+        QPalette.Light: t.bg_card_hover,
+        QPalette.Midlight: t.border_subtle,
+        QPalette.Mid: t.border_color,
+        QPalette.Dark: t.bg_sidebar,
+        QPalette.Shadow: "#000000",
+    }
+    for role, color in roles.items():
+        pal.setColor(role, QColor(color))
+    for role in (QPalette.WindowText, QPalette.Text, QPalette.ButtonText):
+        pal.setColor(QPalette.Disabled, role, QColor(t.text_muted))
+    return pal
+
+
+def _apply_color_scheme(app: QApplication, is_dark: bool) -> None:
+    """Informa o esquema ao Qt (>= 6.8) para a barra de título nativa acompanhar o tema do app."""
+    hints = app.styleHints()
+    if hasattr(hints, "setColorScheme"):
+        try:
+            hints.setColorScheme(Qt.ColorScheme.Dark if is_dark else Qt.ColorScheme.Light)
+        except Exception:
+            pass
+
+
+_ICON_SVGS: Dict[str, str] = {
+    "down": '<svg xmlns="http://www.w3.org/2000/svg" width="10" height="6" viewBox="0 0 10 6">'
+            '<path d="M1 1l4 4 4-4" fill="none" stroke="{c}" stroke-width="1.5" '
+            'stroke-linecap="round" stroke-linejoin="round"/></svg>',
+    "up": '<svg xmlns="http://www.w3.org/2000/svg" width="10" height="6" viewBox="0 0 10 6">'
+          '<path d="M1 5l4-4 4 4" fill="none" stroke="{c}" stroke-width="1.5" '
+          'stroke-linecap="round" stroke-linejoin="round"/></svg>',
+    # Setas da árvore: viewBox com margem porque o QSS estica a imagem até a altura da linha
+    "branch_closed": '<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 20 20">'
+                     '<path d="M8 6l4 4-4 4" fill="none" stroke="{c}" stroke-width="1.5" '
+                     'stroke-linecap="round" stroke-linejoin="round"/></svg>',
+    "branch_open": '<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 20 20">'
+                   '<path d="M6 8l4 4 4-4" fill="none" stroke="{c}" stroke-width="1.5" '
+                   'stroke-linecap="round" stroke-linejoin="round"/></svg>',
+    "check": '<svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 12 12">'
+             '<path d="M2.5 6.5l2.3 2.3L9.5 3.8" fill="none" stroke="{c}" stroke-width="1.8" '
+             'stroke-linecap="round" stroke-linejoin="round"/></svg>',
+}
+
+
+def _ensure_theme_icons(t: ThemeTokens) -> Dict[str, str]:
+    """
+    Grava as setas/marcadores em SVG usados pelo QSS (url() não aceita data URI)
+    e retorna seus caminhos com barras normais, como o QSS exige no Windows.
+    """
+    wanted = {
+        "down": ("down", t.text_secondary),
+        "down_muted": ("down", t.text_muted),
+        "up": ("up", t.text_secondary),
+        "branch_closed": ("branch_closed", t.text_secondary),
+        "branch_open": ("branch_open", t.text_secondary),
+        "check": ("check", "#ffffff"),
+    }
+    paths: Dict[str, str] = {}
+    try:
+        folder = get_settings_dir() / "theme_icons"
+        folder.mkdir(parents=True, exist_ok=True)
+        for key, (shape, color) in wanted.items():
+            f = folder / f"{shape}_{color.lstrip('#')}.svg"
+            if not f.exists():
+                f.write_text(_ICON_SVGS[shape].replace("{c}", color), encoding="utf-8")
+            paths[key] = f.as_posix()
+    except Exception:
+        paths = {k: "" for k in wanted}
+    return paths
+
+
 def apply_theme(app: Optional[QApplication], mode: Optional[str] = None, accent_override: Optional[str] = None):
     """
     Aplica o tema e a folha de estilos global (QSS) refinada à aplicação.
@@ -173,15 +262,21 @@ def apply_theme(app: Optional[QApplication], mode: Optional[str] = None, accent_
     if app is None:
         return
 
+    # Fusion respeita integralmente QPalette/QSS e renderiza igual no Windows 10
+    # ('windowsvista') e no Windows 11 ('windows11'), cujos estilos nativos ignoram
+    # partes da paleta e deixam diálogos (QMessageBox, QInputDialog) com fundo do sistema.
+    if app.style().name().lower() != "fusion":
+        app.setStyle("Fusion")
+    app.setPalette(_build_palette(t))
+    _apply_color_scheme(app, t.is_dark)
+
     font = QFont("Segoe UI", 10)
     font.setPointSize(10)
     font.setStyleHint(QFont.SansSerif)
     app.setFont(font)
 
-    hero_grad_start = t.bg_card
-    hero_grad_end = t.bg_card
-    hero_border = t.border_color
     selected_bg = "#25252c" if t.is_dark else "#e2e8f0"
+    icons = _ensure_theme_icons(t)
 
     badge_batch_bg = "#1e293b" if t.is_dark else "#f1f5f9"
     badge_batch_fg = "#93c5fd" if t.is_dark else "#1d4ed8"
@@ -193,6 +288,18 @@ def apply_theme(app: Optional[QApplication], mode: Optional[str] = None, accent_
         background-color: {t.bg_main};
         color: {t.text_primary};
         font-family: 'Segoe UI Variable Text', 'Segoe UI', -apple-system, sans-serif;
+    }}
+
+    /* Diálogos (QMessageBox, QInputDialog, QColorDialog e QDialogs próprios) */
+    QDialog, QMessageBox, QInputDialog, QColorDialog {{
+        background-color: {t.bg_main};
+        color: {t.text_primary};
+    }}
+    QMessageBox QLabel {{
+        color: {t.text_primary};
+    }}
+    QDialogButtonBox QPushButton {{
+        min-width: 72px;
     }}
 
     QScrollArea {{
@@ -219,6 +326,41 @@ def apply_theme(app: Optional[QApplication], mode: Optional[str] = None, accent_
         background: transparent;
         color: {t.text_primary};
         spacing: 8px;
+    }}
+    QCheckBox::indicator, QAbstractItemView::indicator {{
+        width: 16px;
+        height: 16px;
+        border: 1px solid {t.text_muted};
+        border-radius: 4px;
+        background-color: {t.bg_input};
+    }}
+    QCheckBox::indicator:hover, QAbstractItemView::indicator:hover {{
+        border-color: {t.accent};
+    }}
+    QCheckBox::indicator:checked, QAbstractItemView::indicator:checked {{
+        background-color: {t.accent};
+        border-color: {t.accent};
+        image: url("{icons['check']}");
+    }}
+    QCheckBox::indicator:disabled {{
+        border-color: {t.border_color};
+        background-color: {t.bg_main};
+    }}
+    QRadioButton::indicator {{
+        width: 14px;
+        height: 14px;
+        border: 1px solid {t.text_muted};
+        border-radius: 8px;
+        background-color: {t.bg_input};
+    }}
+    QRadioButton::indicator:hover {{
+        border-color: {t.accent};
+    }}
+    QRadioButton::indicator:checked {{
+        width: 6px;
+        height: 6px;
+        border: 5px solid {t.accent};
+        background-color: #ffffff;
     }}
 
     /* Cartões e Superfícies Sólidas */
@@ -397,8 +539,57 @@ def apply_theme(app: Optional[QApplication], mode: Optional[str] = None, accent_
         border: 1px solid {t.accent};
     }}
     QComboBox::drop-down {{
+        subcontrol-origin: padding;
+        subcontrol-position: center right;
         border: none;
+        width: 24px;
+    }}
+    QComboBox::down-arrow, QDateTimeEdit::down-arrow {{
+        image: url("{icons['down']}");
+        width: 10px;
+        height: 6px;
+    }}
+    QComboBox::down-arrow:disabled {{
+        image: url("{icons['down_muted']}");
+    }}
+    QSpinBox, QDoubleSpinBox, QDateTimeEdit {{
+        padding-right: 24px;
+    }}
+    QSpinBox::up-button, QDoubleSpinBox::up-button, QDateTimeEdit::up-button {{
+        subcontrol-origin: border;
+        subcontrol-position: top right;
         width: 22px;
+        border: none;
+        border-top-right-radius: 6px;
+        background: transparent;
+    }}
+    QSpinBox::down-button, QDoubleSpinBox::down-button, QDateTimeEdit::down-button {{
+        subcontrol-origin: border;
+        subcontrol-position: bottom right;
+        width: 22px;
+        border: none;
+        border-bottom-right-radius: 6px;
+        background: transparent;
+    }}
+    QSpinBox::up-button:hover, QDoubleSpinBox::up-button:hover, QDateTimeEdit::up-button:hover,
+    QSpinBox::down-button:hover, QDoubleSpinBox::down-button:hover, QDateTimeEdit::down-button:hover {{
+        background-color: {t.item_hover};
+    }}
+    QSpinBox::up-arrow, QDoubleSpinBox::up-arrow, QDateTimeEdit::up-arrow {{
+        image: url("{icons['up']}");
+        width: 8px;
+        height: 5px;
+    }}
+    QSpinBox::down-arrow, QDoubleSpinBox::down-arrow, QDateTimeEdit::down-arrow {{
+        image: url("{icons['down']}");
+        width: 8px;
+        height: 5px;
+    }}
+    QDateTimeEdit::drop-down {{
+        subcontrol-origin: padding;
+        subcontrol-position: center right;
+        border: none;
+        width: 24px;
     }}
     QComboBox QAbstractItemView {{
         background-color: {t.bg_card};
@@ -424,6 +615,7 @@ def apply_theme(app: Optional[QApplication], mode: Optional[str] = None, accent_
         border: none;
         outline: none;
         font-size: 13px;
+        show-decoration-selected: 0;
     }}
     QTreeWidget#sidebarTree::item {{
         padding: 6px 8px;
@@ -435,8 +627,19 @@ def apply_theme(app: Optional[QApplication], mode: Optional[str] = None, accent_
     }}
     QTreeWidget#sidebarTree::item:selected {{
         background-color: {selected_bg};
-        color: #ffffff;
+        color: {t.text_primary};
         font-weight: 600;
+    }}
+    /* Fundo opaco (mesma cor visível atrás da árvore): senão o ::item:selected
+       também pinta a área de recuo à esquerda do item selecionado */
+    QTreeWidget#sidebarTree::branch {{
+        background: {t.bg_main};
+    }}
+    QTreeWidget#sidebarTree::branch:has-children:closed {{
+        image: url("{icons['branch_closed']}");
+    }}
+    QTreeWidget#sidebarTree::branch:has-children:open {{
+        image: url("{icons['branch_open']}");
     }}
 
     /* Botões de Navegação da Sidebar (Início, Histórico, Configurações) */

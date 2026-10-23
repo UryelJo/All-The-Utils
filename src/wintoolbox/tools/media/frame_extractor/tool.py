@@ -80,7 +80,7 @@ class FrameExtractorTool(FileTool):
         self.lbl_time.setVisible(mode == "single")
         self.txt_time.setVisible(mode == "single")
 
-    def get_params(self) -> Dict[str, Any]:
+    def get_options(self) -> Dict[str, Any]:
         return {
             "mode": self.cmb_mode.currentData(),
             "interval_sec": self.spin_interval.value(),
@@ -120,11 +120,13 @@ class FrameExtractorTool(FileTool):
             count = len(frames)
             return ItemResult(
                 success=True,
+                source_path=src,
                 output_path=out_dir,
                 message=f"{count} quadros extraídos para {out_dir.name}"
             )
         except Exception as e:
             return ItemResult(
                 success=False,
+                source_path=src,
                 error=f"Falha ao extrair quadros de {src.name}: {e}"
             )

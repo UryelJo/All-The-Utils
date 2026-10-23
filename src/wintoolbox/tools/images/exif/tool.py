@@ -300,20 +300,26 @@ class ImageExifView(QWidget):
 
         total = len(self.batch_files)
 
+        skipped: List[str] = []
+
         def worker(ctx):
             success_count = 0
             for idx, p in enumerate(self.batch_files):
                 try:
                     if action == "Renomear Arquivos pela Data de Captura (AAAA-MM-DD_HH-MM-SS)":
                         dt = get_exif_capture_date(p)
-                        if dt:
+                        if not dt:
+                            skipped.append(f"{p.name}: sem data de captura no EXIF")
+                        else:
                             new_name = f"{dt.strftime('%Y-%m-%d_%H-%M-%S')}{p.suffix.lower()}"
                             target = p.parent / new_name
-                            if target != p and not target.exists():
+                            if str(target) == str(p):
+                                success_count += 1
+                            elif target.exists():
+                                skipped.append(f"{p.name}: '{new_name}' já existe")
+                            else:
                                 p.rename(target)
                                 success_count += 1
-                        else:
-                            success_count += 1
                     else:
                         gps_only = "Apenas Coordenadas" in action
                         if overwrite:
@@ -322,13 +328,13 @@ class ImageExifView(QWidget):
                             dst = p.parent / f"{p.stem}_limpo{p.suffix}"
                         strip_metadata(p, dst, remove_gps_only=gps_only)
                         success_count += 1
-                except Exception:
-                    pass
+                except Exception as e:
+                    skipped.append(f"{p.name}: {e}")
 
                 ctx.send_progress(int(((idx + 1) / total) * 100), f"Processando item {idx+1}...")
             return success_count
 
-        def on_task_progress(percent, _):
+        def on_task_progress(percent, _total, _msg):
             self.progress_bar.setValue(percent)
 
         def on_done(count):
@@ -336,11 +342,12 @@ class ImageExifView(QWidget):
             self.progress_bar.setValue(100)
             for r in range(self.table_batch.rowCount()):
                 self.table_batch.setItem(r, 1, QTableWidgetItem("Concluído"))
-            QMessageBox.information(
-                self,
-                "Processamento Concluído",
-                f"{count} imagem(ns) foram processadas com sucesso!"
-            )
+            msg = f"{count} de {total} imagem(ns) processadas com sucesso."
+            if skipped:
+                msg += "\n\nNão processadas:\n" + "\n".join(skipped[:15])
+                if len(skipped) > 15:
+                    msg += f"\n... e mais {len(skipped) - 15}"
+            QMessageBox.information(self, "Processamento Concluído", msg)
 
         def on_error(err):
             self.btn_run_batch.setEnabled(True)

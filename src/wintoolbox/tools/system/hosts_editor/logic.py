@@ -10,6 +10,8 @@ import shutil
 import subprocess
 from typing import Any, Dict, List, Optional, Tuple
 
+from wintoolbox.core.shell import CONSOLE_ENCODING, CREATE_NO_WINDOW
+
 
 def get_default_hosts_path() -> Path:
     """Retorna o caminho padrão do arquivo hosts no Windows."""
@@ -156,7 +158,7 @@ def restore_hosts_backup(backup_path: Path, hosts_path: Optional[Path] = None) -
 def flush_dns_cache() -> Tuple[bool, str]:
     """Executa 'ipconfig /flushdns' para aplicar alterações do hosts imediatamente."""
     try:
-        res = subprocess.run(["ipconfig", "/flushdns"], capture_output=True, text=True, timeout=10)
+        res = subprocess.run(["ipconfig", "/flushdns"], capture_output=True, text=True, encoding=CONSOLE_ENCODING, errors="replace", timeout=10, creationflags=CREATE_NO_WINDOW)
         if res.returncode == 0:
             return True, "Cache de resolução DNS limpo com sucesso (Flush DNS)."
         return False, f"Falha no flush DNS: {res.stderr or res.stdout}"

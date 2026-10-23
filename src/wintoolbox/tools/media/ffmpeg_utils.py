@@ -6,13 +6,31 @@ import json
 import os
 import shutil
 import subprocess
+import sys
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Tuple
 
 
+def _bundled_binary(name: str) -> Optional[str]:
+    """
+    ffmpeg/ffprobe empacotados com o app (build.py --with-ffmpeg) ou colocados na pasta
+    'ffmpeg' ao lado do executável. No .exe o static-ffmpeg não funciona: ele baixa os
+    binários para dentro do site-packages, que não existe no pacote.
+    """
+    roots = []
+    if hasattr(sys, "_MEIPASS"):
+        roots.append(Path(getattr(sys, "_MEIPASS")))
+    roots.append(Path(sys.executable).resolve().parent)
+    for root in roots:
+        for candidate in (root / "ffmpeg" / f"{name}.exe", root / f"{name}.exe"):
+            if candidate.is_file():
+                return str(candidate)
+    return None
+
+
 def get_ffmpeg_exe() -> str:
     """Retorna o caminho executável do ffmpeg disponível no sistema."""
-    path = shutil.which("ffmpeg")
+    path = _bundled_binary("ffmpeg") or shutil.which("ffmpeg")
     if path:
         return path
 
@@ -30,7 +48,7 @@ def get_ffmpeg_exe() -> str:
 
 def get_ffprobe_exe() -> str:
     """Retorna o caminho executável do ffprobe disponível no sistema."""
-    path = shutil.which("ffprobe")
+    path = _bundled_binary("ffprobe") or shutil.which("ffprobe")
     if path:
         return path
 

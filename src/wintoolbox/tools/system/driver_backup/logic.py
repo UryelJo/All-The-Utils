@@ -7,6 +7,8 @@ import re
 import subprocess
 from typing import Any, Dict, List, Optional, Tuple
 
+from wintoolbox.core.shell import CONSOLE_ENCODING, CREATE_NO_WINDOW
+
 
 def list_third_party_drivers() -> List[Dict[str, Any]]:
     """
@@ -15,7 +17,7 @@ def list_third_party_drivers() -> List[Dict[str, Any]]:
     drivers: List[Dict[str, Any]] = []
 
     try:
-        res = subprocess.run(["pnputil.exe", "/enum-drivers"], capture_output=True, text=True, timeout=20)
+        res = subprocess.run(["pnputil.exe", "/enum-drivers"], capture_output=True, text=True, encoding=CONSOLE_ENCODING, errors="replace", timeout=20, creationflags=CREATE_NO_WINDOW)
         if res.returncode == 0:
             current_driver: Dict[str, Any] = {}
             for line in res.stdout.splitlines():
@@ -66,7 +68,7 @@ def export_drivers_to_folder(target_dir: Path) -> Tuple[bool, str, int]:
     cmd = ["pnputil.exe", "/export-driver", "*", str(target)]
 
     try:
-        res = subprocess.run(cmd, capture_output=True, text=True, timeout=300)
+        res = subprocess.run(cmd, capture_output=True, text=True, encoding=CONSOLE_ENCODING, errors="replace", timeout=300, creationflags=CREATE_NO_WINDOW)
         stdout = res.stdout
 
         # Contabiliza pacotes exportados

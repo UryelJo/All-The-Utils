@@ -193,6 +193,13 @@ def make_fluent_icon(name: str, color: str = NEUTRAL_ICON_COLOR, size: int = 16)
         p.drawRoundedRect(QRectF(cx - w * 0.48, cy - h * 0.15, w * 0.96, h * 0.3), 1.5, 1.5)
         p.drawRoundedRect(QRectF(cx - w * 0.15, cy - h * 0.48, w * 0.3, h * 0.96), 1.5, 1.5)
 
+    elif name == "debug":
+        # Janela de terminal com prompt ">_"
+        p.drawRoundedRect(QRectF(pad, pad * 1.4, w, h * 0.86), 2.0, 2.0)
+        p.drawLine(QPointF(pad + w * 0.18, s * 0.42), QPointF(pad + w * 0.36, s * 0.55))
+        p.drawLine(QPointF(pad + w * 0.36, s * 0.55), QPointF(pad + w * 0.18, s * 0.68))
+        p.drawLine(QPointF(pad + w * 0.46, s * 0.70), QPointF(pad + w * 0.72, s * 0.70))
+
     elif name == "search":
         # Lupa minimalista
         r_lens = w * 0.36

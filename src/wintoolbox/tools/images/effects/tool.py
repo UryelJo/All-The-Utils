@@ -22,7 +22,7 @@ class ImageEffectsTool(FileTool):
     category = "Imagens"
     description = "Ajuste brilho, contraste, saturação e aplique filtros artísticos (P&B, sépia, desfoque) em fotos"
     keywords = ["filtros", "ajustes", "brilho", "contraste", "saturacao", "sepia", "preto e branco", "desfoque", "fotos"]
-    accepts = [".png", ".jpg", ".jpeg", ".webp", ".bmp", ".tiff"]
+    accepts = [".png", ".jpg", ".jpeg", ".webp", ".bmp", ".tiff", ".heic", ".heif", ".avif"]
     batch_kind = "per_file"
     parallel_mode = "process"
 
@@ -140,14 +140,14 @@ class ImageEffectsTool(FileTool):
             apply_image_effects_and_adjustments(src, dst, params)
             return ItemResult(
                 success=True,
-                src=src,
-                dst=dst,
+                source_path=src,
+                output_path=dst,
                 message="Filtros e ajustes aplicados com sucesso"
             )
         except Exception as e:
             return ItemResult(
                 success=False,
-                src=src,
-                dst=dst,
-                message=f"Erro ao processar imagem: {str(e)}"
+                source_path=src,
+                output_path=dst,
+                error=f"Erro ao processar imagem: {str(e)}"
             )

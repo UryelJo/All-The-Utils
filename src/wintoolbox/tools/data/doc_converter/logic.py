@@ -1,6 +1,7 @@
 """
 Lógica pura para conversão e estilização de documentos Markdown para HTML.
 """
+import html
 import re
 from pathlib import Path
 from typing import Optional
@@ -131,7 +132,7 @@ def markdown_to_html(
         return raw_html
 
     return HTML_STYLE_TEMPLATE.format(
-        title=title,
+        title=html.escape(title),
         body_content=raw_html
     )
 

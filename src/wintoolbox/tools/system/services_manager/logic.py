@@ -6,6 +6,8 @@ import subprocess
 from typing import Any, Dict, List, Tuple
 import psutil
 
+from wintoolbox.core.shell import CONSOLE_ENCODING, CREATE_NO_WINDOW
+
 
 STATUS_TRANSLATIONS = {
     "running": "Em execução",
@@ -85,8 +87,8 @@ def change_service_status(service_name: str, action: str) -> Tuple[bool, str]:
     try:
         if action == "restart":
             # Para e inicia
-            subprocess.run(["net", "stop", service_name, "/y"], capture_output=True, text=True, timeout=20)
-            res = subprocess.run(["net", "start", service_name], capture_output=True, text=True, timeout=20)
+            subprocess.run(["net", "stop", service_name, "/y"], capture_output=True, text=True, encoding=CONSOLE_ENCODING, errors="replace", timeout=20, creationflags=CREATE_NO_WINDOW)
+            res = subprocess.run(["net", "start", service_name], capture_output=True, text=True, encoding=CONSOLE_ENCODING, errors="replace", timeout=20, creationflags=CREATE_NO_WINDOW)
             if res.returncode == 0:
                 return True, f"Serviço '{service_name}' reiniciado com sucesso."
             return False, f"Falha ao iniciar serviço: {res.stderr or res.stdout}"
@@ -95,7 +97,7 @@ def change_service_status(service_name: str, action: str) -> Tuple[bool, str]:
             cmd = ["net", action, service_name]
             if action == "stop":
                 cmd.append("/y")
-            res = subprocess.run(cmd, capture_output=True, text=True, timeout=25)
+            res = subprocess.run(cmd, capture_output=True, text=True, encoding=CONSOLE_ENCODING, errors="replace", timeout=25, creationflags=CREATE_NO_WINDOW)
             if res.returncode == 0:
                 verb = "iniciado" if action == "start" else "interrompido"
                 return True, f"Serviço '{service_name}' {verb} com sucesso."
@@ -122,7 +124,7 @@ def change_service_startup_type(service_name: str, start_type: str) -> Tuple[boo
     try:
         # sc config requer espaço após 'start='
         cmd = ["sc.exe", "config", service_name, f"start= {val}"]
-        res = subprocess.run(cmd, capture_output=True, text=True, timeout=10)
+        res = subprocess.run(cmd, capture_output=True, text=True, encoding=CONSOLE_ENCODING, errors="replace", timeout=10, creationflags=CREATE_NO_WINDOW)
         if res.returncode == 0:
             return True, f"Tipo de inicialização do serviço '{service_name}' alterado para '{start_type}'."
         return False, f"Erro ao configurar: {res.stderr or res.stdout}"

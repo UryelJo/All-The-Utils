@@ -8,6 +8,24 @@ import subprocess
 from typing import Any, Callable, Dict, List, Optional, Tuple, Union
 
 CREATION_FLAGS = subprocess.CREATE_NO_WINDOW if sys.platform == "win32" else 0
+CREATE_NO_WINDOW = CREATION_FLAGS
+
+
+def _console_codepages() -> List[str]:
+    """Páginas de código do Windows: OEM (console, ex: cp850) e ANSI (ex: cp1252)."""
+    pages: List[str] = []
+    if sys.platform == "win32":
+        try:
+            import ctypes
+            pages.append(f"cp{ctypes.windll.kernel32.GetOEMCP()}")
+            pages.append(f"cp{ctypes.windll.kernel32.GetACP()}")
+        except Exception:
+            pass
+    return pages or ["cp850", "cp1252"]
+
+
+# Codificação da saída redirecionada de utilitários de console (schtasks, powercfg, sc, netsh...)
+CONSOLE_ENCODING = _console_codepages()[0]
 
 def run_command(
     cmd: Union[str, List[str]],
@@ -89,13 +107,22 @@ def run_powershell_json(script: str) -> Optional[Union[Dict, List, Any]]:
     except Exception:
         return None
 
+def decode_console_output(b: bytes) -> str:
+    """Decodifica a saída de ferramentas de console (netsh, ipconfig, schtasks...)."""
+    return _decode_smart(b)
+
+
 def _decode_smart(b: bytes) -> str:
-    """Tenta decodificar sequencialmente em UTF-8, CP1252 e CP850."""
+    """
+    Tenta UTF-8 e depois a página OEM do console (saída redirecionada de ping, netsh,
+    ipconfig etc. em pt-BR usa cp850), e por fim a página ANSI.
+    A ordem importa: cp1252 aceita quase qualquer byte e mascararia acentos em cp850.
+    """
     if not b:
         return ""
-    for enc in ("utf-8", "cp1252", "cp850", "latin1"):
+    for enc in ("utf-8", *_console_codepages(), "latin1"):
         try:
             return b.decode(enc)
-        except UnicodeDecodeError:
+        except (UnicodeDecodeError, LookupError):
             continue
     return b.decode("utf-8", errors="replace")

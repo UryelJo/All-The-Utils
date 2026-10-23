@@ -24,11 +24,11 @@ def get_active_interface_names() -> List[str]:
     return names or list(stats.keys())
 
 
-def build_set_dns_command(iface: str, p1: str, p2: str = "") -> str:
-    """Gera a linha de comando netsh apropriada para definir DNS estático ou DHCP."""
+def build_set_dns_command(iface: str, p1: str, p2: str = "") -> List[List[str]]:
+    """Gera os comandos netsh (lista de argumentos, sem shell) para definir DNS estático ou DHCP."""
     if p1 == "dhcp":
-        return f'netsh interface ip set dns name="{iface}" source=dhcp'
-    return (
-        f'netsh interface ip set dns name="{iface}" static {p1} primary && '
-        f'netsh interface ip add dns name="{iface}" {p2} index=2'
-    )
+        return [["netsh", "interface", "ip", "set", "dns", f"name={iface}", "source=dhcp"]]
+    cmds = [["netsh", "interface", "ip", "set", "dns", f"name={iface}", "static", p1, "primary"]]
+    if p2:
+        cmds.append(["netsh", "interface", "ip", "add", "dns", f"name={iface}", p2, "index=2"])
+    return cmds

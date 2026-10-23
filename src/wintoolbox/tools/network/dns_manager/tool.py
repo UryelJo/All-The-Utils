@@ -103,19 +103,19 @@ class DnsManagerView(QWidget):
         grid.setSpacing(10)
 
         btn_flush = QPushButton("Limpar Cache DNS (ipconfig /flushdns)")
-        btn_flush.clicked.connect(lambda: self._run_cmd("ipconfig /flushdns", "Limpeza de Cache DNS"))
+        btn_flush.clicked.connect(lambda: self._run_cmd([["ipconfig", "/flushdns"]], "Limpeza de Cache DNS"))
         grid.addWidget(btn_flush, 0, 0)
 
         btn_renew = QPushButton("Renovar IP (release & renew)")
-        btn_renew.clicked.connect(lambda: self._run_cmd("ipconfig /release && ipconfig /renew", "Renovação de IP"))
+        btn_renew.clicked.connect(lambda: self._run_cmd([["ipconfig", "/release"], ["ipconfig", "/renew"]], "Renovação de IP"))
         grid.addWidget(btn_renew, 0, 1)
 
         btn_winsock = QPushButton("Restaurar Catálogo Winsock (netsh winsock reset)")
-        btn_winsock.clicked.connect(lambda: self._run_cmd("netsh winsock reset", "Reset do Winsock", requires_admin=True))
+        btn_winsock.clicked.connect(lambda: self._run_cmd([["netsh", "winsock", "reset"]], "Reset do Winsock", requires_admin=True))
         grid.addWidget(btn_winsock, 1, 0)
 
         btn_tcp = QPushButton("Restaurar Pilha TCP/IP (netsh int ip reset)")
-        btn_tcp.clicked.connect(lambda: self._run_cmd("netsh int ip reset", "Reset TCP/IP", requires_admin=True))
+        btn_tcp.clicked.connect(lambda: self._run_cmd([["netsh", "int", "ip", "reset"]], "Reset TCP/IP", requires_admin=True))
         grid.addWidget(btn_tcp, 1, 1)
 
         l_reset.addLayout(grid)
@@ -150,7 +150,7 @@ class DnsManagerView(QWidget):
         cmd = build_set_dns_command(iface, p1, p2)
         self._run_cmd(cmd, "Alteração de DNS")
 
-    def _run_cmd(self, cmd_str: str, desc: str, requires_admin: bool = False):
+    def _run_cmd(self, cmds: List[List[str]], desc: str, requires_admin: bool = False):
         if requires_admin and not is_admin():
             res = QMessageBox.question(
                 self,
@@ -165,6 +165,17 @@ class DnsManagerView(QWidget):
 
         self.log_panel.append_log("INFO", f"Executando {desc}...")
         self.runner.start_task(
-            task_fn=lambda ctx: run_command_streaming(cmd_str, lambda l: ctx.on_log("INFO", l), shell=True),
+            task_fn=lambda ctx: self._run_sequence(cmds, ctx),
             on_log=lambda lvl, msg: self.log_panel.append_log(lvl, msg)
         )
+
+    @staticmethod
+    def _run_sequence(cmds: List[List[str]], ctx) -> int:
+        """Executa os comandos em ordem (equivalente a '&&'), parando no primeiro erro."""
+        code = 0
+        for cmd in cmds:
+            code = run_command_streaming(cmd, lambda l: ctx.on_log("INFO", l))
+            if code != 0:
+                ctx.on_log("ERROR", f"Comando '{' '.join(cmd)}' terminou com código {code}.")
+                break
+        return code

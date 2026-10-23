@@ -23,7 +23,7 @@ class ImageWatermarkTool(FileTool):
     category = "Imagens"
     description = "Aplique assinaturas de texto ou logos em fotos em lote com controle de transparência e posição"
     keywords = ["marca", "dagua", "watermark", "logo", "assinatura", "copyright", "fotos", "texto", "lote"]
-    accepts = [".png", ".jpg", ".jpeg", ".webp", ".bmp", ".tiff"]
+    accepts = [".png", ".jpg", ".jpeg", ".webp", ".bmp", ".tiff", ".heic", ".heif", ".avif"]
     batch_kind = "per_file"
     parallel_mode = "process"
 
@@ -183,14 +183,14 @@ class ImageWatermarkTool(FileTool):
             apply_watermark_to_image(src, dst, params)
             return ItemResult(
                 success=True,
-                src=src,
-                dst=dst,
+                source_path=src,
+                output_path=dst,
                 message="Marca d'água aplicada com sucesso"
             )
         except Exception as e:
             return ItemResult(
                 success=False,
-                src=src,
-                dst=dst,
-                message=f"Erro ao aplicar marca d'água: {str(e)}"
+                source_path=src,
+                output_path=dst,
+                error=f"Erro ao aplicar marca d'água: {str(e)}"
             )

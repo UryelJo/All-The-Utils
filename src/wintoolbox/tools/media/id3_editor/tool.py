@@ -73,7 +73,7 @@ class Id3EditorTool(FileTool):
         if file:
             self.txt_cover.setText(file)
 
-    def get_params(self) -> Dict[str, Any]:
+    def get_options(self) -> Dict[str, Any]:
         return {
             "artist": self.txt_artist.text().strip(),
             "album": self.txt_album.text().strip(),
@@ -115,11 +115,13 @@ class Id3EditorTool(FileTool):
 
             return ItemResult(
                 success=True,
+                source_path=src,
                 output_path=target_file,
                 message=f"Tags ID3 atualizadas: {target_file.name}"
             )
         except Exception as e:
             return ItemResult(
                 success=False,
+                source_path=src,
                 error=f"Falha ao editar tags de {src.name}: {e}"
             )

@@ -269,7 +269,7 @@ class BatchRenameView(QWidget):
                 ctx.send_progress(p, "")
             return execute_batch_rename(self.items, progress_cb=on_progress)
 
-        def on_task_progress(percent, _):
+        def on_task_progress(percent, _total, _msg):
             self.progress_bar.setValue(percent)
 
         def on_done(success_count):

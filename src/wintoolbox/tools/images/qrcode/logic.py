@@ -55,14 +55,28 @@ def generate_qrcode(
 
 def decode_qrcode_from_image(image_path: Path) -> Optional[str]:
     """
-    Tenta decodificar o conteúdo de um QR Code presente em um arquivo de imagem.
-    Suporta biblioteca pyzbar ou cv2 se disponíveis; caso contrário, usa detecção nativa.
+    Tenta decodificar o conteúdo de um QR Code (ou código de barras) em um arquivo de imagem.
+    Motor principal: zxing-cpp (~2 MB, QR/DataMatrix/EAN/Code128...). pyzbar e OpenCV
+    (este com ~110 MB) continuam aceitos como alternativas se estiverem instalados.
     """
     image_path = Path(image_path)
     if not image_path.is_file():
         raise FileNotFoundError(f"Arquivo não encontrado: {image_path}")
 
-    # 1. Tenta pyzbar se instalado
+    # 1. zxing-cpp
+    try:
+        import zxingcpp
+        with Image.open(image_path) as img:
+            results = zxingcpp.read_barcodes(img.convert("RGB"))
+        for r in results:
+            if r.valid and r.text:
+                return r.text
+    except ImportError:
+        pass
+    except Exception:
+        pass
+
+    # 2. Tenta pyzbar se instalado
     try:
         from pyzbar.pyzbar import decode as pyzbar_decode
         with Image.open(image_path) as img:
@@ -72,7 +86,7 @@ def decode_qrcode_from_image(image_path: Path) -> Optional[str]:
     except Exception:
         pass
 
-    # 2. Tenta OpenCV se instalado
+    # 3. Tenta OpenCV se instalado
     try:
         import cv2
         img_cv = cv2.imread(str(image_path))

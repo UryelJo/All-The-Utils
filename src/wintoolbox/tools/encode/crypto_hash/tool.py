@@ -226,7 +226,7 @@ class CryptoHashView(QWidget):
                 ctx.send_progress(p, "")
             return compute_file_hash(file_path, alg, on_progress)
 
-        def on_task_progress(percent, _):
+        def on_task_progress(percent, _total, _msg):
             self.prog_file.setValue(percent)
 
         def on_done(hash_val):

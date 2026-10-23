@@ -3,6 +3,7 @@ Lógica pura da ferramenta Renomeador de Arquivos em Lote (Batch Renamer).
 Implementa regras de transformação de nomes e execução física no disco sem acoplamento a UI.
 """
 from dataclasses import dataclass
+import os
 from pathlib import Path
 import re
 from typing import Callable, List, Optional
@@ -65,6 +66,24 @@ def compute_new_name(
     return f"{stem}{ext}"
 
 
+_INVALID_CHARS = set(r'<>:"/\|?*') | {chr(c) for c in range(32)}
+_RESERVED_NAMES = {"CON", "PRN", "AUX", "NUL", *(f"COM{i}" for i in range(1, 10)), *(f"LPT{i}" for i in range(1, 10))}
+
+
+def _invalid_name_reason(name: str) -> Optional[str]:
+    """Valida o nome contra as regras do Windows; retorna o motivo ou None."""
+    if not name or not name.strip():
+        return "Nome vazio"
+    bad = sorted({c for c in name if c in _INVALID_CHARS})
+    if bad:
+        return f"Caractere inválido no Windows: {' '.join(repr(c) for c in bad)}"
+    if name.endswith((" ", ".")):
+        return "Nome não pode terminar com espaço ou ponto"
+    if name.split(".")[0].upper() in _RESERVED_NAMES:
+        return "Nome reservado do Windows"
+    return None
+
+
 def execute_batch_rename(
     items: List[RenameItem],
     progress_cb: Optional[Callable[[int, str], None]] = None,
@@ -76,9 +95,15 @@ def execute_batch_rename(
     for idx, item in enumerate(items):
         old_path = item.original_path
         new_path = old_path.parent / item.new_name
-        if old_path != new_path:
+        # Compara texto: WindowsPath ignora maiúsculas e trataria "a.jpg" -> "A.JPG" como igual
+        if str(old_path) != str(new_path):
             try:
-                if new_path.exists():
+                invalid = _invalid_name_reason(item.new_name)
+                # NTFS não diferencia maiúsculas: "foto.jpg" -> "FOTO.JPG" aponta para o mesmo arquivo
+                same_file = new_path.exists() and os.path.normcase(str(new_path)) == os.path.normcase(str(old_path))
+                if invalid:
+                    item.status = f"Erro: {invalid}"
+                elif new_path.exists() and not same_file:
                     item.status = "Erro: Já existe"
                 else:
                     old_path.rename(new_path)

@@ -7,14 +7,20 @@ import subprocess
 from typing import Optional
 from PySide6.QtCore import Qt, QTimer
 from PySide6.QtWidgets import (
-    QHBoxLayout, QHeaderView, QLabel, QLineEdit, QMessageBox,
-    QPushButton, QTableWidget, QTableWidgetItem, QVBoxLayout, QWidget
+    QHBoxLayout, QLabel, QLineEdit, QMessageBox, QPushButton, QVBoxLayout, QWidget
 )
 
 from wintoolbox.core.registry import Tool, register
 from wintoolbox.tools.system.process_manager.logic import (
-    get_process_details, list_running_processes, terminate_process
+    ProcessSampler, get_process_details, terminate_process
 )
+from wintoolbox.ui.theme import get_current_tokens
+from wintoolbox.ui.widgets.data_table import (
+    BackgroundLoader, Column, DataTableView, bind_timer_to_visibility, fmt_number
+)
+from wintoolbox.ui.widgets.tool_header import make_tool_header
+
+REFRESH_MS = 2000
 
 
 @register
@@ -29,61 +35,68 @@ class ProcessManagerTool(Tool):
         return ProcessManagerView(self, parent)
 
 
+COLUMNS = [
+    Column("pid", "PID", align="right", width=70),
+    Column("name", "Nome do Processo", width=260, tooltip=True),
+    Column("cpu_percent", "CPU (%)", align="right", width=80, fmt=fmt_number(1)),
+    Column("memory_mb", "Memória (MB)", align="right", width=110, fmt=fmt_number(1)),
+    Column("private_mb", "Privada (MB)", align="right", width=105, fmt=fmt_number(1)),
+    Column("threads", "Threads", align="right", width=75),
+    Column("handles", "Handles", align="right", width=80),
+    Column("username", "Usuário", stretch=True),
+]
+
+
 class ProcessManagerView(QWidget):
     def __init__(self, tool: ProcessManagerTool, parent: Optional[QWidget] = None):
         super().__init__(parent)
         self.tool = tool
+        # O amostrador guarda a amostra anterior para calcular CPU%; só a thread do loader o usa
+        self._sampler = ProcessSampler()
+        self._loader = BackgroundLoader(self._sampler.sample, self)
+        self._loader.loaded.connect(self._on_loaded)
         self._build_ui()
-        self._refresh_processes()
 
-        # Timer de auto-atualização opcional (5 segundos)
         self.timer = QTimer(self)
-        self.timer.timeout.connect(self._on_timer_tick)
-        self.timer.start(5000)
+        self.timer.timeout.connect(self._loader.request)
+        bind_timer_to_visibility(self, self.timer, REFRESH_MS, on_show=self._loader.request)
+        self._loader.request()
 
     def _build_ui(self):
         layout = QVBoxLayout(self)
-        layout.setContentsMargins(12, 12, 12, 12)
+        layout.setContentsMargins(20, 20, 20, 16)
         layout.setSpacing(10)
+        layout.addWidget(make_tool_header(self.tool))
 
-        # Barra de ferramentas superior
         top_bar = QHBoxLayout()
         top_bar.setSpacing(8)
-
-        lbl_filter = QLabel("Filtrar:")
-        top_bar.addWidget(lbl_filter)
+        top_bar.addWidget(QLabel("Filtrar:"))
 
         self.txt_filter = QLineEdit()
-        self.txt_filter.setPlaceholderText("Digite o nome do processo, PID ou usuário...")
-        self.txt_filter.textChanged.connect(self._refresh_processes)
-        top_bar.addWidget(self.txt_filter)
+        self.txt_filter.setClearButtonEnabled(True)
+        self.txt_filter.setPlaceholderText("Nome do processo, PID ou usuário...")
+        # Filtro local: não reconsulta o Windows a cada tecla
+        self.txt_filter.textChanged.connect(self._on_filter_changed)
+        top_bar.addWidget(self.txt_filter, stretch=1)
 
         self.btn_refresh = QPushButton("Atualizar")
-        self.btn_refresh.clicked.connect(self._refresh_processes)
+        self.btn_refresh.clicked.connect(self._loader.request)
         top_bar.addWidget(self.btn_refresh)
 
-        self.lbl_count = QLabel("0 processos")
-        self.lbl_count.setStyleSheet("color: #888890; font-weight: 500;")
+        self.lbl_count = QLabel("Carregando...")
+        self.lbl_count.setProperty("class", "secondary")
         top_bar.addWidget(self.lbl_count)
-
         layout.addLayout(top_bar)
 
-        # Tabela de Processos
-        self.table = QTableWidget()
-        self.table.setColumnCount(6)
-        self.table.setHorizontalHeaderLabels([
-            "PID", "Nome do Processo", "RAM (MB)", "CPU (%)", "Usuário", "Status"
-        ])
-        self.table.horizontalHeader().setSectionResizeMode(1, QHeaderView.Stretch)
-        self.table.horizontalHeader().setSectionResizeMode(0, QHeaderView.ResizeToContents)
-        self.table.horizontalHeader().setSectionResizeMode(2, QHeaderView.ResizeToContents)
-        self.table.horizontalHeader().setSectionResizeMode(3, QHeaderView.ResizeToContents)
-        self.table.setSelectionBehavior(QTableWidget.SelectRows)
-        self.table.setSelectionMode(QTableWidget.SingleSelection)
-        self.table.setAlternatingRowColors(True)
-        layout.addWidget(self.table)
+        self.table = DataTableView(COLUMNS, key="pid", parent=self)
+        self.table.sortByColumn(3, Qt.DescendingOrder)  # memória, maior primeiro
+        self.table.doubleClicked.connect(lambda _idx: self._on_view_details())
+        t = get_current_tokens()
+        self.table.source_model.foreground = (
+            lambda rec, key: t.status_warning if key == "cpu_percent" and rec["cpu_percent"] >= 25 else None
+        )
+        layout.addWidget(self.table, stretch=1)
 
-        # Barra de Ações Inferior
         bottom_bar = QHBoxLayout()
         bottom_bar.setSpacing(8)
 
@@ -109,52 +122,22 @@ class ProcessManagerView(QWidget):
 
         layout.addLayout(bottom_bar)
 
-    def _on_timer_tick(self):
-        # Apenas atualiza se o usuário não estiver com foco no campo de texto digitando
-        if not self.txt_filter.hasFocus():
-            self._refresh_processes()
+    def _on_loaded(self, procs):
+        self.table.set_records(procs)
+        self._update_count()
+
+    def _on_filter_changed(self, text: str):
+        self.table.proxy.set_text_filter(text)
+        self._update_count()
+
+    def _update_count(self):
+        total = self.table.source_model.rowCount()
+        shown = self.table.visible_count()
+        self.lbl_count.setText(f"{total} processos" if shown == total else f"{shown} de {total} processos")
 
     def _get_selected_pid(self) -> Optional[int]:
-        selected = self.table.selectedItems()
-        if not selected:
-            return None
-        row = selected[0].row()
-        pid_item = self.table.item(row, 0)
-        if pid_item:
-            try:
-                return int(pid_item.text())
-            except ValueError:
-                pass
-        return None
-
-    def _refresh_processes(self):
-        query = self.txt_filter.text()
-        procs = list_running_processes(query)
-
-        self.table.setRowCount(len(procs))
-        for row, p in enumerate(procs):
-            pid_item = QTableWidgetItem(str(p["pid"]))
-            pid_item.setTextAlignment(Qt.AlignRight | Qt.AlignVCenter)
-            self.table.setItem(row, 0, pid_item)
-
-            name_item = QTableWidgetItem(p["name"])
-            self.table.setItem(row, 1, name_item)
-
-            ram_item = QTableWidgetItem(f"{p['memory_mb']:.1f}")
-            ram_item.setTextAlignment(Qt.AlignRight | Qt.AlignVCenter)
-            self.table.setItem(row, 2, ram_item)
-
-            cpu_item = QTableWidgetItem(f"{p['cpu_percent']:.1f}")
-            cpu_item.setTextAlignment(Qt.AlignRight | Qt.AlignVCenter)
-            self.table.setItem(row, 3, cpu_item)
-
-            user_item = QTableWidgetItem(p["username"])
-            self.table.setItem(row, 4, user_item)
-
-            status_item = QTableWidgetItem(p["status"])
-            self.table.setItem(row, 5, status_item)
-
-        self.lbl_count.setText(f"{len(procs)} processos")
+        rec = self.table.current_record()
+        return int(rec["pid"]) if rec else None
 
     def _on_kill(self, tree: bool = False):
         pid = self._get_selected_pid()
@@ -175,7 +158,7 @@ class ProcessManagerView(QWidget):
 
         res = terminate_process(pid, kill_tree=tree)
         if res["success"]:
-            self._refresh_processes()
+            self._loader.request()
             QMessageBox.information(self, "Sucesso", res["message"])
         else:
             QMessageBox.critical(self, "Erro", res["message"])

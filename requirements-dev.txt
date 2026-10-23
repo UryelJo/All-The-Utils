@@ -1,0 +1,4 @@
+# Ferramentas de desenvolvimento, testes e build (não são empacotadas no app)
+pytest>=8.0.0
+pytest-qt>=4.4.0
+pyinstaller>=6.6.0

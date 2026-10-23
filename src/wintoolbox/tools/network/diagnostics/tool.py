@@ -19,6 +19,7 @@ from wintoolbox.core.shell import run_command_streaming
 from wintoolbox.core.tasks import TaskRunner
 from wintoolbox.ui.widgets.log_panel import LogPanelWidget
 from .logic import (
+    is_safe_host,
     SiteCheckResult,
     SslInspectionResult,
     check_site_availability,
@@ -126,30 +127,44 @@ class DiagnosticsView(QWidget):
     def _get_target(self) -> str:
         return self.txt_host.text().strip() or "google.com"
 
-    def _run_ping(self):
+    def _get_command_target(self) -> Optional[str]:
+        """Alvo validado para ping/tracert/nslookup: só hostname/IP, nunca opções ou metacaracteres."""
         target = self._get_target()
+        if not is_safe_host(target):
+            self.log_panel.append_log("ERROR", f"Host inválido: {target!r}. Use apenas um domínio ou endereço IP.")
+            return None
+        return target
+
+    def _run_ping(self):
+        target = self._get_command_target()
+        if not target:
+            return
         self.log_panel.append_log("INFO", f"Iniciando Ping para {target}...")
-        cmd = f"ping -n 4 {target}"
+        cmd = ["ping", "-n", "4", target]
         self.runner.start_task(
-            task_fn=lambda ctx: run_command_streaming(cmd, lambda line: ctx.on_log("INFO", line), shell=True),
+            task_fn=lambda ctx: run_command_streaming(cmd, lambda line: ctx.on_log("INFO", line)),
             on_log=lambda lvl, msg: self.log_panel.append_log(lvl, msg)
         )
 
     def _run_tracert(self):
-        target = self._get_target()
+        target = self._get_command_target()
+        if not target:
+            return
         self.log_panel.append_log("INFO", f"Iniciando Traceroute para {target} (aguarde os saltos)...")
-        cmd = f"tracert -d -h 15 {target}"
+        cmd = ["tracert", "-d", "-h", "15", target]
         self.runner.start_task(
-            task_fn=lambda ctx: run_command_streaming(cmd, lambda line: ctx.on_log("INFO", line), shell=True),
+            task_fn=lambda ctx: run_command_streaming(cmd, lambda line: ctx.on_log("INFO", line)),
             on_log=lambda lvl, msg: self.log_panel.append_log(lvl, msg)
         )
 
     def _run_dns(self):
-        target = self._get_target()
+        target = self._get_command_target()
+        if not target:
+            return
         self.log_panel.append_log("INFO", f"Consultando registros DNS para {target}...")
-        cmd = f"nslookup {target}"
+        cmd = ["nslookup", target]
         self.runner.start_task(
-            task_fn=lambda ctx: run_command_streaming(cmd, lambda line: ctx.on_log("INFO", line), shell=True),
+            task_fn=lambda ctx: run_command_streaming(cmd, lambda line: ctx.on_log("INFO", line)),
             on_log=lambda lvl, msg: self.log_panel.append_log(lvl, msg)
         )
 

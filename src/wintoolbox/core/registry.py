@@ -19,6 +19,10 @@ class TaskContext:
         if callable(self.on_progress):
             self.on_progress(current, total, message)
 
+    def send_progress(self, percent: int, message: str = "") -> None:
+        """Reporta progresso percentual (0-100); equivale a progress(percent, 100, message)."""
+        self.progress(int(percent), 100, message)
+
     def log(self, level: str, message: str) -> None:
         """Envia mensagem de log thread-safe."""
         if callable(self.on_log):
@@ -134,7 +138,9 @@ def _ensure_loaded() -> None:
         try:
             __import__(pkg)
         except Exception:
-            pass
+            # Import tardio: logging_setup depende de settings, que não depende do registro
+            from wintoolbox.core.logging_setup import get_logger
+            get_logger("registry").exception("Categoria '%s' não carregada (dependência ausente?)", pkg)
 
 
 def register(tool_cls: Type[BaseTool]):

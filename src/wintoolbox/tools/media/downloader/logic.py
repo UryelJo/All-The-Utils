@@ -5,6 +5,8 @@ from pathlib import Path
 from typing import Any, Callable, Dict, Optional
 import yt_dlp
 
+from wintoolbox.core.logging_setup import YtDlpLogger
+
 from wintoolbox.tools.media.ffmpeg_utils import get_ffmpeg_exe
 
 
@@ -32,7 +34,9 @@ def download_media_url(
         "outtmpl": str(output_dir / "%(title)s.%(ext)s"),
         "ffmpeg_location": ffmpeg_dir,
         "quiet": True,
-        "no_warnings": True,
+        "no_warnings": False,
+        # Avisos e erros do yt-dlp vão para a central de logs (logger 'yt_dlp')
+        "logger": YtDlpLogger(),
     }
 
     if progress_hook:
@@ -60,8 +64,14 @@ def download_media_url(
     with yt_dlp.YoutubeDL(ydl_opts) as ydl:
         info = ydl.extract_info(url, download=True)
         title = info.get("title", "midia_baixada")
-        ext = "mp3" if audio_only else info.get("ext", "mp4")
-        expected_file = output_dir / f"{title}.{ext}"
+        # O yt-dlp sanitiza o título (remove / : ? etc.); o caminho real vem do próprio info
+        downloads = info.get("requested_downloads") or []
+        if downloads and downloads[-1].get("filepath"):
+            expected_file = Path(downloads[-1]["filepath"])
+        else:
+            expected_file = Path(ydl.prepare_filename(info))
+            if audio_only:
+                expected_file = expected_file.with_suffix(".mp3")
 
         return {
             "title": title,

@@ -1,4 +1,12 @@
 """Módulo de ferramentas de Imagens do WinToolbox."""
+# HEIC/HEIF (fotos de iPhone): o Pillow só lê com o plugin pillow-heif registrado.
+# AVIF já é nativo no Pillow 11.3+.
+try:
+    from pillow_heif import register_heif_opener
+    register_heif_opener()
+except ImportError:
+    pass
+
 import wintoolbox.tools.images.convert
 import wintoolbox.tools.images.resize
 import wintoolbox.tools.images.compress

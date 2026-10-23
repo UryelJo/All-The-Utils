@@ -34,13 +34,15 @@ WinToolbox/
 │   │   ├── hotkey.py           # Atalho global Ctrl+Alt+T via RegisterHotKey (Win32)
 │   │   ├── context_menu.py     # Integração com pasta 'Enviar para' (SendTo)
 │   │   ├── system_info.py      # Métricas de CPU, RAM e Discos via psutil
+│   │   ├── logging_setup.py    # Central de logs (arquivo rotativo, buffer ao vivo, níveis por biblioteca)
+│   │   ├── single_instance.py  # Instância única via QLocalServer (Enviar para com o app aberto)
 │   │   └── hardware.py         # Detecção de GPUs (NVIDIA/AMD/Intel), NVENC/AMF/QSV e threads
 │   │
 │   ├── ui/                     # Componentes de interface do usuário
 │   │   ├── theme.py            # Tema Fluent Windows 11 (AccentColor nativo, Segoe UI)
 │   │   ├── tray.py             # System Tray e Notificações via QSystemTrayIcon (sem libs extras)
 │   │   ├── main_window.py      # Janela principal com sidebar, favoritos, recentes e drop global
-│   │   ├── pages/              # Páginas do sistema (home_page, history_page, settings_page)
+│   │   ├── pages/              # Páginas do sistema (home, history, settings, debug_page)
 │   │   └── widgets/            # Widgets reutilizáveis (batch_input, output_picker, action_bar...)
 │   │
 │   └── tools/                  # Catálogo de ferramentas registradas
@@ -267,9 +269,49 @@ Para evitar limitação de recursos que dependem de serviços de terceiros (como
 - [ ] Autenticador de dois fatores (2FA / TOTP) local com códigos de 30s (`security.totp_manager`).
 
 
+### Fase 15 — Lacunas Identificadas na Auditoria (não catalogadas nem planejadas)
+Sistema e Windows:
+- [ ] Instalador/atualizador de programas via winget, com lista curada e "atualizar tudo" (`system.winget`).
+- [ ] Saúde do disco: SMART, temperatura e desgaste de SSD via `Get-PhysicalDisk`/`Get-StorageReliabilityCounter` (`system.disk_health`).
+- [ ] Analisador de travamentos: desligamentos inesperados (evento 41), BSODs/minidumps e erros WHEA, aprofundando os logs críticos de `system.tools` (`system.crash_analyzer`).
+- [ ] Pontos de restauração: listar, criar e abrir a restauração (`system.restore_points`).
+- [ ] Central de reparos: destravar fila de impressão (spooler), resetar componentes do Windows Update e da Microsoft Store, cache de ícones/miniaturas (`system.repair_center`; SFC/DISM já existem em `system.tools`).
+- [ ] Privacidade e debloat do Windows 10/11 (telemetria, anúncios, apps pré-instalados, Copilot/Recall), criando ponto de restauração antes (`system.privacy`).
+- [ ] Menu de contexto clássico do Windows 11 e limpeza de entradas do menu do Explorer (`system.context_menu`).
+- [ ] Chave do produto (OEM/BIOS) e status de ativação do Windows (`system.license_info`).
+
+Rede:
+- [ ] Conexões ativas por processo, estilo TCPView (`network.connections`; usar `DataTableView`).
+- [ ] Monitor contínuo de latência, jitter e perda de pacotes com gráfico (`network.latency_monitor`).
+- [ ] Regras do Firewall do Windows: listar e bloquear aplicativo (`network.firewall`).
+
+Arquivos:
+- [ ] Extração de .7z e .rar (py7zr / 7-Zip empacotado) no `archive.manager`, hoje limitado a ZIP/TAR.
+- [ ] Detector e conversor de codificação de texto (ANSI/UTF-8/UTF-16, CRLF/LF) em lote (`files.encoding_converter`).
+- [ ] Desbloquear arquivos baixados em lote (remover Mark of the Web / Zone.Identifier) (`files.unblock`).
+- [ ] Mover pasta para outro disco mantendo junction (`files.junction_mover`).
+- [ ] Permissões NTFS: tomar posse e redefinir permissões (`files.permissions`).
+- [ ] Manifesto de checksums de pasta (.sha256): gerar e verificar (`files.checksum_manifest`).
+
+PDF e Mídia:
+- [ ] Reordenar, girar e excluir páginas por miniaturas (`pdf.page_organizer`; renderização via pypdfium2).
+- [ ] Numeração de páginas, carimbo e marca d'água em PDF (`pdf.stamp`).
+- [ ] Markdown/HTML para PDF via QTextDocument (sem dependências) (`data.doc_converter`).
+- [ ] Normalização de volume (loudnorm) em lote (`media.normalize`).
+- [ ] Editor de legendas SRT/VTT: converter e ajustar sincronia (`media.subtitles`).
+- [ ] Transcrição de áudio offline (faster-whisper, opcional por tamanho) (`media.transcribe`).
+
+Brasil e Segurança:
+- [ ] Gerador de Pix "copia e cola" e QR Code no padrão BR Code (EMV + CRC16) (`text.pix_generator`).
+- [ ] Feriados nacionais na calculadora de dias úteis já planejada (`calc.date_calculator`).
+- [ ] Consultas BrasilAPI adicionais: FIPE, DDD, bancos e feriados (`network.public_apis`).
+- [ ] Verificador de senha vazada (Have I Been Pwned, k-anonimato) (`security.pwned_check`).
+- [ ] Consulta de hash no VirusTotal usando `api_tokens` (`security.virustotal`).
+- [ ] Verificador de assinatura digital (Authenticode) de executáveis, integrável ao `system.startup_manager` (`security.signature_check`).
+
 ### Fase 14 — Empacotamento, Distribuição e Modo Portátil
-- [ ] Fila central de tarefas assíncronas em segundo plano.
-- [ ] Build executável PyInstaller `--onedir`.
+- [x] Fila central de tarefas assíncronas em segundo plano (`core/tasks.py`, `BackgroundLoader`).
+- [x] Build executável PyInstaller `--onedir` com autoteste (`build.py`).
 - [ ] Suporte a Modo Portátil automático (sem uso de %APPDATA% se pasta local existir).
 - [ ] Instalador Inno Setup com integração de menu de contexto do Explorer.
 
@@ -314,3 +356,41 @@ A interface passou por uma evolução arquitetural completa inspirada no **WinUI
    - **Mini-Monitor de Recursos**: Barras compactas em tempo real de CPU, Memória RAM e Disco Principal.
    - **Acesso Rápido**: Seções de Favoritos Fixados e Usados Recentemente, com botão de estrela direto em cada card.
    - **Catálogo com Chips de Categoria + Modos de Densidade**: Filtro por chips horizontais, alternância entre modo **Confortável** e **Compacto**, grade responsiva (2 a 4 colunas) e modal **"Personalizar Tela Inicial"** persistido em `settings.json`.
+
+
+## 9. Desempenho, Diagnóstico e Distribuição
+
+### Tabelas de dados (`ui/widgets/data_table.py`)
+- **Não usar `QTableWidget` para listas do sistema.** Usar `DataTableView` + `Column`: modelo `RecordTableModel` com atualização incremental por chave (preserva seleção e rolagem), filtro/ordenação local (`RecordFilterProxy`, ordena números como números) e linhas de altura fixa.
+- Consultas ao Windows rodam fora da thread da UI com `BackgroundLoader` (sem sobreposição de execuções). O filtro de texto nunca reconsulta o sistema.
+- Timers de atualização usam `bind_timer_to_visibility`: as telas ficam em cache na janela principal, e um timer ligado com a tela oculta consumia CPU indefinidamente.
+- Processos: `ProcessSampler` usa `NtQuerySystemInformation` (uma chamada para todos os processos, ~11 ms) em vez de psutil por processo (~1,2-2 s). Tarefas agendadas: API COM `Schedule.Service` (independente de idioma), com `schtasks` como reserva.
+
+### Tarefas em segundo plano (`core/tasks.py`)
+- `_ACTIVE_WORKERS` mantém o worker vivo até a entrega do resultado; sem isso `run_task` perdia o callback de tarefas com mais de alguns milissegundos.
+- `TaskWorker` **não** herda de `QRunnable`: o pool recebe o callable (`QThreadPool.start(worker.run)`). Guardar a referência Python de um `QRunnable` com `autoDelete` gera liberação dupla intermitente (0xC0000005). Nunca usar `TaskWorker`/`QThreadPool.start` direto numa variável local: usar `run_task` ou `TaskRunner`.
+- `shutdown_tasks()` é chamado em `aboutToQuit`: thread rodando durante a finalização do Python derruba o processo.
+- Exceções de tarefas são registradas com traceback completo (logger `wintoolbox.tasks`).
+
+### Central de logs (`core/logging_setup.py`) e página Depuração (`Ctrl+Shift+D`)
+- Arquivo `%APPDATA%/AllTheUtils/logs/app.log` (rotativo, 5 x 2 MB) com `nível | logger | thread | arquivo:linha (função) | mensagem`; `crash.log` via faulthandler para falhas nativas.
+- Captura: exceções não tratadas (inclusive threads), `warnings`, mensagens do Qt (logger `qt`), todo `QMessageBox.critical/warning` (logger `wintoolbox.ui`, com o local de quem chamou) e mensagens dos painéis de log das tarefas (logger `wintoolbox.task`).
+- Nível por biblioteca em `LIBRARY_LOGGERS`, persistido em `settings.json` (`log_levels`). `--debug` ou `WINTOOLBOX_DEBUG=1` forçam DEBUG no app. yt-dlp usa o adaptador `YtDlpLogger`.
+- Novas ferramentas: `from wintoolbox.core.logging_setup import get_logger` e `_log = get_logger("nome")`; evitar `except Exception: pass` sem registrar.
+- A página Depuração exporta um `.zip` de diagnóstico (ambiente, logs, configurações sem `api_tokens`) para testes em outros computadores.
+
+### Build e distribuição (`build.py`)
+- Fonte única das opções do PyInstaller/Inno Setup; `gerar_exe.bat` e `gerar_instalador.bat` apenas chamam `build.py` em um ambiente isolado `.venv-build`.
+- O registro importa categorias por nome (string): o build passa `PYTHONPATH=src` para o `--collect-submodules wintoolbox` funcionar. Sem isso, categorias não importadas estaticamente (PDF) ficam fora do `.exe`.
+- `--self-test` (no `.exe` ou em `main.py`) monta todas as ferramentas sem exibir janelas e grava `logs/self_test.txt`; o build roda o autoteste automaticamente.
+- Arquivos não-Python usados em runtime (ex: `win_ocr.ps1`) devem entrar em `DATA_FILES` do `build.py`; imports dinâmicos de bibliotecas em `--hidden-import`.
+
+### Bibliotecas de referência (decisões da auditoria)
+- PDF: `pikepdf` (compressão, recompressão de imagens) e `pypdfium2` (renderização); `pypdf` para dividir/juntar/criptografar. Evitar PyMuPDF (licença AGPL).
+- OCR e voz: pacotes `winrt-*` via `core/winrt_utils.run_winrt` (thread própria: WinRT assíncrono trava em thread STA criada pelo comtypes/SAPI).
+- QR/códigos de barras: `zxing-cpp` (OpenCV não é mais necessário). Imagens HEIC: `pillow-heif`; AVIF nativo no Pillow 11.3+.
+- Speedtest: endpoints da Cloudflare com a biblioteca padrão (`/meta` exige cabeçalho Referer).
+- Gravação de tela: `ddagrab` do ffmpeg, `gdigrab` como reserva (dimensões pares).
+- XML recebido sempre via `defusedxml`; YAML com `CSafeLoader`/`CSafeDumper` quando disponíveis.
+- Criptografia de arquivos: formato v2 (scrypt + AES-GCM em blocos STREAM); v1 somente leitura.
+- Ferramentas de lote expõem as opções em `get_options()` (há teste garantindo isso).

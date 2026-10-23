@@ -253,7 +253,7 @@ class ArchiveManagerView(QWidget):
                 ctx.send_progress(p, "")
             compress_items(sources, out_path, fmt, on_progress)
 
-        def on_task_progress(percent, _):
+        def on_task_progress(percent, _total, _msg):
             self.progress_bar.setValue(percent)
 
         def on_done(_):
@@ -324,7 +324,7 @@ class ArchiveManagerView(QWidget):
                 ctx.send_progress(p, "")
             return extract_archive(arch_path, dst_path, on_progress)
 
-        def on_task_progress(percent, _):
+        def on_task_progress(percent, _total, _msg):
             self.progress_bar.setValue(percent)
 
         def on_done(count):

@@ -7,22 +7,40 @@ import json
 import xml.etree.ElementTree as ET
 from pathlib import Path
 from typing import Any, Dict, List
+
 import yaml
+# defusedxml: o parser padrão aceita "billion laughs" e entidades externas em XML recebido
+from defusedxml.ElementTree import fromstring as safe_xml_fromstring
+
+# Carregadores em C (libyaml) quando disponíveis: várias vezes mais rápidos, mesma segurança
+_YAML_LOADER = getattr(yaml, "CSafeLoader", yaml.SafeLoader)
+_YAML_DUMPER = getattr(yaml, "CSafeDumper", yaml.SafeDumper)
+
+
+def read_text_auto(file_path: Path) -> str:
+    """UTF-8 (com ou sem BOM) e, em seguida, cp1252: CSVs do Excel em pt-BR vêm em ANSI."""
+    raw = file_path.read_bytes()
+    for enc in ("utf-8-sig", "cp1252"):
+        try:
+            return raw.decode(enc)
+        except UnicodeDecodeError:
+            continue
+    return raw.decode("latin-1")
 
 def load_data(file_path: Path) -> Any:
     """Lê um arquivo de dados estruturado e converte em estruturas nativas Python (dict/list)."""
     ext = file_path.suffix.lower()
-    content = file_path.read_text(encoding="utf-8")
+    content = read_text_auto(file_path)
 
     if ext in (".json",):
         return json.loads(content)
     elif ext in (".yaml", ".yml"):
-        return yaml.safe_load(content)
+        return yaml.load(content, Loader=_YAML_LOADER)
     elif ext in (".csv",):
         reader = csv.DictReader(io.StringIO(content))
         return list(reader)
     elif ext in (".xml",):
-        root = ET.fromstring(content)
+        root = safe_xml_fromstring(content)
         return _xml_to_dict(root)
     else:
         raise ValueError(f"Extensão {ext} não suportada para leitura de dados.")
@@ -34,7 +52,7 @@ def save_data(data: Any, out_path: Path, target_format: str) -> None:
     if fmt == "JSON":
         out_path.write_text(json.dumps(data, indent=2, ensure_ascii=False), encoding="utf-8")
     elif fmt == "YAML":
-        out_path.write_text(yaml.dump(data, allow_unicode=True, sort_keys=False), encoding="utf-8")
+        out_path.write_text(yaml.dump(data, Dumper=_YAML_DUMPER, allow_unicode=True, sort_keys=False), encoding="utf-8")
     elif fmt == "CSV":
         # Converte lista de dicionários para CSV
         if isinstance(data, dict):

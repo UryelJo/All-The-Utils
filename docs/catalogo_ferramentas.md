@@ -8,7 +8,7 @@ Este documento mantém o inventário detalhado de todas as ferramentas disponív
 
 ### `images.convert` — Conversão e Otimização de Imagens
 - **Tipo**: `FileTool` (Processamento em Lote Automatizado)
-- **Extensões Suportadas**: `.png`, `.jpg`, `.jpeg`, `.webp`, `.bmp`, `.tiff`, `.ico`
+- **Extensões Suportadas**: `.png`, `.jpg`, `.jpeg`, `.webp`, `.bmp`, `.tiff`, `.ico`, `.heic`, `.heif`, `.avif`
 - **Formatos de Saída**: PNG, JPEG, WEBP, BMP, TIFF, ICO
 - **Recursos**:
   - Seleção de arquivos avulsos ou pastas inteiras com detecção recursiva.
@@ -20,7 +20,7 @@ Este documento mantém o inventário detalhado de todas as ferramentas disponív
 
 ### `images.resize` — Redimensionador e Cortador de Imagens
 - **Tipo**: `FileTool` (Processamento em Lote Automatizado)
-- **Extensões Suportadas**: `.png`, `.jpg`, `.jpeg`, `.webp`, `.bmp`, `.tiff`, `.ico`
+- **Extensões Suportadas**: `.png`, `.jpg`, `.jpeg`, `.webp`, `.bmp`, `.tiff`, `.ico`, `.heic`, `.heif`, `.avif`
 - **Recursos**:
   - 4 Modos de dimensionamento: Porcentagem (1-1000%), Largura Máxima, Altura Máxima e Caixa Exata (Largura x Altura).
   - Modos de Encaixe: Ajustar com Barras (Fit), Preencher e Cortar (Fill / Crop) e Distorcer (Stretch).
@@ -30,7 +30,7 @@ Este documento mantém o inventário detalhado de todas as ferramentas disponív
 
 ### `images.compress` — Otimizador e Compressor de Imagens
 - **Tipo**: `FileTool` (Processamento em Lote Automatizado)
-- **Extensões Suportadas**: `.png`, `.jpg`, `.jpeg`, `.webp`
+- **Extensões Suportadas**: `.png`, `.jpg`, `.jpeg`, `.webp`, `.heic`, `.heif`, `.avif`
 - **Recursos**:
   - Modos de Compressão: "Qualidade Visual Balanceada" (slider 10-100%), "Otimização Sem Perdas (Lossless)" e "Meta de Tamanho Máximo em KB" (busca binária de convergência de tamanho).
   - Quantização de paleta para PNG (redução para 256 cores adaptativas).
@@ -39,7 +39,7 @@ Este documento mantém o inventário detalhado de todas as ferramentas disponív
 
 ### `images.watermark` — Aplicador de Marca d'Água em Lote
 - **Tipo**: `FileTool` (Processamento em Lote Automatizado)
-- **Extensões Suportadas**: `.png`, `.jpg`, `.jpeg`, `.webp`, `.bmp`, `.tiff`
+- **Extensões Suportadas**: `.png`, `.jpg`, `.jpeg`, `.webp`, `.bmp`, `.tiff`, `.heic`, `.heif`, `.avif`
 - **Recursos**:
   - Marca de Texto: conteúdo customizado, tamanho de fonte, cor HEX com seletor visual, rotação (-90° a +90°) e suporte a fontes TrueType do sistema.
   - Marca de Imagem: seleção de logo PNG transparente com escala ajustável (% da imagem base).
@@ -48,7 +48,7 @@ Este documento mantém o inventário detalhado de todas as ferramentas disponív
 
 ### `images.effects` — Filtros e Ajustes de Imagem
 - **Tipo**: `FileTool` (Processamento em Lote Automatizado)
-- **Extensões Suportadas**: `.png`, `.jpg`, `.jpeg`, `.webp`, `.bmp`, `.tiff`
+- **Extensões Suportadas**: `.png`, `.jpg`, `.jpeg`, `.webp`, `.bmp`, `.tiff`, `.heic`, `.heif`, `.avif`
 - **Recursos**:
   - Sliders com reset em 1 clique: Brilho (0.2x a 2.5x), Contraste (0.2x a 2.5x), Saturação (0.0x a 2.5x) e Nitidez (0.0x a 3.0x).
   - Filtros Artísticos: Preto e Branco (tons de cinza), Sépia Vintage, Inversão de Cores (negativo), Desfoque Gaussiano com raio configurável, Auto-Contraste Dinâmico, Detecção de Bordas e Realce de Detalhes.
@@ -97,7 +97,7 @@ Este documento mantém o inventário detalhado de todas as ferramentas disponív
 - **Tipo**: `Tool` (Painel com Abas)
 - **Recursos**:
   - **Aba Gerador**: Geração dinâmica de QR Codes a partir de textos, URLs ou chaves PIX com personalização de cores do código e de fundo, ajuste de tamanho e margens, botão "Copiar Imagem" para a área de transferência e salvamento em PNG.
-  - **Aba Leitor**: Leitura e decodificação de QR Codes a partir de arquivos de imagem no disco ou colados diretamente da área de transferência (Ctrl+V).
+  - **Aba Leitor**: Leitura e decodificação de QR Codes e códigos de barras (via `zxing-cpp`) a partir de arquivos de imagem no disco ou colados diretamente da área de transferência (Ctrl+V).
 
 ### `images.screenshot` — Captura de Tela e Anotações
 - **Tipo**: `Tool` (Painel Interativo)
@@ -109,7 +109,7 @@ Este documento mantém o inventário detalhado de todas as ferramentas disponív
 ### `images.ocr` — OCR de Imagem (Reconhecimento de Texto)
 - **Tipo**: `Tool` (Painel Interativo 100% Offline)
 - **Recursos**:
-  - Reconhecimento óptico de caracteres 100% local utilizando o motor de OCR nativo do Windows (`Windows.Media.Ocr.OcrEngine`) via WinRT em português do Brasil e inglês, sem necessidade de internet ou serviços de nuvem.
+  - Reconhecimento óptico de caracteres 100% local utilizando o motor de OCR nativo do Windows (`Windows.Media.Ocr.OcrEngine`) via WinRT (pacotes `winrt-*`, direto no processo; script PowerShell como reserva) em português do Brasil e inglês, sem necessidade de internet ou serviços de nuvem.
   - Prévia da imagem carregada lado a lado com o texto extraído.
   - Contagem de caracteres e palavras, botão de cópia rápida e exportação para arquivo `.txt`.
 
@@ -300,7 +300,7 @@ Este documento mantém o inventário detalhado de todas as ferramentas disponív
   - Medição de Taxa de Download em Mbps.
   - Medição de Taxa de Upload em Mbps.
   - Identificação de Servidor de teste, Provedor de Internet (ISP) e IP público.
-  - Utiliza `speedtest-cli` com fallback automático via CDN estável para garantir resiliência.
+  - Mede ping, jitter, download e upload (4 conexões paralelas) nos servidores da Cloudflare (`speed.cloudflare.com`), apenas com a biblioteca padrão; identifica provedor, IP e ponto de presença.
 
 ### `network.ftp_client` — Cliente FTP / SFTP Simples
 - **Tipo**: `Tool`
@@ -497,7 +497,7 @@ Este documento mantém o inventário detalhado de todas as ferramentas disponív
 ### `files.encrypt` — Criptografia Local de Arquivos (AES-256)
 - **Tipo**: `Tool` (Interface em Abas)
 - **Recursos**:
-  - **Aba Criptografar**: Criptografia de qualquer tipo de arquivo com AES-256-GCM de padrão militar e derivação de chave segura PBKDF2 com 100.000 iterações de HMAC-SHA256 e salt aleatório de 16 bytes.
+  - **Aba Criptografar**: Criptografia de qualquer tipo de arquivo com AES-256-GCM de padrão militar e derivação de chave scrypt (N=2^17, OWASP) e criptografia em blocos de 1 MiB (formato v2 `WTBX_AE2`, sem carregar o arquivo inteiro na memória e detectando truncamento). Arquivos do formato v1 (PBKDF2) continuam sendo abertos.
   - Opção para exclusão segura do arquivo original após a conclusão bem-sucedida da criptografia.
   - **Aba Descriptografar**: Restauração com validação de autenticidade e integridade AEAD (rejeita imediatamente senhas incorretas ou arquivos corrompidos).
   - Campos de senha protegidos com alternador de visibilidade (Mostrar/Ocultar).
@@ -584,12 +584,15 @@ Este documento mantém o inventário detalhado de todas as ferramentas disponív
     - Varre o documento e extrai todas as imagens embutidas em alta fidelidade.
     - Filtro de dimensão mínima em pixels para descartar ícones minúsculos e bordas decorativas.
     - Exporta como PNG ou JPG para a pasta indicada.
+  - **Aba Páginas como Imagem**:
+    - Renderiza páginas do PDF em PNG, JPG ou WEBP via `pypdfium2` (motor PDFium), com DPI configurável (36 a 600) e seleção de páginas (`1-3, 5, 8-`).
 
 ### `pdf.compress` — Compressor de PDF
 - **Tipo**: `FileTool` (Processamento em Lote Automatizado)
 - **Extensões Suportadas**: `.pdf`
 - **Recursos**:
   - Otimização e redução de peso de PDFs em lote com suporte a pastas recursivas e espelhamento de saída.
+  - Motor `pikepdf` (qpdf): recompressão das imagens internas em JPEG (qualidade alta/equilibrada/mínima, limite de ~300 dpi em A4) e object streams; nunca devolve arquivo maior que o original. `pypdf` como reserva.
   - Compressão de fluxos internos de texto e vetores (Content Streams).
   - Eliminação de objetos e fontes idênticas duplicadas via `compress_identical_objects`.
   - Remoção opcional de metadados internos e histórico de edições para redução máxima de bytes.
@@ -670,7 +673,7 @@ Este documento mantém o inventário detalhado de todas as ferramentas disponív
 ### `media.recorder` — Gravador de Tela
 - **Tipo**: `Tool`
 - **Recursos**:
-  - Gravação de vídeo da área de trabalho do Windows através da captura nativa `gdigrab` do ffmpeg.
+  - Gravação de vídeo da tela via `ddagrab` do ffmpeg (Desktop Duplication API, captura pela GPU), com `gdigrab` como reserva; log do ffmpeg em `logs/ffmpeg_recorder.log`.
   - Controle de taxa de quadros (15, 30 ou 60 FPS).
   - Cronômetro de tempo de gravação em tempo real (`00:00:00`).
   - Encerramento seguro gerando arquivo MP4 finalizado sem corrupção de contêiner.
@@ -678,7 +681,7 @@ Este documento mantém o inventário detalhado de todas as ferramentas disponív
 ### `media.speech` — Texto para Voz (TTS Local)
 - **Tipo**: `Tool`
 - **Recursos**:
-  - Sintetizador de voz 100% offline utilizando o motor SAPI do Windows via `pyttsx3`.
+  - Sintetizador de voz 100% offline via `Windows.Media.SpeechSynthesis` (WinRT, vozes OneCore/naturais do Windows 10/11), com SAPI via `pyttsx3` como reserva.
   - Seleção de vozes locais instaladas no Windows, com controle de velocidade (palavras por minuto) e volume.
   - Reprodução de áudio ao vivo nos alto-falantes ou gravação direta em arquivo `.wav`.
 

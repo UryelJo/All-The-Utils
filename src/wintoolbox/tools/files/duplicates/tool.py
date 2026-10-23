@@ -182,7 +182,7 @@ class DuplicatesView(QWidget):
 
             return result_items
 
-        def on_task_progress(percent, msg):
+        def on_task_progress(percent, _total, msg):
             self.progress_bar.setValue(percent)
             self.lbl_stats.setText(msg)
 

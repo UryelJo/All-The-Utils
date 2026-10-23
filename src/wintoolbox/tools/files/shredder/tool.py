@@ -191,7 +191,7 @@ class ShredderView(QWidget):
                 ctx.send_progress(percent, msg)
             return shred_multiple_files(files, passes=passes, progress_cb=on_progress)
 
-        def on_task_progress(percent, msg):
+        def on_task_progress(percent, _total, msg):
             self.progress_bar.setValue(percent)
             self.lbl_status.setText(msg)
 

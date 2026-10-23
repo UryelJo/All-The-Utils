@@ -1,5 +1,5 @@
 """
-Ferramenta: Teste de Velocidade de Conexão à Internet (speedtest-cli).
+Ferramenta: Teste de Velocidade de Conexão à Internet (servidores da Cloudflare).
 """
 from typing import Optional
 from PySide6.QtCore import Qt
@@ -17,7 +17,7 @@ class SpeedtestTool(Tool):
     id = "network.speedtest"
     name = "Teste de Velocidade de Internet"
     category = "Rede e Internet"
-    description = "Mede ping, taxa de download e upload da conexão utilizando speedtest-cli"
+    description = "Mede ping, jitter, download e upload da conexão nos servidores da Cloudflare"
     keywords = ["velocidade", "speedtest", "download", "upload", "ping", "latencia", "banda", "rede", "internet"]
 
     def build_view(self, parent: Optional[QWidget] = None) -> QWidget:
@@ -168,7 +168,7 @@ class SpeedtestView(QWidget):
 
             return run_speedtest(on_progress)
 
-        def on_task_progress(percent: int, msg: str):
+        def on_task_progress(percent: int, _total: int, msg: str):
             self.progress_bar.setValue(percent)
             self.lbl_status.setText(msg)
 
@@ -183,7 +183,7 @@ class SpeedtestView(QWidget):
                 QMessageBox.critical(self, "Falha no Teste", res.get("error", "Erro desconhecido."))
                 return
 
-            self.val_ping.setText(str(res["ping_ms"]))
+            self.val_ping.setText(f"{res['ping_ms']} (±{res.get('jitter_ms', 0)})")
             self.val_dl.setText(str(res["download_mbps"]))
             self.val_ul.setText(str(res["upload_mbps"]) if res["upload_mbps"] > 0 else "N/A")
             self.lbl_server.setText(f"Servidor: {res['server']}")

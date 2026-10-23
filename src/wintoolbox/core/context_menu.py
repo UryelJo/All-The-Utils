@@ -32,12 +32,21 @@ def install_sendto() -> bool:
         sendto_dir.mkdir(parents=True, exist_ok=True)
         shortcut_file = get_sendto_shortcut_path()
 
-        python_exe = sys.executable
-        # Localiza o main.py na raiz do repositório
-        main_script = Path(__file__).resolve().parent.parent.parent.parent / "main.py"
+        if getattr(sys, "frozen", False):
+            # Executável empacotado: o próprio .exe recebe os arquivos
+            target = f'"{sys.executable}"'
+        else:
+            python_exe = Path(sys.executable)
+            # pythonw.exe evita a janela de console extra ao abrir pelo Explorer
+            pythonw = python_exe.with_name("pythonw.exe")
+            launcher = pythonw if pythonw.exists() else python_exe
+            main_script = Path(__file__).resolve().parent.parent.parent.parent / "main.py"
+            target = f'"{launcher}" "{main_script}"'
 
-        cmd_content = f'@echo off\nstart "" "{python_exe}" "{main_script}" %*\n'
-        with open(shortcut_file, "w", encoding="utf-8") as fp:
+        # chcp 65001: o cmd.exe lê o .cmd na página OEM e caminhos com acentos
+        # (perfis como "João") quebrariam. O arquivo é gravado em UTF-8 sem BOM.
+        cmd_content = f'@echo off\r\nchcp 65001 >nul\r\nstart "" {target} %*\r\n'
+        with open(shortcut_file, "w", encoding="utf-8", newline="") as fp:
             fp.write(cmd_content)
         return True
     except Exception:

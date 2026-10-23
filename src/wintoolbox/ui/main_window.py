@@ -7,7 +7,7 @@ Sidebar estruturada em 3 zonas (Topo Fixo com Busca Fuzzy/Extensões e Modos de 
 from pathlib import Path
 import sys
 from typing import Dict, List, Optional
-from PySide6.QtCore import QEvent, QSize, Qt
+from PySide6.QtCore import QEvent, QSize, Qt, Signal
 from PySide6.QtGui import (
     QCloseEvent, QDragEnterEvent, QDropEvent, QFont,
     QKeySequence, QShortcut
@@ -29,6 +29,7 @@ from wintoolbox.core.settings import (
 from wintoolbox.ui.icons import (
     get_app_icon, get_app_pixmap, get_category_icon, make_fluent_icon, normalize_text
 )
+from wintoolbox.ui.pages.debug_page import DebugPage
 from wintoolbox.ui.pages.history_page import HistoryPage
 from wintoolbox.ui.pages.home_page import HomePage
 from wintoolbox.ui.pages.settings_page import SettingsPage
@@ -42,6 +43,9 @@ from wintoolbox.ui.widgets.tool_page import FileToolPage
 
 class MainWindow(QMainWindow):
     """Janela principal do All the Utils com Sidebar avançada em 3 zonas e Topbar contextual."""
+
+    # Emitido pela thread do atalho global; a conexão enfileirada executa na thread da UI
+    hotkey_triggered = Signal()
 
     def __init__(self):
         super().__init__()
@@ -182,6 +186,14 @@ class MainWindow(QMainWindow):
         div2.setStyleSheet("background-color: rgba(128, 128, 128, 0.2);")
         l_exp.addWidget(div2)
 
+        self.btn_nav_debug = QPushButton("Depuração e Logs")
+        self.btn_nav_debug.setIcon(make_fluent_icon("debug", size=15))
+        self.btn_nav_debug.setProperty("class", "nav-item")
+        self.btn_nav_debug.setCursor(Qt.PointingHandCursor)
+        self.btn_nav_debug.setToolTip("Logs centralizados, verbosidade das bibliotecas e diagnóstico (Ctrl+Shift+D)")
+        self.btn_nav_debug.clicked.connect(lambda: self.navigate_to("debug"))
+        l_exp.addWidget(self.btn_nav_debug)
+
         self.btn_nav_settings = QPushButton("Configurações")
         self.btn_nav_settings.setIcon(make_fluent_icon("settings", size=15))
         self.btn_nav_settings.setProperty("class", "nav-item")
@@ -253,6 +265,15 @@ class MainWindow(QMainWindow):
         self.cat_col_layout.setAlignment(Qt.AlignHCenter)
         cat_scroll.setWidget(cat_w)
         l_col.addWidget(cat_scroll, stretch=1)
+
+        self.btn_col_debug = QPushButton()
+        self.btn_col_debug.setIcon(make_fluent_icon("debug", size=16))
+        self.btn_col_debug.setProperty("class", "nav-icon-btn")
+        self.btn_col_debug.setFixedSize(36, 36)
+        self.btn_col_debug.setToolTip("Depuração e Logs (Ctrl+Shift+D)")
+        self.btn_col_debug.setCursor(Qt.PointingHandCursor)
+        self.btn_col_debug.clicked.connect(lambda: self.navigate_to("debug"))
+        l_col.addWidget(self.btn_col_debug)
 
         self.btn_col_settings = QPushButton()
         self.btn_col_settings.setIcon(make_fluent_icon("settings", size=16))
@@ -630,7 +651,7 @@ class MainWindow(QMainWindow):
                     self._accordion_mode = not self._accordion_mode
                 return
 
-            if data not in ("home", "history", "settings") and not data.startswith("category_"):
+            if data not in ("home", "history", "settings", "debug") and not data.startswith("category_"):
                 tool = get_tool(data)
                 if tool:
                     fav_text = "Remover dos Favoritos" if is_favorite(data) else "Fixar nos Favoritos"
@@ -692,6 +713,9 @@ class MainWindow(QMainWindow):
         shortcut_f = QShortcut(QKeySequence("Ctrl+F"), self)
         shortcut_f.activated.connect(lambda: self.txt_filter.setFocus())
 
+        shortcut_debug = QShortcut(QKeySequence("Ctrl+Shift+D"), self)
+        shortcut_debug.activated.connect(lambda: self.navigate_to("debug"))
+
         shortcut_back = QShortcut(QKeySequence("Alt+Left"), self)
         shortcut_back.activated.connect(self.navigate_back)
 
@@ -705,7 +729,8 @@ class MainWindow(QMainWindow):
     def _setup_global_hotkey(self) -> None:
         st = load_settings()
         if st.get("global_hotkey_enabled", True):
-            self.hotkey_mgr = GlobalHotkeyManager(callback=self.restore_window)
+            self.hotkey_triggered.connect(self.restore_window)
+            self.hotkey_mgr = GlobalHotkeyManager(callback=self.hotkey_triggered.emit)
             self.hotkey_mgr.start()
         else:
             self.hotkey_mgr = None
@@ -733,6 +758,8 @@ class MainWindow(QMainWindow):
             self.lbl_breadcrumb.setText("Início  /  Histórico de Tarefas")
         elif view_id == "settings":
             self.lbl_breadcrumb.setText("Início  /  Configurações")
+        elif view_id == "debug":
+            self.lbl_breadcrumb.setText("Início  /  Depuração e Logs")
         else:
             tool = get_tool(view_id)
             if tool:
@@ -745,6 +772,7 @@ class MainWindow(QMainWindow):
         is_home = (view_id == "home")
         is_hist = (view_id == "history")
         is_sett = (view_id == "settings")
+        is_debug = (view_id == "debug")
 
         for btn, active in [
             (self.btn_nav_home, is_home),
@@ -753,6 +781,8 @@ class MainWindow(QMainWindow):
             (self.btn_col_home, is_home),
             (self.btn_col_history, is_hist),
             (self.btn_col_settings, is_sett),
+            (self.btn_nav_debug, is_debug),
+            (self.btn_col_debug, is_debug),
         ]:
             btn.setProperty("active", "true" if active else "false")
             btn.style().unpolish(btn)
@@ -779,6 +809,11 @@ class MainWindow(QMainWindow):
                 sp.settings_changed.connect(self._on_settings_updated)
                 self._view_cache["settings"] = sp
                 self.stack.addWidget(sp)
+        elif view_id == "debug":
+            if "debug" not in self._view_cache:
+                dp = DebugPage(self)
+                self._view_cache["debug"] = dp
+                self.stack.addWidget(dp)
         elif view_id not in self._view_cache:
             tool = get_tool(view_id)
             if not tool:
@@ -798,7 +833,7 @@ class MainWindow(QMainWindow):
             self._view_cache[view_id] = page
             self.stack.addWidget(page)
 
-        if view_id not in ("home", "history", "settings") and get_tool(view_id):
+        if view_id not in ("home", "history", "settings", "debug") and get_tool(view_id):
             add_recent_tool(view_id)
             if isinstance(self._view_cache.get(view_id), FileToolPage):
                 self._view_cache[view_id]._update_fav_button()
@@ -911,6 +946,13 @@ class MainWindow(QMainWindow):
         if not paths:
             return
         self.route_dropped_paths(paths, interactive=True)
+
+    def handle_external_args(self, args: List[str]) -> None:
+        """Argumentos vindos de outra execução do app (instância única)."""
+        self.restore_window()
+        paths = [Path(a) for a in args if not a.startswith("-") and Path(a).exists()]
+        if paths:
+            self.route_dropped_paths(paths, interactive=False)
 
     def _process_startup_args(self) -> None:
         """Recebe caminhos passados pelo Windows via 'Enviar para' ou terminal."""

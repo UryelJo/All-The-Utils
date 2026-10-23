@@ -12,6 +12,7 @@ from PySide6.QtWidgets import (
 )
 
 from wintoolbox.core.registry import Tool, register
+from wintoolbox.ui.widgets.data_table import bind_timer_to_visibility
 from wintoolbox.tools.images.color_picker.logic import (
     get_pixel_color_at_screen, rgb_to_formats
 )
@@ -39,7 +40,8 @@ class ColorPickerView(QWidget):
         # Timer para atualizar a lupa em tempo real quando o mouse estiver sobre o widget ou monitorando
         self.timer = QTimer(self)
         self.timer.timeout.connect(self._update_hover_color)
-        self.timer.start(100)
+        # Captura a tela 10x/s: só enquanto a ferramenta estiver visível
+        bind_timer_to_visibility(self, self.timer, 100)
 
     def _build_ui(self):
         layout = QVBoxLayout(self)
@@ -146,7 +148,7 @@ class ColorPickerView(QWidget):
 
     def _update_hover_color(self):
         pos = QCursor.pos()
-        r, g, b = get_pixel_color_at_screen(pos.x(), pos.y())
+        r, g, b = get_pixel_color_at_screen()
         formats = rgb_to_formats(r, g, b)
 
         self.txt_hex.setText(formats["hex"])
@@ -171,7 +173,7 @@ class ColorPickerView(QWidget):
 
     def _capture_current_pixel(self):
         pos = QCursor.pos()
-        r, g, b = get_pixel_color_at_screen(pos.x(), pos.y())
+        r, g, b = get_pixel_color_at_screen()
         formats = rgb_to_formats(r, g, b)
 
         # Evita duplicata se for idêntica à última capturada

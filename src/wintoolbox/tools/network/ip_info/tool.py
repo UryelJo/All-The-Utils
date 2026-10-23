@@ -148,14 +148,15 @@ class IpInfoView(QWidget):
 
     def _refresh_public_ip(self):
         self.lbl_pub_ip.setText("Consultando...")
-        from PySide6.QtCore import QThreadPool
-        from wintoolbox.core.tasks import TaskWorker
+        from wintoolbox.core.tasks import run_task
+
         def worker(ctx):
-            info = fetch_public_ip()
-            return info["ip"]
-        w = TaskWorker(worker)
-        w.signals.finished.connect(lambda ip: self.lbl_pub_ip.setText(str(ip)))
-        QThreadPool.globalInstance().start(w)
+            return fetch_public_ip()["ip"]
+
+        # O TaskWorker solto numa variável local era coletado antes de entregar o resultado:
+        # o rótulo ficava em "Consultando..." para sempre
+        run_task(worker, on_done=lambda ip, exc: self.lbl_pub_ip.setText(
+            str(ip) if exc is None else "Indisponível (sem conexão?)"))
 
     def _update_traffic(self):
         try:

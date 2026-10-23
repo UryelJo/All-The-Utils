@@ -274,5 +274,5 @@ class QrCodeView(QWidget):
         else:
             self.txt_decoded.setText(
                 "Não foi possível decodificar automaticamente o QR Code desta imagem.\n"
-                "(Para habilitar leitura universal avançada, instale a biblioteca pyzbar ou opencv-python)."
+                "Verifique se a imagem está nítida e se o código ocupa uma área razoável da foto."
             )

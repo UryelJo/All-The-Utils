@@ -20,7 +20,7 @@ class ImageCompressorTool(FileTool):
     category = "Imagens"
     description = "Comprima e reduza o peso de fotos PNG, JPG e WEBP sem perda perceptível de qualidade"
     keywords = ["comprimir", "otimizar", "reduzir", "tamanho", "peso", "lossless", "quantizacao", "jpeg", "png", "webp"]
-    accepts = [".png", ".jpg", ".jpeg", ".webp"]
+    accepts = [".png", ".jpg", ".jpeg", ".webp", ".heic", ".heif", ".avif"]
     batch_kind = "per_file"
     parallel_mode = "process"
 
@@ -120,14 +120,14 @@ class ImageCompressorTool(FileTool):
 
             return ItemResult(
                 success=True,
-                src=src,
-                dst=dst,
+                source_path=src,
+                output_path=dst,
                 message=msg
             )
         except Exception as e:
             return ItemResult(
                 success=False,
-                src=src,
-                dst=dst,
-                message=f"Erro na compressão: {str(e)}"
+                source_path=src,
+                output_path=dst,
+                error=f"Erro na compressão: {str(e)}"
             )

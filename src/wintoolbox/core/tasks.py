@@ -2,9 +2,21 @@
 Gerenciador de Tarefas em Segundo Plano com Sinais Qt.
 Garante que a UI nunca trave e nunca seja modificada fora da thread principal.
 """
-from typing import Any, Callable, Dict, Optional
-from PySide6.QtCore import QObject, QRunnable, QThreadPool, Signal, Slot
+import logging
+from typing import Any, Callable, Dict, Optional, Set
+from PySide6.QtCore import QObject, QThreadPool, Signal
+from wintoolbox.core.logging_setup import get_logger
 from wintoolbox.core.registry import TaskContext, ToolResult
+
+_log = get_logger("tasks")
+_task_log = get_logger("task")
+_LEVEL_MAP = {"WARN": logging.WARNING, "WARNING": logging.WARNING, "ERROR": logging.ERROR,
+              "CRITICAL": logging.CRITICAL, "DEBUG": logging.DEBUG}
+
+
+def _forward_task_log(level: str, message: str) -> None:
+    """Espelha na central de logs as mensagens que as tarefas enviam aos painéis de log."""
+    _task_log.log(_LEVEL_MAP.get(str(level).upper(), logging.INFO), message)
 
 class WorkerSignals(QObject):
     """Sinais Qt emitidos pelo Worker para comunicação segura com a UI."""
@@ -13,10 +25,14 @@ class WorkerSignals(QObject):
     finished = Signal(object)          # (ToolResult)
     error = Signal(str)                # (mensagem de erro)
 
-class TaskWorker(QRunnable):
-    """Executa uma função em segundo plano com controle de cancelamento e pausa."""
+class TaskWorker:
+    """
+    Executa uma função em segundo plano com controle de cancelamento e pausa.
+    Não herda de QRunnable: o pool recebe o callable `run` (QThreadPool.start(callable)).
+    Com QRunnable, o pool apagava o objeto C++ (autoDelete) enquanto o Python ainda o
+    referenciava, gerando liberação dupla intermitente (0xC0000005).
+    """
     def __init__(self, task_fn: Callable[[TaskContext], ToolResult]):
-        super().__init__()
         self.task_fn = task_fn
         self.signals = WorkerSignals()
         self._is_cancelled = False
@@ -34,19 +50,31 @@ class TaskWorker(QRunnable):
     def is_paused(self) -> bool:
         return self._is_paused
 
-    @Slot()
     def run(self):
+        def on_log(lvl: str, msg: str) -> None:
+            _forward_task_log(lvl, msg)
+            self.signals.log.emit(lvl, msg)
+
         ctx = TaskContext(
             on_progress=lambda cur, tot, msg: self.signals.progress.emit(cur, tot, msg),
-            on_log=lambda lvl, msg: self.signals.log.emit(lvl, msg),
+            on_log=on_log,
             is_cancelled=lambda: self._is_cancelled,
             is_paused=lambda: self._is_paused
         )
+        name = getattr(self.task_fn, "__qualname__", repr(self.task_fn))
         try:
             result = self.task_fn(ctx)
             self.signals.finished.emit(result)
         except Exception as e:
-            self.signals.error.emit(str(e))
+            # Traceback completo na central de logs; a UI continua recebendo a mensagem curta
+            _log.exception("Falha na tarefa em segundo plano '%s'", name)
+            self.signals.error.emit(f"{type(e).__name__}: {e}")
+
+# Workers em execução: mantêm os sinais vivos até a entrega do resultado. Sem esta referência,
+# quando ninguém guardava o TaskRunner (run_task) ou um novo start_task substituía
+# current_worker, os sinais eram coletados e o resultado nunca chegava à UI.
+_ACTIVE_WORKERS: Set["TaskWorker"] = set()
+
 
 class TaskRunner:
     """Gerenciador de execução assíncrona usando QThreadPool."""
@@ -74,8 +102,14 @@ class TaskRunner:
         if on_error:
             worker.signals.error.connect(on_error)
 
+        # Mantém o worker (e seus sinais) vivo até a entrega do resultado. Conectado por
+        # último para rodar depois dos callbacks do chamador.
+        _ACTIVE_WORKERS.add(worker)
+        worker.signals.finished.connect(lambda _res, w=worker: _ACTIVE_WORKERS.discard(w))
+        worker.signals.error.connect(lambda _err, w=worker: _ACTIVE_WORKERS.discard(w))
+
         self.current_worker = worker
-        self.pool.start(worker)
+        self.pool.start(worker.run)
         return worker
 
     def cancel_current(self):
@@ -96,3 +130,16 @@ def run_task(
         if on_done:
             on_done(None, Exception(err_msg))
     return runner.start_task(task_fn, on_progress=on_progress, on_finished=_finished, on_error=_error)
+
+
+def shutdown_tasks(timeout_ms: int = 3000) -> bool:
+    """
+    Cancela as tarefas em andamento e aguarda o pool. Chamado ao encerrar o app: uma thread
+    ainda rodando durante a finalização do Python derruba o processo (código 3 / crash.log).
+    """
+    for worker in list(_ACTIVE_WORKERS):
+        worker.cancel()
+    finished = QThreadPool.globalInstance().waitForDone(timeout_ms)
+    if not finished:
+        _log.warning("Encerrando com tarefas ainda em execução após %d ms", timeout_ms)
+    return finished

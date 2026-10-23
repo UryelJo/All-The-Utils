@@ -3,6 +3,7 @@ Verificação e elevação de privilégios de Administrador (UAC) no Windows.
 """
 import sys
 import ctypes
+import subprocess
 from pathlib import Path
 
 def is_admin() -> bool:
@@ -22,9 +23,13 @@ def request_elevation(extra_args: str = "") -> bool:
 
     try:
         executable = sys.executable
-        # Monta a linha de comando garantindo aspas
-        script = Path(sys.argv[0]).resolve()
-        params = f'"{script}" {extra_args}'.strip()
+        if getattr(sys, "frozen", False):
+            # Executável do PyInstaller: sys.executable já é o app; repassar argv[0]
+            # faria o novo processo receber o próprio .exe como "arquivo" de entrada.
+            params = f"{subprocess.list2cmdline(sys.argv[1:])} {extra_args}".strip()
+        else:
+            script = Path(sys.argv[0]).resolve()
+            params = f"{subprocess.list2cmdline([str(script), *sys.argv[1:]])} {extra_args}".strip()
 
         ret = ctypes.windll.shell32.ShellExecuteW(
             None,
