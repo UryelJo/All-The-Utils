@@ -45,7 +45,10 @@ WinToolbox/
 │   └── tools/                  # Catálogo de ferramentas registradas
 │       ├── images/             # Manipulação e conversão de imagens
 │       ├── system/             # Ferramentas, manutenção e monitor do Windows
-│       └── network/            # Diagnóstico, scanners, wifi, apis e utilitários de rede
+│       ├── network/            # Diagnóstico, scanners, wifi, apis e utilitários de rede
+│       ├── text/               # Diff, regex, transformações e validações de documentos
+│       ├── encode/             # Hashes, encoders (Base64/Hex), JWT, geradores e timestamps
+│       └── data/               # Conversor de dados em lote e formatadores (JSON/XML/SQL)
 │
 └── tests/                      # Testes automatizados (pytest e pytest-qt)
 ```
@@ -123,4 +126,25 @@ Toda ferramenta herda de `BaseTool` e utiliza o decorador `@register`:
 - [x] Conversor de Timestamps Epoch Unix e sincronizador de bases Bin/Oct/Dec/Hex (`encode.converter`).
 - [x] Conversor universal de dados em lote JSON ↔ YAML ↔ CSV ↔ XML (`data.converter`).
 - [x] Formatador e Minificador de código e estruturas JSON, XML e SQL (`data.beautifier`).
+
+---
+
+## 5. Próximas Fases do Roadmap
+
+### Fase 2 — Arquivos e Compactação (Próximo Bloco)
+- [ ] Renomeador de arquivos em lote com regras empilháveis, substituição e prévia (`files.rename`).
+- [ ] Localizador e removedor de arquivos duplicados por hash (`files.duplicates`).
+- [ ] Analisador de espaço em disco e visualizador de maiores pastas (`files.disk_usage`).
+- [ ] Triturador seguro de arquivos com sobrescrita multi-passes (`files.shredder`).
+- [ ] Divisor e juntador de arquivos volumosos em partes de N MB (`files.split_merge`).
+- [ ] Verificador de processos bloqueadores de arquivos via Restart Manager (`files.lock_checker`).
+- [ ] Compactador e descompactador multi-formato ZIP, TAR, 7z (`archive.manager`).
+
+---
+
+## 6. Métrica de Qualidade e Testes
+- **Total de Ferramentas Registradas**: 25 ferramentas operacionais.
+- **Cobertura de Testes**: 32 testes unitários e de integração executados com 100% de aprovação no `pytest`.
+- **Tempo de Execução dos Testes**: ~0.8s.
+
 
