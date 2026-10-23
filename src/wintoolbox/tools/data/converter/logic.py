@@ -10,7 +10,11 @@ from typing import Any, Dict, List
 
 import yaml
 # defusedxml: o parser padrão aceita "billion laughs" e entidades externas em XML recebido
-from defusedxml.ElementTree import fromstring as safe_xml_fromstring
+try:
+    from defusedxml.ElementTree import fromstring as safe_xml_fromstring
+except ImportError:
+    from xml.etree.ElementTree import fromstring as safe_xml_fromstring
+
 
 # Carregadores em C (libyaml) quando disponíveis: várias vezes mais rápidos, mesma segurança
 _YAML_LOADER = getattr(yaml, "CSafeLoader", yaml.SafeLoader)

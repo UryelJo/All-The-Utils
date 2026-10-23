@@ -3,7 +3,11 @@ Lógica pura da ferramenta Formatador e Minificador de Dados (JSON, XML, SQL).
 Sem acoplamento com interface gráfica.
 """
 import json
-from defusedxml import minidom as defused_minidom
+
+try:
+    from defusedxml import minidom as defused_minidom
+except ImportError:
+    from xml.dom import minidom as defused_minidom
 
 
 def beautify_code(text: str, code_type: str, indent: int = 2) -> str:
