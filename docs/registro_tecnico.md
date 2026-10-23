@@ -287,6 +287,24 @@ Para evitar limitação de recursos que dependem de serviços de terceiros (como
 - **Cobertura de Testes**: 81 testes unitários e de integração executados com 100% de aprovação no `pytest` (incluindo testes de arquitetura, testes de aceleração de hardware e cobertura das 7 ferramentas da Fase 6).
 - **Tempo de Execução dos Testes**: ~9.0s.
 
+---
 
+## 8. Rebranding e Modernização da UI (Fluent Windows 11 Dark)
 
+A interface passou por uma revisão completa de design e usabilidade, sanando problemas de truncamento de texto, organização de navegação e densidade de informação:
 
+1. **Sidebar com Categorias Colapsáveis (`QTreeWidget`)**:
+   - A lista plana anterior (que continha 62 itens contínuos gerando rolagem excessiva) foi substituída por uma árvore hierárquica por categorias com ícones visuais (`🖼️ Imagens`, `📁 Arquivos e Pastas`, `🌐 Rede e Internet`, `💻 Sistema Windows`, `📝 Texto e Código`, etc.).
+   - As categorias possuem contagem de ferramentas e suporte a expandir/recolher individualmente ou em massa.
+   - Largura da barra lateral expandida de 230px para **280px**, eliminando truncamento de títulos longos.
+
+2. **Filtro Instantâneo na Sidebar**:
+   - Campo de busca em tempo real (`txt_filter`) no topo da sidebar. Conforme o usuário digita, as ferramentas que não correspondem ao termo são ocultadas e as categorias correspondentes são auto-expandidas, oferecendo acesso imediato a qualquer utilitário.
+
+3. **Menus de Contexto com Botão Direito**:
+   - **Sobre ferramentas**: Opções para "⭐ Adicionar aos Favoritos" / "❌ Remover dos Favoritos", "Abrir Ferramenta", "Copiar Nome da Ferramenta" e "Copiar ID da Ferramenta".
+   - **Sobre categorias/fundo**: Opções para "Expandir Todas as Categorias" e "Recolher Todas as Categorias".
+
+4. **Correção de Textos Cortados**:
+   - **Configurações (`settings_page.py`)**: Rótulos das chaves de API expandidos de 260px para 310px; botões "Mostrar/Ocultar" agora utilizam `setMinimumWidth(80)` (anteriormente `setFixedWidth(65)` truncava a palavra "Mostrar" para "Mostra"); botões "Limpar" com `setMinimumWidth(75)`.
+   - **Home Page (`home_page.py`)**: Redesenhada com Hero Banner informativo e grade moderna responsiva em duas colunas com cards elegantes (`ToolCardWidget`), badges coloridos por tipo ("Lote" vs "Painel") e descrições sem truncamento.

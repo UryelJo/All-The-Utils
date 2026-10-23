@@ -96,6 +96,24 @@ def is_favorite(tool_id: str) -> bool:
     st = load_settings()
     return tool_id in st.get("favorites", [])
 
+def add_favorite_tool(tool_id: str):
+    """Adiciona uma ferramenta aos favoritos."""
+    st = load_settings()
+    favs = st.get("favorites", [])
+    if tool_id not in favs:
+        favs.append(tool_id)
+        st["favorites"] = favs
+        save_settings(st)
+
+def remove_favorite_tool(tool_id: str):
+    """Remove uma ferramenta dos favoritos."""
+    st = load_settings()
+    favs = st.get("favorites", [])
+    if tool_id in favs:
+        favs.remove(tool_id)
+        st["favorites"] = favs
+        save_settings(st)
+
 def export_settings(target_path: Path) -> bool:
     """Exporta o arquivo de configurações para backup."""
     src = get_settings_file()

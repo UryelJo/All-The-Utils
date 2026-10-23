@@ -225,7 +225,7 @@ class SettingsPage(QWidget):
     def _create_token_row(self, service_id: str, label_text: str, initial_value: str = ""):
         row = QHBoxLayout()
         lbl = QLabel(f"{label_text}:")
-        lbl.setFixedWidth(260)
+        lbl.setFixedWidth(310)
         lbl.setStyleSheet("font-weight: 500;")
         row.addWidget(lbl)
 
@@ -235,11 +235,12 @@ class SettingsPage(QWidget):
         row.addWidget(txt, stretch=1)
 
         btn_eye = QPushButton("Mostrar")
-        btn_eye.setFixedWidth(65)
+        btn_eye.setMinimumWidth(80)
         btn_eye.clicked.connect(lambda _, f=txt, b=btn_eye: self._toggle_echo(f, b))
         row.addWidget(btn_eye)
 
         btn_clear = QPushButton("Limpar")
+        btn_clear.setMinimumWidth(75)
         btn_clear.clicked.connect(txt.clear)
         row.addWidget(btn_clear)
 

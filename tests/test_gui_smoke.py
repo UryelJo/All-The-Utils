@@ -1,8 +1,9 @@
 """
 Teste de fumaça da interface gráfica com pytest-qt.
-Garante que a janela principal constrói e exibe sem exceções de UI.
+Garante que a janela principal constrói, exibe e navega sem exceções de UI.
 """
 from wintoolbox.ui.main_window import MainWindow
+
 
 def test_main_window_startup(qtbot):
     window = MainWindow()
@@ -10,7 +11,12 @@ def test_main_window_startup(qtbot):
     window.show()
 
     assert window.windowTitle() == "All the Utils"
-    assert window.nav_list.count() >= 4  # Início + 3 ferramentas
+    assert window.tree_nav.topLevelItemCount() >= 5
+
+    # Testa filtro instantâneo da sidebar
+    window._filter_navigation("pdf")
+    # Deve encontrar itens e auto-expandir categorias correspondentes
+    window._filter_navigation("")
 
     # Testa navegação programática para as páginas
     window.navigate_to("images.convert")
@@ -20,4 +26,7 @@ def test_main_window_startup(qtbot):
     assert window.stack.currentWidget() is not None
 
     window.navigate_to("system.monitor")
+    assert window.stack.currentWidget() is not None
+
+    window.navigate_to("settings")
     assert window.stack.currentWidget() is not None
