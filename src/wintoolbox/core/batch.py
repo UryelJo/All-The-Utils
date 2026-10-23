@@ -1,0 +1,279 @@
+"""
+Motor Central de Processamento em Lote (Batch Engine).
+Responsável por descoberta de arquivos, filtragem, políticas de saída,
+espelhamento de pastas, execução segura e relatórios.
+"""
+import os
+import time
+import shutil
+from dataclasses import dataclass, field
+from pathlib import Path
+from typing import Callable, Dict, Iterator, List, Optional, Set, Tuple
+from concurrent.futures import ThreadPoolExecutor, as_completed
+
+from wintoolbox.core.registry import ItemResult, TaskContext, ToolResult
+
+@dataclass
+class SourceItem:
+    path: Path
+    is_dir: bool
+    recursive: bool = False
+
+@dataclass
+class OutputPolicy:
+    mode: str = "subfolder"  # 'subfolder', 'custom', 'same_folder'
+    subfolder_name: str = "convertidos"
+    custom_dir: Optional[Path] = None
+    mirror_structure: bool = True
+    naming_pattern: str = "{name}"  # Suporta {name}, {ext}, {date}, etc.
+    conflict: str = "rename"  # 'rename', 'overwrite', 'skip'
+    preserve_timestamps: bool = True
+
+@dataclass
+class DiscoveredFile:
+    """Arquivo descoberto pronto para processamento."""
+    source_path: Path
+    root_source_dir: Optional[Path] = None  # Diretório base quando veio de uma pasta
+    size_bytes: int = 0
+    extension: str = ""
+
+def discover_files(
+    sources: List[SourceItem],
+    allowed_extensions: Optional[Set[str]] = None,
+    on_file_found: Optional[Callable[[DiscoveredFile], None]] = None
+) -> List[DiscoveredFile]:
+    """
+    Realiza a varredura rápida de todos os itens de entrada.
+    Suporta arquivos individuais e pastas (recursivas ou não).
+    """
+    discovered: List[DiscoveredFile] = []
+    seen_paths: Set[Path] = set()
+
+    # Normaliza extensões permitidas para minúsculas
+    norm_exts = {ext.lower() if ext.startswith('.') else f".{ext.lower()}" for ext in allowed_extensions} if allowed_extensions else None
+
+    for item in sources:
+        p = item.path.resolve()
+        if not p.exists():
+            continue
+
+        if not item.is_dir and p.is_file():
+            ext = p.suffix.lower()
+            if norm_exts is None or ext in norm_exts:
+                if p not in seen_paths:
+                    seen_paths.add(p)
+                    df = DiscoveredFile(
+                        source_path=p,
+                        root_source_dir=p.parent,
+                        size_bytes=p.stat().st_size,
+                        extension=ext
+                    )
+                    discovered.append(df)
+                    if on_file_found:
+                        on_file_found(df)
+        elif item.is_dir and p.is_dir():
+            if item.recursive:
+                for root, _, files in os.walk(p):
+                    root_path = Path(root)
+                    for fname in files:
+                        fp = root_path / fname
+                        ext = fp.suffix.lower()
+                        if norm_exts is None or ext in norm_exts:
+                            if fp not in seen_paths:
+                                seen_paths.add(fp)
+                                try:
+                                    sz = fp.stat().st_size
+                                except Exception:
+                                    sz = 0
+                                df = DiscoveredFile(
+                                    source_path=fp,
+                                    root_source_dir=p,
+                                    size_bytes=sz,
+                                    extension=ext
+                                )
+                                discovered.append(df)
+                                if on_file_found:
+                                    on_file_found(df)
+            else:
+                try:
+                    with os.scandir(p) as it:
+                        for entry in it:
+                            if entry.is_file():
+                                fp = Path(entry.path)
+                                ext = fp.suffix.lower()
+                                if norm_exts is None or ext in norm_exts:
+                                    if fp not in seen_paths:
+                                        seen_paths.add(fp)
+                                        try:
+                                            sz = entry.stat().st_size
+                                        except Exception:
+                                            sz = 0
+                                        df = DiscoveredFile(
+                                            source_path=fp,
+                                            root_source_dir=p,
+                                            size_bytes=sz,
+                                            extension=ext
+                                        )
+                                        discovered.append(df)
+                                        if on_file_found:
+                                            on_file_found(df)
+                except Exception:
+                    pass
+
+    return discovered
+
+def calculate_destination_path(
+    item: DiscoveredFile,
+    output_policy: OutputPolicy,
+    target_ext: str,
+    extra_vars: Optional[Dict[str, str]] = None
+) -> Path:
+    """
+    Calcula o caminho de destino exato para um item baseado na política de saída,
+    espelhamento relativo de subpastas e resolução de conflitos de nome.
+    """
+    src = item.source_path
+    if not target_ext.startswith('.'):
+        target_ext = f".{target_ext}"
+
+    # 1. Determina a pasta base de destino
+    if output_policy.mode == "same_folder":
+        base_dest = src.parent
+    elif output_policy.mode == "subfolder":
+        sub_name = output_policy.subfolder_name.strip() or "convertidos"
+        base_dest = src.parent / sub_name
+    elif output_policy.mode == "custom" and output_policy.custom_dir:
+        base_dest = output_policy.custom_dir.resolve()
+        # Se espelhamento estiver ativado e o arquivo veio de uma pasta
+        if output_policy.mirror_structure and item.root_source_dir:
+            try:
+                rel_dir = src.parent.relative_to(item.root_source_dir)
+                base_dest = base_dest / rel_dir
+            except ValueError:
+                pass
+    else:
+        base_dest = src.parent
+
+    # 2. Formata o nome do arquivo
+    variables = {
+        "name": src.stem,
+        "ext": target_ext.lstrip('.'),
+        "old_ext": src.suffix.lstrip('.'),
+        "date": time.strftime("%Y%m%d")
+    }
+    if extra_vars:
+        variables.update(extra_vars)
+
+    formatted_name = output_policy.naming_pattern
+    for k, v in variables.items():
+        formatted_name = formatted_name.replace(f"{{{k}}}", str(v))
+
+    target_filename = f"{formatted_name}{target_ext}"
+    final_path = base_dest / target_filename
+
+    # 3. Resolução de conflitos
+    if output_policy.conflict == "rename" and final_path.exists():
+        counter = 1
+        while final_path.exists():
+            final_path = base_dest / f"{formatted_name} ({counter}){target_ext}"
+            counter += 1
+
+    return final_path
+
+def execute_batch(
+    files: List[DiscoveredFile],
+    output_policy: OutputPolicy,
+    target_ext: str,
+    process_func: Callable[[Path, Path, Dict, TaskContext], ItemResult],
+    params: Dict,
+    ctx: TaskContext,
+    max_workers: int = 4
+) -> ToolResult:
+    """
+    Executa o lote com suporte a concorrência, cancelamento e progresso.
+    """
+    total = len(files)
+    if total == 0:
+        return ToolResult(success=True, message="Nenhum arquivo para processar.")
+
+    results: List[ItemResult] = []
+    success_count = 0
+    failed_count = 0
+    skipped_count = 0
+
+    ctx.on_progress(0, total, f"Iniciando lote ({total} itens)...")
+
+    for idx, item in enumerate(files, start=1):
+        if ctx.is_cancelled():
+            ctx.on_log("WARN", "Operação cancelada pelo usuário.")
+            break
+
+        # Espera se estiver pausado
+        while ctx.is_paused() and not ctx.is_cancelled():
+            time.sleep(0.2)
+
+        src = item.source_path
+        dst = calculate_destination_path(item, output_policy, target_ext)
+
+        # Política de pular arquivo existente
+        if output_policy.conflict == "skip" and dst.exists():
+            skipped_count += 1
+            ctx.on_log("INFO", f"Ignorado (já existe): {src.name}")
+            results.append(ItemResult(success=True, source_path=src, output_path=dst, message="Ignorado (já existe)"))
+            ctx.on_progress(idx, total, f"Ignorado {idx}/{total}: {src.name}")
+            continue
+
+        # Garante que o diretório de destino exista
+        dst.parent.mkdir(parents=True, exist_ok=True)
+
+        # Caminho temporário atômico para gravação segura
+        tmp_dst = dst.with_name(f"{dst.name}.tmp_wtbx")
+
+        try:
+            res = process_func(src, tmp_dst, params, ctx)
+            if res.success and tmp_dst.exists():
+                if dst.exists() and output_policy.conflict == "overwrite":
+                    dst.unlink()
+                tmp_dst.rename(dst)
+                res.output_path = dst
+
+                if output_policy.preserve_timestamps:
+                    try:
+                        stat = src.stat()
+                        os.utime(dst, (stat.st_atime, stat.st_mtime))
+                    except Exception:
+                        pass
+
+                success_count += 1
+                ctx.on_log("INFO", f"OK: {src.name} -> {dst.name}")
+            else:
+                if tmp_dst.exists():
+                    tmp_dst.unlink()
+                failed_count += 1
+                ctx.on_log("ERROR", f"Falha: {src.name} ({res.error or 'Erro desconhecido'})")
+
+            results.append(res)
+        except Exception as e:
+            if tmp_dst.exists():
+                try:
+                    tmp_dst.unlink()
+                except Exception:
+                    pass
+            failed_count += 1
+            ctx.on_log("ERROR", f"Exceção em {src.name}: {str(e)}")
+            results.append(ItemResult(success=False, source_path=src, error=str(e)))
+
+        ctx.on_progress(idx, total, f"Processado {idx}/{total}: {src.name}")
+
+    msg = f"Lote concluído. Sucessos: {success_count} | Falhas: {failed_count} | Pulados: {skipped_count}"
+    ctx.on_log("INFO", msg)
+
+    return ToolResult(
+        success=(failed_count == 0),
+        message=msg,
+        items_total=total,
+        items_success=success_count,
+        items_failed=failed_count,
+        items_skipped=skipped_count,
+        details=results
+    )

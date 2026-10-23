@@ -1,0 +1,1 @@
+"""Módulo widgets do WinToolbox."""
