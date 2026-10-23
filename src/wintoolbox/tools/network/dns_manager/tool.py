@@ -14,23 +14,7 @@ from wintoolbox.core.registry import Tool, register
 from wintoolbox.core.shell import run_command, run_command_streaming
 from wintoolbox.core.tasks import TaskRunner
 from wintoolbox.ui.widgets.log_panel import LogPanelWidget
-
-DNS_PRESETS = {
-    "Cloudflare (1.1.1.1 / 1.0.0.1) - Mais Rápido": ("1.1.1.1", "1.0.0.1"),
-    "Google Public DNS (8.8.8.8 / 8.8.4.4)": ("8.8.8.8", "8.8.4.4"),
-    "Quad9 (9.9.9.9 / 149.112.112.112) - Com Filtro de Segurança": ("9.9.9.9", "149.112.112.112"),
-    "OpenDNS (208.67.222.222 / 208.67.220.220)": ("208.67.222.222", "208.67.220.220"),
-    "Automático (Obter endereço DNS via DHCP)": ("dhcp", "")
-}
-
-def get_active_interface_names() -> List[str]:
-    """Retorna nomes de adaptadores de rede conectados."""
-    stats = psutil.net_if_stats()
-    names = []
-    for name, stat in stats.items():
-        if stat.isup and not name.lower().startswith("loopback"):
-            names.append(name)
-    return names or list(stats.keys())
+from .logic import DNS_PRESETS, build_set_dns_command, get_active_interface_names
 
 @register
 class DnsManagerTool(Tool):
@@ -163,15 +147,7 @@ class DnsManagerView(QWidget):
         p1, p2 = DNS_PRESETS[preset_key]
 
         self.log_panel.append_log("INFO", f"Configurando DNS para o adaptador '{iface}'...")
-
-        if p1 == "dhcp":
-            cmd = f'netsh interface ip set dns name="{iface}" source=dhcp'
-        else:
-            cmd = (
-                f'netsh interface ip set dns name="{iface}" static {p1} primary && '
-                f'netsh interface ip add dns name="{iface}" {p2} index=2'
-            )
-
+        cmd = build_set_dns_command(iface, p1, p2)
         self._run_cmd(cmd, "Alteração de DNS")
 
     def _run_cmd(self, cmd_str: str, desc: str, requires_admin: bool = False):

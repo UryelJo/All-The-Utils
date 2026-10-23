@@ -17,14 +17,12 @@ from PySide6.QtWidgets import (
 
 from wintoolbox.core.registry import Tool, register
 from wintoolbox.core.tasks import TaskRunner
-
-class DiskItem:
-    def __init__(self, name: str, path: str, size: int, is_dir: bool, count: int = 1):
-        self.name = name
-        self.path = path
-        self.size = size
-        self.is_dir = is_dir
-        self.count = count
+from .logic import (
+    DiskItem,
+    analyze_directory_usage,
+    calc_dir_size,
+    format_disk_size,
+)
 
 @register
 class DiskUsageTool(Tool):
@@ -168,44 +166,7 @@ class DiskUsageView(QWidget):
         self.lbl_stats.setText("Examinando diretório...")
 
         def worker(ctx):
-            target = Path(folder)
-            top_level_items = []
-            ext_sizes = defaultdict(int)
-            ext_counts = defaultdict(int)
-            total_dir_bytes = 0
-
-            # 1. Analisa itens de primeiro nível para o relatório de maiores itens
-            try:
-                for entry in os.scandir(target):
-                    try:
-                        if entry.is_file(follow_symlinks=False):
-                            s = entry.stat().st_size
-                            top_level_items.append(DiskItem(entry.name, entry.path, s, False))
-                            total_dir_bytes += s
-                            ext = Path(entry.name).suffix.lower() or "(sem extensão)"
-                            ext_sizes[ext] += s
-                            ext_counts[ext] += 1
-                        elif entry.is_dir(follow_symlinks=False):
-                            # Calcula tamanho recursivo da subpasta
-                            dir_size, dir_count, sub_exts, sub_counts = self._calc_dir_size(entry.path)
-                            top_level_items.append(DiskItem(entry.name, entry.path, dir_size, True, dir_count))
-                            total_dir_bytes += dir_size
-                            for k, v in sub_exts.items():
-                                ext_sizes[k] += v
-                            for k, v in sub_counts.items():
-                                ext_counts[k] += v
-                    except Exception:
-                        pass
-            except Exception as e:
-                raise e
-
-            # Ordena maiores itens de primeiro nível
-            top_level_items.sort(key=lambda x: x.size, reverse=True)
-
-            # Ordena extensões
-            sorted_exts = sorted(ext_sizes.items(), key=lambda x: x[1], reverse=True)
-
-            return top_level_items, sorted_exts, ext_counts, total_dir_bytes
+            return analyze_directory_usage(Path(folder))
 
         def on_done(result):
             items, sorted_exts, ext_counts, total_bytes = result
@@ -243,35 +204,8 @@ class DiskUsageView(QWidget):
 
         self.runner.start_task(worker, on_finished=on_done, on_error=on_error)
 
-    def _calc_dir_size(self, dir_path: str):
-        total_size = 0
-        total_count = 0
-        ext_sizes = defaultdict(int)
-        ext_counts = defaultdict(int)
-
-        for root, dirs, files in os.walk(dir_path):
-            for f in files:
-                try:
-                    fp = os.path.join(root, f)
-                    s = os.path.getsize(fp)
-                    total_size += s
-                    total_count += 1
-                    ext = Path(f).suffix.lower() or "(sem extensão)"
-                    ext_sizes[ext] += s
-                    ext_counts[ext] += 1
-                except Exception:
-                    pass
-
-        return total_size, total_count, ext_sizes, ext_counts
-
     def _format_size(self, size_bytes: int) -> str:
-        if size_bytes < 1024:
-            return f"{size_bytes} B"
-        elif size_bytes < 1024 * 1024:
-            return f"{round(size_bytes / 1024, 1)} KB"
-        elif size_bytes < 1024 * 1024 * 1024:
-            return f"{round(size_bytes / (1024 * 1024), 2)} MB"
-        return f"{round(size_bytes / (1024 * 1024 * 1024), 2)} GB"
+        return format_disk_size(size_bytes)
 
     def _on_item_double_clicked(self, row: int, col: int):
         if 0 <= row < len(self.top_items):

@@ -1,13 +1,8 @@
 """
 Ferramenta: Utilitários de Rede (Wake-on-LAN, Expansor de Links e Download com Retomada).
 """
-import os
-import socket
-import time
-import urllib.parse
-import urllib.request
 from pathlib import Path
-from typing import Dict, List, Optional
+from typing import Optional
 from PySide6.QtCore import Qt
 from PySide6.QtWidgets import (
     QApplication, QComboBox, QFileDialog, QFrame, QHBoxLayout, QHeaderView, QLabel, QLineEdit,
@@ -17,73 +12,13 @@ from PySide6.QtWidgets import (
 
 from wintoolbox.core.registry import Tool, register
 from wintoolbox.core.tasks import TaskRunner
-from wintoolbox.ui.widgets.log_panel import LogPanelWidget
+from wintoolbox.tools.network.utilities.logic import (
+    download_file_resumable,
+    expand_url_chain,
+    send_wake_on_lan,
+    shorten_url,
+)
 
-def send_wake_on_lan(mac_address: str, broadcast_ip: str = "255.255.255.255", port: int = 9) -> None:
-    """Monta e dispara o Magic Packet de 102 bytes para Wake-on-LAN."""
-    clean_mac = mac_address.replace(":", "").replace("-", "").replace(".", "").upper()
-    if len(clean_mac) != 12:
-        raise ValueError("O endereço MAC deve conter 12 caracteres hexadecimais (ex: 00:11:22:33:44:55).")
-
-    mac_bytes = bytes.fromhex(clean_mac)
-    magic_packet = b"\xff" * 6 + mac_bytes * 16
-
-    sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-    sock.setsockopt(socket.SOL_SOCKET, socket.SO_BROADCAST, 1)
-    sock.sendto(magic_packet, (broadcast_ip, port))
-    sock.close()
-
-def shorten_url(url: str, provider: str = "tinyurl") -> str:
-    """Encurta uma URL longa usando serviços públicos sem necessidade de token/API key."""
-    if not url.startswith("http"):
-        url = f"https://{url}"
-
-    encoded = urllib.parse.quote(url)
-    if provider == "is.gd":
-        endpoint = f"https://is.gd/create.php?format=simple&url={encoded}"
-    else:
-        endpoint = f"https://tinyurl.com/api-create.php?url={encoded}"
-
-    req = urllib.request.Request(endpoint, headers={"User-Agent": "WinToolbox/1.0"})
-    with urllib.request.urlopen(req, timeout=10) as resp:
-        return resp.read().decode("utf-8").strip()
-
-def expand_url_chain(url: str, max_redirects: int = 10) -> List[Dict[str, str]]:
-    """Rastreia toda a cadeia de redirecionamentos (301/302) de um link até a URL final."""
-    if not url.startswith("http"):
-        url = f"https://{url}"
-
-    chain = []
-    current_url = url
-
-    for _ in range(max_redirects):
-        try:
-            req = urllib.request.Request(current_url, headers={"User-Agent": "WinToolbox/1.0"}, method="HEAD")
-            class NoRedirect(urllib.request.HTTPRedirectHandler):
-                def redirect_request(self, req, fp, code, msg, headers, newurl):
-                    return None
-
-            opener = urllib.request.build_opener(NoRedirect)
-            resp = opener.open(req, timeout=6)
-            code = resp.getcode()
-            chain.append({"url": current_url, "status": f"{code} OK (Final)"})
-            break
-        except urllib.error.HTTPError as e:
-            code = e.code
-            loc = e.headers.get("Location")
-            chain.append({"url": current_url, "status": f"{code} Redirecionamento"})
-            if loc and code in (301, 302, 303, 307, 308):
-                if loc.startswith("/"):
-                    base = "/".join(current_url.split("/", 3)[:3])
-                    current_url = f"{base}{loc}"
-                else:
-                    current_url = loc
-            else:
-                break
-        except Exception as e:
-            chain.append({"url": current_url, "status": f"Erro: {str(e)}"})
-            break
-    return chain
 
 @register
 class UtilitiesTool(Tool):
@@ -95,6 +30,7 @@ class UtilitiesTool(Tool):
 
     def build_view(self, parent: Optional[QWidget] = None) -> QWidget:
         return UtilitiesView(self, parent)
+
 
 class UtilitiesView(QWidget):
     def __init__(self, tool: UtilitiesTool, parent: Optional[QWidget] = None):
@@ -322,6 +258,7 @@ class UtilitiesView(QWidget):
 
     def _expand_url(self):
         url = self.txt_short_url.text().strip()
+
         def worker(ctx):
             return expand_url_chain(url)
 
@@ -348,42 +285,26 @@ class UtilitiesView(QWidget):
         self.lbl_dl_status.setText("Iniciando download...")
 
         def worker(ctx):
-            existing_size = target_file.stat().st_size if target_file.exists() else 0
-            headers = {"User-Agent": "WinToolbox/1.0"}
-            if existing_size > 0:
-                headers["Range"] = f"bytes={existing_size}-"
-
-            req = urllib.request.Request(url, headers=headers)
             try:
-                with urllib.request.urlopen(req, timeout=10) as resp:
-                    total = resp.getheader("Content-Length")
-                    total_bytes = int(total) + existing_size if total else None
-
-                    mode = "ab" if existing_size > 0 else "wb"
-                    downloaded = existing_size
-                    t0 = time.time()
-
-                    with open(target_file, mode) as fp:
-                        while not ctx.is_cancelled():
-                            chunk = resp.read(64 * 1024)
-                            if not chunk:
-                                break
-                            fp.write(chunk)
-                            downloaded += len(chunk)
-                            if total_bytes:
-                                pct = int((downloaded / total_bytes) * 100)
-                                ctx.on_progress(downloaded, total_bytes, f"{pct}%")
-                    return downloaded
+                return download_file_resumable(
+                    url=url,
+                    target_file=target_file,
+                    progress_cb=ctx.on_progress,
+                    is_cancelled_fn=ctx.is_cancelled,
+                )
             except Exception as e:
                 ctx.on_log("ERROR", str(e))
                 return -1
 
         def on_prog(cur, tot, msg):
-            pct = int((cur / tot) * 100) if tot > 0 else 0
+            pct = int((cur / tot) * 100) if tot and tot > 0 else 0
             self.prog_dl.setValue(pct)
             mb_cur = cur / (1024 * 1024)
-            mb_tot = tot / (1024 * 1024)
-            self.lbl_dl_status.setText(f"Baixando: {mb_cur:.1f} MB de {mb_tot:.1f} MB ({pct}%)")
+            mb_tot = (tot / (1024 * 1024)) if tot else 0
+            if mb_tot > 0:
+                self.lbl_dl_status.setText(f"Baixando: {mb_cur:.1f} MB de {mb_tot:.1f} MB ({pct}%)")
+            else:
+                self.lbl_dl_status.setText(f"Baixando: {mb_cur:.1f} MB")
 
         def on_done(res):
             self.btn_dl_start.setEnabled(True)

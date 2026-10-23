@@ -13,30 +13,22 @@ from PySide6.QtWidgets import (
 )
 
 from wintoolbox.core.registry import Tool, register
-
-def remove_accents(text: str) -> str:
-    """Remove acentos e diacríticos mantendo letras base."""
-    nfkd = unicodedata.normalize("NFKD", text)
-    return "".join([c for c in nfkd if not unicodedata.combining(c)])
-
-def to_camel_case(text: str) -> str:
-    words = re.findall(r"[A-Za-z0-9]+", text)
-    if not words:
-        return ""
-    return words[0].lower() + "".join(w.capitalize() for w in words[1:])
-
-def to_snake_case(text: str) -> str:
-    words = re.findall(r"[A-Za-z0-9]+", text)
-    return "_".join(w.lower() for w in words)
-
-def to_kebab_case(text: str) -> str:
-    words = re.findall(r"[A-Za-z0-9]+", text)
-    return "-".join(w.lower() for w in words)
-
-def to_slug(text: str) -> str:
-    clean = remove_accents(text.lower())
-    clean = re.sub(r"[^a-z0-9]+", "-", clean)
-    return clean.strip("-")
+from .logic import (
+    TextStats,
+    apply_affixes,
+    compute_text_stats,
+    dedup_lines,
+    number_lines,
+    remove_accents,
+    remove_empty_lines,
+    reverse_lines,
+    sort_lines,
+    to_camel_case,
+    to_kebab_case,
+    to_slug,
+    to_snake_case,
+    trim_lines,
+)
 
 @register
 class TextTransformTool(Tool):
@@ -216,57 +208,40 @@ class TextTransformView(QWidget):
 
     def _update_stats(self):
         text = self.txt_content.toPlainText()
-        chars = len(text)
-        words = len(text.split()) if text.strip() else 0
-        lines = len(text.splitlines()) if text else 0
-        b_size = len(text.encode("utf-8"))
-        self.lbl_stats.setText(f"{chars:,} caracteres | {words:,} palavras | {lines:,} linhas | {b_size:,} bytes UTF-8")
+        stats = compute_text_stats(text)
+        self.lbl_stats.setText(
+            f"{stats.characters:,} caracteres | {stats.words:,} palavras | {stats.lines:,} linhas | {stats.bytes_utf8:,} bytes UTF-8"
+        )
 
     def _apply(self, func):
         text = self.txt_content.toPlainText()
         self.txt_content.setPlainText(func(text))
 
     def _sort_lines_asc(self):
-        lines = self.txt_content.toPlainText().splitlines()
-        self.txt_content.setPlainText("\n".join(sorted(lines)))
+        self.txt_content.setPlainText(sort_lines(self.txt_content.toPlainText(), reverse=False))
 
     def _sort_lines_desc(self):
-        lines = self.txt_content.toPlainText().splitlines()
-        self.txt_content.setPlainText("\n".join(sorted(lines, reverse=True)))
+        self.txt_content.setPlainText(sort_lines(self.txt_content.toPlainText(), reverse=True))
 
     def _dedup_lines(self):
-        lines = self.txt_content.toPlainText().splitlines()
-        seen = set()
-        unique = []
-        for l in lines:
-            if l not in seen:
-                seen.add(l)
-                unique.append(l)
-        self.txt_content.setPlainText("\n".join(unique))
+        self.txt_content.setPlainText(dedup_lines(self.txt_content.toPlainText()))
 
     def _remove_empty_lines(self):
-        lines = self.txt_content.toPlainText().splitlines()
-        self.txt_content.setPlainText("\n".join([l for l in lines if l.strip()]))
+        self.txt_content.setPlainText(remove_empty_lines(self.txt_content.toPlainText()))
 
     def _reverse_lines(self):
-        lines = self.txt_content.toPlainText().splitlines()
-        self.txt_content.setPlainText("\n".join(reversed(lines)))
+        self.txt_content.setPlainText(reverse_lines(self.txt_content.toPlainText()))
 
     def _number_lines(self):
-        lines = self.txt_content.toPlainText().splitlines()
-        numbered = [f"{i+1}. {l}" for i, l in enumerate(lines)]
-        self.txt_content.setPlainText("\n".join(numbered))
+        self.txt_content.setPlainText(number_lines(self.txt_content.toPlainText()))
 
     def _trim_lines(self):
-        lines = self.txt_content.toPlainText().splitlines()
-        self.txt_content.setPlainText("\n".join([l.strip() for l in lines]))
+        self.txt_content.setPlainText(trim_lines(self.txt_content.toPlainText()))
 
     def _apply_prefix_suffix(self):
         prefix = self.txt_prefix.text()
         suffix = self.txt_suffix.text()
-        lines = self.txt_content.toPlainText().splitlines()
-        res = [f"{prefix}{l}{suffix}" for l in lines]
-        self.txt_content.setPlainText("\n".join(res))
+        self.txt_content.setPlainText(apply_affixes(self.txt_content.toPlainText(), prefix=prefix, suffix=suffix))
 
     def _copy_text(self):
         text = self.txt_content.toPlainText()

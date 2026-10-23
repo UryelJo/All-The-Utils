@@ -17,61 +17,7 @@ from PySide6.QtWidgets import (
 
 from wintoolbox.core.registry import Tool, register
 from wintoolbox.core.tasks import TaskRunner
-
-class RenameItem:
-    def __init__(self, original_path: Path):
-        self.original_path = original_path
-        self.new_name = original_path.name
-        self.status = "Pendente"
-
-def compute_new_name(
-    original_name: str,
-    index: int = 0,
-    find_str: str = "",
-    replace_str: str = "",
-    prefix: str = "",
-    suffix: str = "",
-    is_regex: bool = False,
-    add_number: bool = False,
-    start_num: int = 1,
-    digits: int = 1,
-    case_opt: str = "Manter Original"
-) -> str:
-    """Calcula o novo nome do arquivo a partir de regras empilhadas."""
-    p = Path(original_name)
-    stem = p.stem
-    ext = p.suffix
-
-    # 1. Localizar e substituir
-    if find_str:
-        if is_regex:
-            try:
-                stem = re.sub(find_str, replace_str, stem)
-            except re.error:
-                pass
-        else:
-            stem = stem.replace(find_str, replace_str)
-
-    # 2. Prefixo e Sufixo
-    if prefix:
-        stem = f"{prefix}{stem}"
-    if suffix:
-        stem = f"{stem}{suffix}"
-
-    # 3. Numeração
-    if add_number:
-        num_str = str(start_num + index).zfill(digits)
-        stem = f"{stem}_{num_str}"
-
-    # 4. Caixa
-    if case_opt == "MAIÚSCULAS":
-        stem = stem.upper()
-    elif case_opt == "minúsculas":
-        stem = stem.lower()
-    elif case_opt == "Primeira Maiúscula":
-        stem = stem.title()
-
-    return f"{stem}{ext}"
+from .logic import RenameItem, compute_new_name, execute_batch_rename
 
 @register
 class BatchRenameTool(Tool):
@@ -319,27 +265,9 @@ class BatchRenameView(QWidget):
         self.progress_bar.setValue(0)
 
         def worker(ctx):
-            total = len(self.items)
-            success_count = 0
-            for idx, item in enumerate(self.items):
-                old_path = item.original_path
-                new_path = old_path.parent / item.new_name
-                if old_path != new_path:
-                    try:
-                        if new_path.exists():
-                            item.status = "Erro: Já existe"
-                        else:
-                            old_path.rename(new_path)
-                            item.original_path = new_path
-                            item.status = "Renomeado com sucesso"
-                            success_count += 1
-                    except Exception as e:
-                        item.status = f"Erro: {str(e)}"
-                else:
-                    item.status = "Sem alteração"
-
-                ctx.send_progress(int(((idx + 1) / total) * 100), "")
-            return success_count
+            def on_progress(p, _):
+                ctx.send_progress(p, "")
+            return execute_batch_rename(self.items, progress_cb=on_progress)
 
         def on_task_progress(percent, _):
             self.progress_bar.setValue(percent)

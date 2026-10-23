@@ -17,6 +17,12 @@ from PySide6.QtWidgets import (
 
 from wintoolbox.core.registry import Tool, register
 from wintoolbox.core.tasks import TaskRunner
+from .logic import (
+    ApiResponse,
+    execute_http_request,
+    format_json_if_possible,
+    parse_headers_str,
+)
 
 @register
 class ApiTesterTool(Tool):
@@ -147,67 +153,24 @@ class ApiTesterView(QWidget):
         headers_str = self.txt_headers.toPlainText()
         body_str = self.txt_body.toPlainText().strip() if method in ("POST", "PUT", "PATCH") else None
 
-        # Parse de headers
-        headers_dict = {}
-        for line in headers_str.splitlines():
-            if ":" in line:
-                k, v = line.split(":", 1)
-                headers_dict[k.strip()] = v.strip()
+        headers_dict = parse_headers_str(headers_str)
 
         self.btn_send.setEnabled(False)
         self.lbl_resp_status.setText("Enviando requisição...")
         self.lbl_resp_status.setStyleSheet("font-size: 14px; font-weight: 600; color: #aaaaaa;")
 
         def worker(ctx):
-            t0 = time.time()
-            data_bytes = body_str.encode("utf-8") if body_str else None
-            req = urllib.request.Request(url, data=data_bytes, headers=headers_dict, method=method)
+            return execute_http_request(url, method=method, headers=headers_dict, body=body_str)
 
-            try:
-                with urllib.request.urlopen(req, timeout=12) as resp:
-                    elapsed = (time.time() - t0) * 1000
-                    raw_content = resp.read()
-                    text = raw_content.decode("utf-8", errors="replace")
-                    resp_headers = dict(resp.getheaders())
-                    return {
-                        "code": resp.getcode(),
-                        "time_ms": elapsed,
-                        "size": len(raw_content),
-                        "headers": resp_headers,
-                        "body": text,
-                        "error": None
-                    }
-            except urllib.error.HTTPError as e:
-                elapsed = (time.time() - t0) * 1000
-                raw = e.read()
-                return {
-                    "code": e.code,
-                    "time_ms": elapsed,
-                    "size": len(raw),
-                    "headers": dict(e.headers.items()) if e.headers else {},
-                    "body": raw.decode("utf-8", errors="replace"),
-                    "error": str(e.reason)
-                }
-            except Exception as e:
-                elapsed = (time.time() - t0) * 1000
-                return {
-                    "code": 0,
-                    "time_ms": elapsed,
-                    "size": 0,
-                    "headers": {},
-                    "body": f"Erro de conexão: {str(e)}",
-                    "error": str(e)
-                }
-
-        def on_done(res):
+        def on_done(res: ApiResponse):
             self.btn_send.setEnabled(True)
-            code = res["code"]
-            time_ms = res["time_ms"]
-            size_kb = res["size"] / 1024
+            code = res.code
+            time_ms = res.time_ms
+            size_kb = res.size / 1024
 
-            if code >= 200 and code < 300:
+            if 200 <= code < 300:
                 color = "#10b981"  # Verde
-            elif code >= 300 and code < 400:
+            elif 300 <= code < 400:
                 color = "#f59e0b"  # Amarelo
             else:
                 color = "#ef4444"  # Vermelho
@@ -217,16 +180,11 @@ class ApiTesterView(QWidget):
             self.lbl_resp_time.setText(f"Tempo: {time_ms:.0f} ms | Tamanho: {size_kb:.2f} KB")
 
             # Formata JSON se possível
-            body_text = res["body"]
-            try:
-                parsed = json.loads(body_text)
-                body_text = json.dumps(parsed, indent=2, ensure_ascii=False)
-            except Exception:
-                pass
+            body_text = format_json_if_possible(res.body)
             self.txt_response.setPlainText(body_text)
 
             # Preenche tabela de headers
-            headers = res["headers"]
+            headers = res.headers
             self.table_resp_headers.setRowCount(len(headers))
             for row, (hk, hv) in enumerate(headers.items()):
                 self.table_resp_headers.setItem(row, 0, QTableWidgetItem(hk))

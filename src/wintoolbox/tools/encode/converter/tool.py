@@ -13,6 +13,12 @@ from PySide6.QtWidgets import (
 )
 
 from wintoolbox.core.registry import Tool, register
+from .logic import (
+    TimestampConversionResult,
+    convert_datetime_to_epoch,
+    convert_epoch_to_dates,
+    convert_number_bases,
+)
 
 @register
 class ConverterTool(Tool):
@@ -182,57 +188,33 @@ class ConverterView(QWidget):
         self.txt_epoch_in.setText(str(int(time.time())))
 
     def _on_epoch_changed(self, text: str):
-        cleaned = text.strip()
-        if not cleaned.isdigit():
-            self.txt_dt_local.setText("Timestamp inválido.")
-            self.txt_dt_utc.setText("-")
-            self.txt_dt_iso.setText("-")
-            return
-
-        ts = int(cleaned)
-        # Se for milissegundos (maior que 10 dígitos)
-        if len(cleaned) > 10:
-            ts = ts / 1000
-
-        try:
-            dt_local = datetime.fromtimestamp(ts)
-            dt_utc = datetime.fromtimestamp(ts, tz=timezone.utc)
-
-            self.txt_dt_local.setText(dt_local.strftime("%d/%m/%Y %H:%M:%S"))
-            self.txt_dt_utc.setText(dt_utc.strftime("%d/%m/%Y %H:%M:%S UTC"))
-            self.txt_dt_iso.setText(dt_utc.isoformat())
-        except Exception:
-            self.txt_dt_local.setText("Data fora do intervalo suportado.")
+        res = convert_epoch_to_dates(text)
+        self.txt_dt_local.setText(res.local_str)
+        self.txt_dt_utc.setText(res.utc_str)
+        self.txt_dt_iso.setText(res.iso_str)
 
     def _on_dt_picker_changed(self, qdt: QDateTime):
-        py_dt = qdt.toPython()
-        epoch = int(py_dt.timestamp())
+        epoch = convert_datetime_to_epoch(qdt.toPython())
         self.txt_res_epoch.setText(str(epoch))
 
     def _convert_base(self, value_str: str, base: int):
         if self._updating_bases:
             return
 
-        clean = value_str.strip().replace(" ", "").replace("_", "")
-        if not clean:
+        res = convert_number_bases(value_str, base)
+        if not res.is_valid:
             return
 
-        try:
-            num = int(clean, base)
-            self._updating_bases = True
-
-            if base != 10:
-                self.txt_dec.setText(str(num))
-            if base != 16:
-                self.txt_hex.setText(hex(num)[2:].upper())
-            if base != 2:
-                self.txt_bin.setText(bin(num)[2:])
-            if base != 8:
-                self.txt_oct.setText(oct(num)[2:])
-
-            self._updating_bases = False
-        except ValueError:
-            pass
+        self._updating_bases = True
+        if base != 10:
+            self.txt_dec.setText(res.decimal)
+        if base != 16:
+            self.txt_hex.setText(res.hexadecimal)
+        if base != 2:
+            self.txt_bin.setText(res.binary)
+        if base != 8:
+            self.txt_oct.setText(res.octal)
+        self._updating_bases = False
 
     def _copy_text(self, text: str):
         if text:

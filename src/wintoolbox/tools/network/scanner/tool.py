@@ -14,55 +14,14 @@ from PySide6.QtWidgets import (
 
 from wintoolbox.core.registry import Tool, register
 from wintoolbox.core.tasks import TaskRunner
-
-COMMON_PORTS = {
-    21: "FTP", 22: "SSH", 23: "Telnet", 25: "SMTP", 53: "DNS", 80: "HTTP",
-    110: "POP3", 135: "RPC", 139: "NetBIOS", 143: "IMAP", 443: "HTTPS",
-    445: "SMB", 993: "IMAPS", 995: "POP3S", 1433: "MSSQL", 1521: "Oracle",
-    3306: "MySQL", 3389: "RDP", 5432: "PostgreSQL", 5900: "VNC", 8080: "HTTP-Proxy"
-}
-
-def scan_single_port(host: str, port: int, timeout: float = 0.5) -> Optional[Dict]:
-    """Testa se uma porta TCP está aberta."""
-    try:
-        s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        s.settimeout(timeout)
-        res = s.connect_ex((host, port))
-        s.close()
-        if res == 0:
-            service = COMMON_PORTS.get(port, "Desconhecido")
-            return {"port": port, "service": service, "status": "Aberta"}
-    except Exception:
-        pass
-    return None
-
-def scan_arp_table() -> List[Dict[str, str]]:
-    """Lê a tabela ARP do Windows para listar dispositivos ativos na rede local."""
-    devices = []
-    try:
-        out = subprocess.check_output("arp -a", shell=True, text=True, errors="replace")
-        for line in out.splitlines():
-            parts = line.strip().split()
-            if len(parts) >= 3 and parts[0].count('.') == 3:
-                ip = parts[0]
-                mac = parts[1].replace('-', ':').upper()
-                tipo = parts[2]
-                if mac != "FF:FF:FF:FF:FF:FF" and not ip.startswith("224.") and not ip.startswith("239."):
-                    # Tenta resolver o hostname (DNS reverso)
-                    hostname = "-"
-                    try:
-                        hostname = socket.gethostbyaddr(ip)[0]
-                    except Exception:
-                        pass
-                    devices.append({
-                        "ip": ip,
-                        "mac": mac,
-                        "tipo": tipo,
-                        "hostname": hostname
-                    })
-    except Exception:
-        pass
-    return devices
+from .logic import (
+    COMMON_PORTS,
+    ArpDeviceItem,
+    OpenPortItem,
+    scan_arp_table,
+    scan_ports_concurrent,
+    scan_single_port,
+)
 
 @register
 class ScannerTool(Tool):
@@ -188,28 +147,22 @@ class ScannerView(QWidget):
         self.lbl_ports_status.setText(f"Escaneando {len(ports)} portas em {target}...")
 
         def worker(ctx):
-            open_ports = []
-            with ThreadPoolExecutor(max_workers=30) as executor:
-                futures = {executor.submit(scan_single_port, target, p): p for p in ports}
-                for f in as_completed(futures):
-                    if ctx.is_cancelled():
-                        break
-                    res = f.result()
-                    if res:
-                        open_ports.append(res)
-            return open_ports
+            return scan_ports_concurrent(
+                host=target,
+                ports=ports,
+                is_cancelled_fn=ctx.is_cancelled,
+            )
 
-        def on_done(res):
+        def on_done(open_ports: List[OpenPortItem]):
             self.btn_scan_ports.setEnabled(True)
-            open_ports = sorted(res, key=lambda x: x["port"])
             self.table_ports.setRowCount(len(open_ports))
             for row, p in enumerate(open_ports):
-                self.table_ports.setItem(row, 0, QTableWidgetItem(str(p["port"])))
-                self.table_ports.setItem(row, 1, QTableWidgetItem(p["service"]))
-                self.table_ports.setItem(row, 2, QTableWidgetItem(p["status"]))
+                self.table_ports.setItem(row, 0, QTableWidgetItem(str(p.port)))
+                self.table_ports.setItem(row, 1, QTableWidgetItem(p.service))
+                self.table_ports.setItem(row, 2, QTableWidgetItem(p.status))
             self.lbl_ports_status.setText(f"Varredura finalizada. {len(open_ports)} porta(s) aberta(s) encontrada(s).")
 
-        w = self.runner.start_task(worker, on_finished=on_done)
+        self.runner.start_task(worker, on_finished=on_done)
 
     def _start_arp_scan(self):
         self.btn_scan_arp.setEnabled(False)
@@ -217,14 +170,14 @@ class ScannerView(QWidget):
         def worker(ctx):
             return scan_arp_table()
 
-        def on_done(devices):
+        def on_done(devices: List[ArpDeviceItem]):
             self.btn_scan_arp.setEnabled(True)
             self.table_arp.setRowCount(len(devices))
             for row, d in enumerate(devices):
-                self.table_arp.setItem(row, 0, QTableWidgetItem(d["ip"]))
-                self.table_arp.setItem(row, 1, QTableWidgetItem(d["mac"]))
-                self.table_arp.setItem(row, 2, QTableWidgetItem(d["tipo"]))
-                self.table_arp.setItem(row, 3, QTableWidgetItem(d["hostname"]))
+                self.table_arp.setItem(row, 0, QTableWidgetItem(d.ip))
+                self.table_arp.setItem(row, 1, QTableWidgetItem(d.mac))
+                self.table_arp.setItem(row, 2, QTableWidgetItem(d.tipo))
+                self.table_arp.setItem(row, 3, QTableWidgetItem(d.hostname))
             self.lbl_arp_status.setText(f"Descoberta concluída: {len(devices)} dispositivo(s) localizado(s).")
 
         self.runner.start_task(worker, on_finished=on_done)

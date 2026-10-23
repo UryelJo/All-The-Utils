@@ -16,60 +16,7 @@ from PySide6.QtWidgets import (
 
 from wintoolbox.core.registry import Tool, register
 from wintoolbox.core.tasks import TaskRunner
-
-def compute_text_hashes(text: str, secret_key: str = "") -> Dict[str, str]:
-    """Calcula os hashes principais de uma string."""
-    data = text.encode("utf-8")
-    key_bytes = secret_key.encode("utf-8")
-
-    res = {
-        "MD5": hashlib.md5(data).hexdigest(),
-        "SHA-1": hashlib.sha1(data).hexdigest(),
-        "SHA-256": hashlib.sha256(data).hexdigest(),
-        "SHA-512": hashlib.sha512(data).hexdigest(),
-        "SHA3-256": hashlib.sha3_256(data).hexdigest(),
-        "CRC32": f"{zlib.crc32(data) & 0xffffffff:08x}"
-    }
-
-    if secret_key:
-        res["HMAC-SHA256"] = hmac.new(key_bytes, data, hashlib.sha256).hexdigest()
-        res["HMAC-SHA512"] = hmac.new(key_bytes, data, hashlib.sha512).hexdigest()
-
-    return res
-
-def compute_file_hash(file_path: Path, algorithm: str = "SHA-256", progress_cb=None) -> str:
-    """Calcula o hash de um arquivo em streaming com suporte a arquivos grandes."""
-    alg = algorithm.upper()
-    if alg == "MD5":
-        hasher = hashlib.md5()
-    elif alg == "SHA-1":
-        hasher = hashlib.sha1()
-    elif alg == "SHA-512":
-        hasher = hashlib.sha512()
-    elif alg == "CRC32":
-        crc = 0
-        total_size = file_path.stat().st_size
-        read_bytes = 0
-        with open(file_path, "rb") as f:
-            while chunk := f.read(1048576):
-                crc = zlib.crc32(chunk, crc)
-                read_bytes += len(chunk)
-                if progress_cb and total_size > 0:
-                    progress_cb(int((read_bytes / total_size) * 100))
-        return f"{crc & 0xffffffff:08x}"
-    else:
-        hasher = hashlib.sha256()
-
-    total_size = file_path.stat().st_size
-    read_bytes = 0
-    with open(file_path, "rb") as f:
-        while chunk := f.read(1048576):
-            hasher.update(chunk)
-            read_bytes += len(chunk)
-            if progress_cb and total_size > 0:
-                progress_cb(int((read_bytes / total_size) * 100))
-
-    return hasher.hexdigest()
+from .logic import compare_hashes, compute_file_hash, compute_text_hashes
 
 @register
 class CryptoHashTool(Tool):
@@ -295,15 +242,15 @@ class CryptoHashView(QWidget):
         self.runner.start_task(worker, on_progress=on_task_progress, on_finished=on_done, on_error=on_error)
 
     def _compare_hashes(self):
-        calculated = self.txt_file_hash.text().strip().lower()
-        expected = self.txt_expected_hash.text().strip().lower()
+        calculated = self.txt_file_hash.text().strip()
+        expected = self.txt_expected_hash.text().strip()
 
         if not calculated or not expected:
             self.lbl_cmp_status.setText("Cole o hash esperado para comparação automática.")
             self.lbl_cmp_status.setStyleSheet("font-weight: 500; color: #aaa;")
             return
 
-        if calculated == expected:
+        if compare_hashes(calculated, expected):
             self.lbl_cmp_status.setText("[VÁLIDO] Os hashes são idênticos! O arquivo é autêntico.")
             self.lbl_cmp_status.setStyleSheet("font-weight: 600; color: #7ee787;")
         else:

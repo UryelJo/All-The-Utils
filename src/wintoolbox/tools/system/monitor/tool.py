@@ -10,7 +10,7 @@ from PySide6.QtWidgets import (
 )
 
 from wintoolbox.core.registry import Tool, register
-from wintoolbox.core.system_info import get_realtime_metrics
+from .logic import DiskMetricItem, SystemMetricsSnapshot, collect_hardware_metrics
 
 @register
 class HardwareMonitorTool(Tool):
@@ -136,33 +136,32 @@ class HardwareMonitorView(QWidget):
 
     def _update_metrics(self):
         try:
-            m = get_realtime_metrics()
+            m = collect_hardware_metrics()
             # Atualiza CPU
-            cpu_val = int(m["cpu_percent"])
-            self.lbl_cpu_detail.setText(f"Uso: {cpu_val}% | Núcleos lógicos: {m['cpu_count']}")
+            cpu_val = int(m.cpu_percent)
+            self.lbl_cpu_detail.setText(f"Uso: {cpu_val}% | Núcleos lógicos: {m.cpu_count}")
             self.prog_cpu.setValue(cpu_val)
 
             # Atualiza RAM
-            ram_val = int(m["mem_percent"])
+            ram_val = int(m.mem_percent)
             self.lbl_ram_detail.setText(
-                f"Uso: {m['mem_used_gb']} GB de {m['mem_total_gb']} GB ({ram_val}%)"
+                f"Uso: {m.mem_used_gb} GB de {m.mem_total_gb} GB ({ram_val}%)"
             )
             self.prog_ram.setValue(ram_val)
 
             # Atualiza Discos
-            disks = m["disks"]
-            self.table_disks.setRowCount(len(disks))
-            for row, d in enumerate(disks):
-                self.table_disks.setItem(row, 0, QTableWidgetItem(f"{d['device']} ({d['mountpoint']})"))
-                self.table_disks.setItem(row, 1, QTableWidgetItem(d["fstype"]))
-                self.table_disks.setItem(row, 2, QTableWidgetItem(f"{d['total_gb']} GB"))
-                self.table_disks.setItem(row, 3, QTableWidgetItem(f"{d['free_gb']} GB livre"))
-                
+            self.table_disks.setRowCount(len(m.disks))
+            for row, d in enumerate(m.disks):
+                self.table_disks.setItem(row, 0, QTableWidgetItem(f"{d.device} ({d.mountpoint})"))
+                self.table_disks.setItem(row, 1, QTableWidgetItem(d.fstype))
+                self.table_disks.setItem(row, 2, QTableWidgetItem(f"{d.total_gb} GB"))
+                self.table_disks.setItem(row, 3, QTableWidgetItem(f"{d.free_gb} GB livre"))
+
                 # Barra de uso na tabela
                 bar = QProgressBar()
                 bar.setRange(0, 100)
-                bar.setValue(int(d["percent"]))
-                bar.setFormat(f"{d['percent']}%")
+                bar.setValue(int(d.percent))
+                bar.setFormat(f"{d.percent}%")
                 self.table_disks.setCellWidget(row, 4, bar)
         except Exception:
             pass

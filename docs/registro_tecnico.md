@@ -55,6 +55,12 @@ WinToolbox/
 └── tests/                      # Testes automatizados (pytest e pytest-qt)
 ```
 
+### Padrão de Ferramenta Modular (UI vs Lógica Pura)
+Cada ferramenta no diretório `tools/` é estruturada como um pacote dedicado com separação estrita de responsabilidades:
+- `__init__.py`: Importa e expõe a classe da ferramenta registrada para auto-descoberta.
+- `tool.py`: Camada de apresentação gráfica (herda de `Tool` ou `FileTool`, constrói widgets PySide6, manipula eventos de tela e conecta o `TaskRunner`).
+- `logic.py`: Regras de negócio puras, funções de processamento, chamadas de sistema operacional e manipulação de I/O (totalmente desacoplado de `PySide6`, 100% testável de forma unitária e reutilizável via CLI ou scripts).
+
 ---
 
 ## 2. Contratos de Ferramentas (`core/registry.py`)
@@ -271,7 +277,8 @@ Para evitar limitação de recursos que dependem de serviços de terceiros (como
 
 ## 7. Métrica de Qualidade e Testes
 - **Total de Ferramentas Registradas**: 55 ferramentas operacionais.
-- **Cobertura de Testes**: 65 testes unitários e de integração executados com 100% de aprovação no `pytest`.
+- **Padrão Arquitetural de Lógica Desacoplada**: 100% das 55 ferramentas possuem divisão estrita entre UI (`tool.py`) e regras de negócio puras (`logic.py`), com zero importações de `PySide6` na camada de lógica.
+- **Cobertura de Testes**: 71 testes unitários e de integração executados com 100% de aprovação no `pytest` (incluindo `tests/test_logic_architecture.py` para garantia contínua de conformidade arquitetural).
 - **Tempo de Execução dos Testes**: ~6.9s.
 
 

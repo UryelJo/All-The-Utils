@@ -15,44 +15,7 @@ from PySide6.QtWidgets import (
 )
 
 from wintoolbox.core.registry import Tool, register
-
-def encode_text(text: str, format_name: str) -> str:
-    """Codifica o texto de acordo com o formato escolhido."""
-    if format_name == "Base64":
-        return base64.b64encode(text.encode("utf-8")).decode("utf-8")
-    elif format_name == "URL Encode":
-        return urllib.parse.quote(text)
-    elif format_name == "HTML Entities":
-        return html.escape(text)
-    elif format_name == "Hexadecimal":
-        return text.encode("utf-8").hex(" ")
-    elif format_name == "Unicode Escape":
-        return text.encode("unicode_escape").decode("utf-8")
-    elif format_name == "ROT13":
-        return codecs.encode(text, "rot_13")
-    return text
-
-def decode_text(text: str, format_name: str) -> str:
-    """Decodifica o texto de acordo com o formato escolhido."""
-    if format_name == "Base64":
-        # Remove quebras de linha e padding faltante
-        cleaned = "".join(text.split())
-        missing_padding = len(cleaned) % 4
-        if missing_padding:
-            cleaned += "=" * (4 - missing_padding)
-        return base64.b64decode(cleaned.encode("utf-8")).decode("utf-8", errors="replace")
-    elif format_name == "URL Encode":
-        return urllib.parse.unquote(text)
-    elif format_name == "HTML Entities":
-        return html.unescape(text)
-    elif format_name == "Hexadecimal":
-        cleaned = text.replace(" ", "").replace("0x", "")
-        return bytes.fromhex(cleaned).decode("utf-8", errors="replace")
-    elif format_name == "Unicode Escape":
-        return codecs.decode(text.encode("utf-8"), "unicode_escape")
-    elif format_name == "ROT13":
-        return codecs.decode(text, "rot_13")
-    return text
+from .logic import SUPPORTED_ENCODINGS, decode_text, encode_text
 
 @register
 class EncodersTool(Tool):
@@ -99,14 +62,7 @@ class EncodersView(QWidget):
         l_sel = QHBoxLayout(card_sel)
         l_sel.addWidget(QLabel("Formato de Codificação:"))
         self.cmb_format = QComboBox()
-        self.cmb_format.addItems([
-            "Base64",
-            "URL Encode",
-            "HTML Entities",
-            "Hexadecimal",
-            "Unicode Escape",
-            "ROT13"
-        ])
+        self.cmb_format.addItems(SUPPORTED_ENCODINGS)
         l_sel.addWidget(self.cmb_format, stretch=1)
         layout.addWidget(card_sel)
 

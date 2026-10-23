@@ -12,6 +12,7 @@ from PySide6.QtWidgets import (
 )
 
 from wintoolbox.core.registry import Tool, register
+from .logic import evaluate_regex
 
 @register
 class RegexTesterTool(Tool):
@@ -180,45 +181,42 @@ class RegexTesterView(QWidget):
         text = self.txt_input.toPlainText()
         repl = self.txt_replacement.text()
 
-        flags = 0
-        if self.chk_i.isChecked():
-            flags |= re.IGNORECASE
-        if self.chk_m.isChecked():
-            flags |= re.MULTILINE
-        if self.chk_s.isChecked():
-            flags |= re.DOTALL
+        res = evaluate_regex(
+            pattern=pattern,
+            text=text,
+            replacement=repl,
+            ignore_case=self.chk_i.isChecked(),
+            multiline=self.chk_m.isChecked(),
+            dotall=self.chk_s.isChecked(),
+        )
 
         if not pattern:
-            self.lbl_match_count.setText("Informe um padrão regex.")
+            self.lbl_match_count.setText(res.error_message or "Informe um padrão regex.")
+            self.lbl_match_count.setStyleSheet("font-weight: 600;")
             self.table_matches.setRowCount(0)
-            self.txt_sub_result.setPlainText(text)
+            self.txt_sub_result.setPlainText(res.substituted_text)
             return
 
-        try:
-            compiled = re.compile(pattern, flags)
-            matches = list(compiled.finditer(text))
-            self.lbl_match_count.setText(f"Correspondências encontradas: {len(matches)}")
-            self.lbl_match_count.setStyleSheet("font-weight: 600; color: #7ee787;")
-
-            self.table_matches.setRowCount(len(matches))
-            for i, m in enumerate(matches):
-                self.table_matches.setItem(i, 0, QTableWidgetItem(str(i + 1)))
-                self.table_matches.setItem(i, 1, QTableWidgetItem(m.group(0)))
-                self.table_matches.setItem(i, 2, QTableWidgetItem(f"{m.start()} - {m.end()}"))
-
-                groups = m.groups()
-                groups_str = ", ".join(f"g{idx+1}='{g}'" for idx, g in enumerate(groups)) if groups else "-"
-                self.table_matches.setItem(i, 3, QTableWidgetItem(groups_str))
-
-            # Substituição
-            sub_res = compiled.sub(repl, text)
-            self.txt_sub_result.setPlainText(sub_res)
-
-        except re.error as e:
-            self.lbl_match_count.setText(f"Erro de sintaxe no Regex: {str(e)}")
+        if not res.is_valid:
+            self.lbl_match_count.setText(res.error_message or "Erro no regex")
             self.lbl_match_count.setStyleSheet("font-weight: 600; color: #ffa198;")
             self.table_matches.setRowCount(0)
-            self.txt_sub_result.setPlainText(text)
+            self.txt_sub_result.setPlainText(res.substituted_text)
+            return
+
+        self.lbl_match_count.setText(f"Correspondências encontradas: {len(res.matches)}")
+        self.lbl_match_count.setStyleSheet("font-weight: 600; color: #7ee787;")
+
+        self.table_matches.setRowCount(len(res.matches))
+        for i, m in enumerate(res.matches):
+            self.table_matches.setItem(i, 0, QTableWidgetItem(str(m.index)))
+            self.table_matches.setItem(i, 1, QTableWidgetItem(m.text))
+            self.table_matches.setItem(i, 2, QTableWidgetItem(f"{m.start} - {m.end}"))
+
+            groups_str = ", ".join(f"g{idx+1}='{g}'" for idx, g in enumerate(m.groups)) if m.groups else "-"
+            self.table_matches.setItem(i, 3, QTableWidgetItem(groups_str))
+
+        self.txt_sub_result.setPlainText(res.substituted_text)
 
     def _copy_sub_result(self):
         text = self.txt_sub_result.toPlainText()

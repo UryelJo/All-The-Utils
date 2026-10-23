@@ -16,69 +16,11 @@ from PySide6.QtWidgets import (
 )
 
 from wintoolbox.core.registry import Tool, register
-
-def get_saved_wifi_profiles() -> List[Dict[str, str]]:
-    """Recupera redes Wi-Fi e senhas salvas no Windows via netsh."""
-    profiles = []
-    try:
-        out = subprocess.check_output(
-            "netsh wlan show profiles",
-            shell=True,
-            text=True,
-            errors="replace"
-        )
-        profile_names = []
-        for line in out.splitlines():
-            if ":" in line and ("Todos os Perfis de Usurios" in line or "All User Profile" in line or "Perfil de Todos os Usurios" in line or "Perfil" in line):
-                p_name = line.split(":", 1)[1].strip()
-                if p_name:
-                    profile_names.append(p_name)
-
-        for name in profile_names:
-            try:
-                cmd = f'netsh wlan show profile name="{name}" key=clear'
-                p_out = subprocess.check_output(cmd, shell=True, text=True, errors="replace")
-                auth = "WPA2"
-                key = "(Sem senha / Aberta)"
-                for pline in p_out.splitlines():
-                    if ":" in pline:
-                        k, v = pline.split(":", 1)
-                        k = k.strip()
-                        v = v.strip()
-                        if "Autenticao" in k or "Authentication" in k:
-                            auth = v
-                        elif "Contedo da Chave" in k or "Key Content" in k:
-                            key = v
-                profiles.append({
-                    "ssid": name,
-                    "auth": auth,
-                    "password": key
-                })
-            except Exception:
-                continue
-    except Exception:
-        pass
-    return profiles
+from .logic import WifiProfileItem, generate_wifi_qr_image, get_saved_wifi_profiles
 
 def generate_wifi_qr_pixmap(ssid: str, password: str, auth_type: str = "WPA") -> QPixmap:
-    """Gera o QR code para conexão automática de celular ao Wi-Fi."""
-    # Padrão universal: WIFI:T:WPA;S:rede;P:senha;;
-    if auth_type == "Aberta":
-        payload = f"WIFI:S:{ssid};T:nopass;;"
-    else:
-        payload = f"WIFI:T:{auth_type};S:{ssid};P:{password};;"
-
-    qr = qrcode.QRCode(
-        version=1,
-        error_correction=qrcode.constants.ERROR_CORRECT_M,
-        box_size=8,
-        border=2,
-    )
-    qr.add_data(payload)
-    qr.make(fit=True)
-    pil_img = qr.make_image(fill_color="black", back_color="white").convert("RGB")
-
-    # Converte PIL Image para QPixmap
+    """Converte o PIL Image gerado pela logic.py em QPixmap para a interface Qt."""
+    pil_img = generate_wifi_qr_image(ssid, password, auth_type)
     data = pil_img.tobytes("raw", "RGB")
     qimg = QImage(data, pil_img.size[0], pil_img.size[1], QImage.Format_RGB888)
     return QPixmap.fromImage(qimg)
@@ -219,23 +161,23 @@ class WifiView(QWidget):
         self._profiles = get_saved_wifi_profiles()
         self.table_wifi.setRowCount(len(self._profiles))
         for row, p in enumerate(self._profiles):
-            self.table_wifi.setItem(row, 0, QTableWidgetItem(p["ssid"]))
-            self.table_wifi.setItem(row, 1, QTableWidgetItem(p["auth"]))
-            self.table_wifi.setItem(row, 2, QTableWidgetItem(p["password"]))
+            self.table_wifi.setItem(row, 0, QTableWidgetItem(p.ssid))
+            self.table_wifi.setItem(row, 1, QTableWidgetItem(p.auth))
+            self.table_wifi.setItem(row, 2, QTableWidgetItem(p.password))
 
     def _copy_selected_password(self):
         row = self.table_wifi.currentRow()
-        if row >= 0 and row < len(self._profiles):
-            pwd = self._profiles[row]["password"]
+        if 0 <= row < len(self._profiles):
+            pwd = self._profiles[row].password
             QApplication.clipboard().setText(pwd)
-            QMessageBox.information(self, "Copiado", f"Senha da rede '{self._profiles[row]['ssid']}' copiada para a área de transferência!")
+            QMessageBox.information(self, "Copiado", f"Senha da rede '{self._profiles[row].ssid}' copiada para a área de transferência!")
 
     def _send_to_qr_tab(self):
         row = self.table_wifi.currentRow()
-        if row >= 0 and row < len(self._profiles):
+        if 0 <= row < len(self._profiles):
             p = self._profiles[row]
-            self.txt_qr_ssid.setText(p["ssid"])
-            self.txt_qr_pass.setText(p["password"] if p["password"] != "(Sem senha / Aberta)" else "")
+            self.txt_qr_ssid.setText(p.ssid)
+            self.txt_qr_pass.setText(p.password if p.password != "(Sem senha / Aberta)" else "")
             self.tabs.setCurrentIndex(1)
             self._generate_qr()
 

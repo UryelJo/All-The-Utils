@@ -17,82 +17,14 @@ from PySide6.QtWidgets import (
 
 from wintoolbox.core.registry import Tool, register
 from wintoolbox.core.tasks import TaskRunner
-
-def get_file_quick_hash(file_path: Path) -> str:
-    """Calcula hash dos primeiros 4KB do arquivo para descarte rápido."""
-    try:
-        with open(file_path, "rb") as f:
-            chunk = f.read(4096)
-            return hashlib.md5(chunk).hexdigest()
-    except Exception:
-        return ""
-
-def get_file_full_hash(file_path: Path) -> str:
-    """Calcula o hash SHA-256 completo do arquivo."""
-    hasher = hashlib.sha256()
-    try:
-        with open(file_path, "rb") as f:
-            while chunk := f.read(65536):
-                hasher.update(chunk)
-        return hasher.hexdigest()
-    except Exception:
-        return ""
-
-def scan_duplicates(folder: Path, recursive: bool = True, progress_cb=None) -> List[List[Path]]:
-    """Localiza grupos de arquivos duplicados através de tamanho, hash rápido e SHA-256."""
-    by_size = defaultdict(list)
-    root_path = Path(folder)
-    it = root_path.rglob("*") if recursive else root_path.glob("*")
-
-    all_files = [p for p in it if p.is_file()]
-    total_f = len(all_files)
-
-    for idx, f in enumerate(all_files):
-        try:
-            s = f.stat().st_size
-            if s > 0:
-                by_size[s].append(f)
-        except Exception:
-            pass
-        if progress_cb and idx % 50 == 0:
-            progress_cb(int((idx / max(total_f, 1)) * 30), "Agrupando por tamanho...")
-
-    candidates = []
-    for sz, files in by_size.items():
-        if len(files) > 1:
-            candidates.extend(files)
-
-    by_quick = defaultdict(list)
-    for idx, f in enumerate(candidates):
-        qh = get_file_quick_hash(f)
-        if qh:
-            by_quick[(f.stat().st_size, qh)].append(f)
-        if progress_cb and idx % 20 == 0:
-            progress_cb(30 + int((idx / max(len(candidates), 1)) * 30), "Verificando hashes rápidos...")
-
-    final_groups = defaultdict(list)
-    group_candidates = [flist for flist in by_quick.values() if len(flist) > 1]
-    total_cand = sum(len(fl) for fl in group_candidates)
-    done_cand = 0
-
-    for flist in group_candidates:
-        for f in flist:
-            fh = get_file_full_hash(f)
-            if fh:
-                final_groups[(f.stat().st_size, fh)].append(f)
-            done_cand += 1
-            if progress_cb:
-                progress_cb(60 + int((done_cand / max(total_cand, 1)) * 40), "Calculando SHA-256...")
-
-    return [flist for flist in final_groups.values() if len(flist) > 1]
-
-class DuplicateItem:
-    def __init__(self, path: Path, group_id: int, size: int):
-        self.path = path
-        self.group_id = group_id
-        self.size = size
-        self.mtime = path.stat().st_mtime if path.exists() else 0
-        self.selected = False
+from .logic import (
+    DuplicateItem,
+    format_size,
+    get_file_full_hash,
+    get_file_quick_hash,
+    scan_duplicates,
+    trash_files,
+)
 
 @register
 class DuplicatesTool(Tool):
@@ -245,7 +177,8 @@ class DuplicatesView(QWidget):
             for gid, flist in enumerate(duplicate_groups, start=1):
                 sz = flist[0].stat().st_size if flist and flist[0].exists() else 0
                 for f in flist:
-                    result_items.append(DuplicateItem(f, gid, sz))
+                    mtime = f.stat().st_mtime if f.exists() else 0.0
+                    result_items.append(DuplicateItem(path=f, group_id=gid, size=sz, mtime=mtime))
 
             return result_items
 
@@ -290,11 +223,7 @@ class DuplicatesView(QWidget):
         self._update_delete_button()
 
     def _format_size(self, size_bytes: int) -> str:
-        if size_bytes < 1024:
-            return f"{size_bytes} B"
-        elif size_bytes < 1024 * 1024:
-            return f"{round(size_bytes / 1024, 1)} KB"
-        return f"{round(size_bytes / (1024 * 1024), 2)} MB"
+        return format_size(size_bytes)
 
     def _on_table_item_changed(self, item: QTableWidgetItem):
         if item.column() == 0:
@@ -355,12 +284,8 @@ class DuplicatesView(QWidget):
             return
 
         try:
-            import send2trash
-            deleted = 0
-            for it in to_delete:
-                if it.path.exists():
-                    send2trash.send2trash(str(it.path))
-                    deleted += 1
+            paths = [it.path for it in to_delete]
+            deleted = trash_files(paths)
 
             QMessageBox.information(
                 self,

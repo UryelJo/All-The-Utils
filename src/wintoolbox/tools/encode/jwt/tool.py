@@ -14,28 +14,7 @@ from PySide6.QtWidgets import (
 )
 
 from wintoolbox.core.registry import Tool, register
-
-def decode_jwt_unverified(jwt_token: str) -> Tuple[Dict, Dict, str]:
-    """Decodifica as partes do token JWT sem verificação criptográfica da assinatura."""
-    parts = jwt_token.strip().split(".")
-    if len(parts) < 2:
-        raise ValueError("O token JWT deve conter pelo menos duas partes separadas por ponto (Header.Payload).")
-
-    def b64_decode(data: str) -> str:
-        data = data.replace("-", "+").replace("_", "/")
-        missing = len(data) % 4
-        if missing:
-            data += "=" * (4 - missing)
-        return base64.b64decode(data.encode("utf-8")).decode("utf-8", errors="replace")
-
-    header_json = b64_decode(parts[0])
-    payload_json = b64_decode(parts[1])
-    signature = parts[2] if len(parts) > 2 else ""
-
-    header = json.loads(header_json)
-    payload = json.loads(payload_json)
-
-    return header, payload, signature
+from .logic import JwtExpirationInfo, decode_jwt_unverified, parse_jwt_expiration
 
 @register
 class JwtDecoderTool(Tool):
@@ -144,27 +123,16 @@ class JwtDecoderView(QWidget):
             self.txt_header.setPlainText(json.dumps(header, indent=2, ensure_ascii=False))
             self.txt_payload.setPlainText(json.dumps(payload, indent=2, ensure_ascii=False))
 
-            # Analisa data de expiração
-            if "exp" in payload and isinstance(payload["exp"], (int, float)):
-                exp_ts = payload["exp"]
-                now_ts = time.time()
-                exp_dt = datetime.fromtimestamp(exp_ts, tz=timezone.utc).astimezone()
-                dt_str = exp_dt.strftime("%d/%m/%Y às %H:%M:%S (%Z)")
+            exp_info = parse_jwt_expiration(payload)
+            self.lbl_exp_status.setText(exp_info.status_text)
+            self.lbl_exp_human.setText(exp_info.detail_text)
 
-                if now_ts > exp_ts:
-                    diff_mins = int((now_ts - exp_ts) / 60)
-                    self.lbl_exp_status.setText("[EXPIRADO] Este token já perdeu a validade!")
-                    self.lbl_exp_status.setStyleSheet("font-size: 14px; font-weight: 600; color: #ffa198;")
-                    self.lbl_exp_human.setText(f"Expirou em: {dt_str} (há aproximadamente {diff_mins} minutos)")
-                else:
-                    diff_mins = int((exp_ts - now_ts) / 60)
-                    self.lbl_exp_status.setText("[VÁLIDO] O token está ativo dentro do período de validade.")
-                    self.lbl_exp_status.setStyleSheet("font-size: 14px; font-weight: 600; color: #7ee787;")
-                    self.lbl_exp_human.setText(f"Expira em: {dt_str} (restam aproximadamente {diff_mins} minutos)")
+            if exp_info.status_type == "expired":
+                self.lbl_exp_status.setStyleSheet("font-size: 14px; font-weight: 600; color: #ffa198;")
+            elif exp_info.status_type == "valid":
+                self.lbl_exp_status.setStyleSheet("font-size: 14px; font-weight: 600; color: #7ee787;")
             else:
-                self.lbl_exp_status.setText("[SEM EXPIRAÇÃO] O token não define claim 'exp'.")
                 self.lbl_exp_status.setStyleSheet("font-size: 14px; font-weight: 600; color: #e3b341;")
-                self.lbl_exp_human.setText("Este token não possui tempo limite de vida definido.")
 
         except Exception as e:
             self.lbl_exp_status.setText("[TOKEN INVÁLIDO] Não foi possível decodificar.")
