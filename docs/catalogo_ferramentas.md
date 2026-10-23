@@ -93,7 +93,85 @@ Este documento mantém o inventário detalhado de todas as ferramentas disponív
   - Informações de Disco (tabela com todas as unidades físicas/lógicas, sistema de arquivos, espaço livre/usado e taxa de ocupação).
   - Tempo de atividade do sistema (Uptime desde o boot).
 
+### `system.process_manager` — Gerenciador de Processos
+- **Tipo**: `Tool` (Painel Interativo)
+- **Recursos**:
+  - Monitor em tempo real de processos ativos com PID, Nome, Consumo de RAM (MB), % de CPU, Usuário e Status.
+  - Busca instantânea por nome, PID ou usuário.
+  - Ações: Finalizar Processo, Finalizar Árvore de Processos, Abrir Local do Executável no Explorer e Diálogo de Detalhes completos (linha de comando, pasta de trabalho, threads e prioridade).
+
+### `system.services_manager` — Gerenciador de Serviços
+- **Tipo**: `Tool` (Painel Interativo)
+- **Recursos**:
+  - Listagem completa de todos os serviços do Windows com Nome, Nome de Exibição, Status com badges coloridos, Tipo de Inicialização e PID.
+  - Filtro por texto e dropdown por status (Todos, Em execução, Parados).
+  - Controle em 1 clique: Iniciar, Parar, Reiniciar e Alteração do Tipo de Inicialização (Automático, Manual ou Desativado) via `sc.exe` / `net.exe`.
+
+### `system.startup_manager` — Gerenciador de Inicialização
+- **Tipo**: `Tool` (Painel Interativo)
+- **Recursos**:
+  - Listagem de programas que iniciam com o Windows a partir do Registro (`HKCU/HKLM Run`) e das pastas de Inicialização (`Startup`).
+  - Adição de novos executáveis ou scripts à inicialização com suporte a escopo de Usuário ou Todos os Usuários.
+  - Remoção segura de itens da inicialização e atalho para abrir o arquivo físico no Explorer.
+
+### `system.hosts_editor` — Editor do Arquivo Hosts
+- **Tipo**: `Tool` (Painel Interativo)
+- **Recursos**:
+  - Leitura e edição estruturada do arquivo hosts do Windows (`C:\Windows\System32\drivers\etc\hosts`).
+  - Tabela com Checkbox para ativar/desativar redirecionamentos sem precisar apagar a linha, Endereço IP, Domínio e Comentários.
+  - Criação automática de backup com carimbo de data/hora (`hosts.bak_YYYYMMDD_HHMMSS`) antes de cada salvamento.
+  - Restauração de backups anteriores e botão integrado de Flush DNS (`ipconfig /flushdns`).
+
+### `system.env_editor` — Variáveis de Ambiente e PATH
+- **Tipo**: `Tool` (Painel com Abas)
+- **Recursos**:
+  - Gestão de variáveis de ambiente do Usuário Atual (`HKCU`) e da Máquina / Sistema (`HKLM`).
+  - **Aba Variáveis**: Criação, edição e exclusão de variáveis com broadcast nativo `WM_SETTINGCHANGE` para aplicar sem reiniciar o PC.
+  - **Aba Editor Visual do PATH**: Exibe cada diretório do PATH em linhas separadas, identifica visualmente pastas órfãs/inexistentes em vermelho, reordenação (Mover para Cima/Baixo), adição de pastas e limpeza automática de caminhos inválidos.
+
+### `system.uninstaller` — Programas Instalados e Desinstalador
+- **Tipo**: `Tool` (Painel Interativo)
+- **Recursos**:
+  - Varredura em profundidade de aplicativos instalados no Windows (Registros de 64-bit, 32-bit Wow6432Node e Usuário).
+  - Exibição de Nome, Versão, Publicador, Tamanho Estimado em MB e Data de Instalação.
+  - Execução do desinstalador oficial do programa ou Desinstalação Silenciosa sem prompts (Quiet Uninstall).
+  - Cópia do comando de desinstalação para a área de transferência.
+
+### `system.power_manager` — Planos de Energia e Desligamento
+- **Tipo**: `Tool` (Painel Interativo)
+- **Recursos**:
+  - Listagem dos planos de energia disponíveis no Windows (`powercfg /list`), identificação do plano ativo e troca rápida de plano.
+  - Informações de status de bateria (nível %, tomada vs bateria, tempo restante).
+  - Agendador de Ações do Sistema: Desligar, Reiniciar, Suspender (Sleep) ou Bloquear a Estação de Trabalho com contagem regressiva em minutos ou em horário específico do dia.
+  - Cancelamento em 1 clique de qualquer desligamento agendado pendente (`shutdown /a`).
+
+### `system.driver_backup` — Backup de Drivers do Windows
+- **Tipo**: `Tool` (Painel com Execução Assíncrona)
+- **Recursos**:
+  - Enumeração de todos os pacotes de drivers de terceiros instalados no sistema via `pnputil /enum-drivers` (INF publicado, fabricante, classe, versão e data).
+  - Exportação e backup completo de todos os pacotes de drivers para qualquer pasta selecionada com 1 clique via `pnputil /export-driver`.
+  - Execução em segundo plano com acompanhamento de progresso sem travar a interface.
+
+### `system.quick_tweaks` — Ajustes Rápidos do Windows
+- **Tipo**: `Tool` (Painel Interativo)
+- **Recursos**:
+  - Alternância imediata de opções essenciais do Windows:
+    - Exibir/ocultar arquivos, pastas e unidades ocultas.
+    - Exibir/ocultar extensões de tipos de arquivos conhecidos.
+    - Exibir ícone "Este Computador" na Área de Trabalho.
+    - Ocultar histórico de arquivos recentes no Acesso Rápido.
+    - Modo escuro para Aplicativos e Modo escuro para o Sistema Operacional.
+  - Botão integrado para reiniciar o Windows Explorer e atualizar a interface imediatamente.
+
+### `system.task_scheduler` — Tarefas Agendadas do Windows
+- **Tipo**: `Tool` (Painel Interativo)
+- **Recursos**:
+  - Consulta rápida de tarefas agendadas via `schtasks /query` com Nome, Caminho na árvore, Próxima Execução e Status.
+  - Filtro para ocultar tarefas padrão da Microsoft e focar nas tarefas criadas por softwares instalados.
+  - Ações imediatas: Executar Tarefa Agora (`schtasks /run`), Ativar e Desativar tarefas agendadas.
+
 ---
+
 
 ## 3. Rede e Internet (`tools/network/`)
 

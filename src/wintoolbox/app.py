@@ -6,8 +6,7 @@ from PySide6.QtCore import Qt
 from PySide6.QtWidgets import QApplication
 
 import wintoolbox.tools.images
-import wintoolbox.tools.system.tools
-import wintoolbox.tools.system.monitor
+import wintoolbox.tools.system
 import wintoolbox.tools.network
 import wintoolbox.tools.text
 import wintoolbox.tools.encode

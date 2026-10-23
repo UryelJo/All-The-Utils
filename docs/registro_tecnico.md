@@ -213,17 +213,17 @@ Para evitar limitação de recursos que dependem de serviços de terceiros (como
 - [x] Monitor de pastas em tempo real com alertas na bandeja (`files.folder_watcher`).
 - [x] Assistente de backup incremental de pastas locais (`files.backup`).
 
-### Fase 7 — Sistema, Processos e Manutenção Avançada (Próximo Bloco)
-- [ ] Gerenciador de processos nativo com monitor de CPU/RAM e árvore de processos (`system.process_manager`).
-- [ ] Gerenciador de Serviços do Windows: listar, iniciar, parar, reiniciar e tipo de boot (`system.services_manager`).
-- [ ] Gerenciador de inicialização do Windows (Registro + pasta Startup) (`system.startup_manager`).
-- [ ] Editor seguro do arquivo hosts com backup e Flush DNS (`system.hosts_editor`).
-- [ ] Editor de variáveis de ambiente do Usuário e Sistema com gestão do PATH (`system.env_editor`).
-- [ ] Visualizador de programas instalados no Windows e desinstalador (`system.uninstaller`).
-- [ ] Planos de energia e desligamento/reinício agendado (`system.power_manager`).
-- [ ] Backup de drivers de terceiros instalados via pnputil (`system.driver_backup`).
-- [ ] Ajustes rápidos do Windows: arquivos ocultos, extensões, modo escuro e atalhos (`system.quick_tweaks`).
-- [ ] Gerenciador rápido de tarefas agendadas do Windows (`system.task_scheduler`).
+### Fase 7 — Sistema, Processos e Manutenção Avançada (Concluída)
+- [x] Gerenciador de processos nativo com monitor de CPU/RAM e árvore de processos (`system.process_manager`).
+- [x] Gerenciador de Serviços do Windows: listar, iniciar, parar, reiniciar e tipo de boot (`system.services_manager`).
+- [x] Gerenciador de inicialização do Windows (Registro + pasta Startup) (`system.startup_manager`).
+- [x] Editor seguro do arquivo hosts com backup e Flush DNS (`system.hosts_editor`).
+- [x] Editor de variáveis de ambiente do Usuário e Sistema com gestão do PATH (`system.env_editor`).
+- [x] Visualizador de programas instalados no Windows e desinstalador (`system.uninstaller`).
+- [x] Planos de energia e desligamento/reinício agendado (`system.power_manager`).
+- [x] Backup de drivers de terceiros instalados via pnputil (`system.driver_backup`).
+- [x] Ajustes rápidos do Windows: arquivos ocultos, extensões, modo escuro e atalhos (`system.quick_tweaks`).
+- [x] Gerenciador rápido de tarefas agendadas do Windows (`system.task_scheduler`).
 
 ### Fase 8 — Segurança e Cofre Local
 - [ ] Cofre local de senhas criptografado com senha mestra AES-GCM em SQLite (`security.password_vault`).
@@ -277,15 +277,15 @@ Para evitar limitação de recursos que dependem de serviços de terceiros (como
 ---
 
 ## 7. Métrica de Qualidade e Testes
-- **Total de Ferramentas Registradas**: 62 ferramentas operacionais.
-- **Padrão Arquitetural de Lógica Desacoplada**: 100% das 62 ferramentas possuem divisão estrita entre UI (`tool.py`) e regras de negócio puras (`logic.py`), com zero importações de `PySide6` na camada de lógica.
+- **Total de Ferramentas Registradas**: 72 ferramentas operacionais.
+- **Padrão Arquitetural de Lógica Desacoplada**: 100% das 72 ferramentas possuem divisão estrita entre UI (`tool.py`) e regras de negócio puras (`logic.py`), com zero importações de `PySide6` na camada de lógica.
 - **Aceleração por Hardware (GPU) & Paralelismo**:
   - Detecção automática de GPUs instaladas (NVIDIA GeForce/RTX via `nvidia-smi` / WMI, AMD Radeon e Intel Arc/Iris).
   - Aceleração por hardware no FFmpeg via **NVIDIA NVENC** (`h264_nvenc`, `hevc_nvenc`), **AMD AMF** (`h264_amf`, `hevc_amf`) e **Intel QuickSync** (`h264_qsv`) com fallback automático resiliente para CPU (`libx264`).
   - Motor de lote concorrente (`core/batch.py`) com `ThreadPoolExecutor` dimensionado automaticamente de acordo com os núcleos da máquina (`optimal_batch_workers = min(cpu_cores, 8)`).
   - Cálculo de hashes concorrente em lote na ferramenta de localização de arquivos duplicados (`files.duplicates`).
-- **Cobertura de Testes**: 81 testes unitários e de integração executados com 100% de aprovação no `pytest` (incluindo testes de arquitetura, testes de aceleração de hardware e cobertura das 7 ferramentas da Fase 6).
-- **Tempo de Execução dos Testes**: ~9.0s.
+- **Cobertura de Testes**: 93 testes unitários e de integração executados com 100% de aprovação no `pytest` (incluindo testes de arquitetura, testes de aceleração de hardware e cobertura das 10 ferramentas da Fase 7).
+- **Tempo de Execução dos Testes**: ~20.0s.
 
 ---
 
