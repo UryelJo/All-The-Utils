@@ -236,21 +236,23 @@ Para evitar limitação de recursos que dependem de serviços de terceiros (como
 - [x] OCR de imagem 100% offline local com API nativa do Windows ou Tesseract (`images.ocr`).
 - [x] Removedor de fundo de imagem local via rembg sob demanda (`images.remove_bg`).
 
-### Fase 9 — Ferramentas para Desenvolvedores
-- [ ] Gerador de dados fictícios para testes em lote e Lorem Ipsum (`dev.fake_data`).
-- [ ] Visualizador leve de bancos SQLite locais e executor de consultas SQL (`dev.sqlite_viewer`).
-- [ ] Conversor instantâneo de cores HEX, RGB, HSL, HSV e CMYK (`dev.color_converter`).
-- [ ] Calculador e explicador de expressões cron em português (`dev.cron_calculator`).
-- [ ] Wrapper visual para PyInstaller para gerar executáveis .exe (`dev.pyinstaller_wrapper`).
-- [ ] Gerador de templates e scaffold de projetos (.gitignore, README, LICENSE) (`dev.project_scaffold`).
+### Fase 9 — Ferramentas para Desenvolvedores (Concluída - 6 Novas Ferramentas)
+- [x] Gerador de dados fictícios para testes em lote (CPF, CNPJ, nomes, empresas, endereços) e Lorem Ipsum (`dev.fake_data`).
+- [x] Visualizador leve de bancos SQLite locais com URI somente-leitura, DataTableView paginado e executor de consultas SQL (`dev.sqlite_viewer`).
+- [x] Conversor instantâneo de cores HEX, RGB, HSL, HSV, CMYK com análise de contraste WCAG 2.1 e snippets de código dev (`dev.color_converter`).
+- [x] Calculador e explicador semântico de expressões cron em português com projeção determinística de datas futuras (`dev.cron_calculator`).
+- [x] Wrapper visual para PyInstaller para gerar executáveis .exe nativos com compilação assíncrona QProcess e LogPanel (`dev.pyinstaller_wrapper`).
+- [x] Gerador de templates e scaffold de projetos (.gitignore por linguagem, licenças MIT/Apache/GPL, README e .editorconfig) (`dev.project_scaffold`).
 
-### Fase 10 — Produtividade e Utilidades Pessoais
-- [ ] Histórico da área de transferência com favoritos e busca (`productivity.clipboard_history`).
-- [ ] Lista de tarefas / To-Do local minimalista em SQLite (`productivity.todo`).
-- [ ] Timer Pomodoro de foco com notificações nativas (`productivity.pomodoro`).
-- [ ] Alarmes e lembretes com notificação nativa do Windows (`productivity.reminders`).
-- [ ] Bloco de anotações rápidas flutuante com salvamento automático (`productivity.quick_notes`).
-- [ ] Registrador de tempo por atividade ou projeto (`productivity.time_tracker`).
+
+### Fase 10 — Produtividade e Utilidades Pessoais (Concluída - 6 Novas Ferramentas)
+- [x] Histórico da área de transferência com favoritos, busca, deduplicação e persistência em SQLite (`productivity.clipboard_history`).
+- [x] Lista de tarefas / To-Do local minimalista com categorias, prioridades, datas de entrega e estatísticas (`productivity.todo`).
+- [x] Timer Pomodoro de foco com máquina de estados (foco, pausa curta/longa), progresso suave e notificações nativas (`productivity.pomodoro`).
+- [x] Alarmes e lembretes com repetição flexível (diária, dias úteis, semanal) e notificações no Windows (`productivity.reminders`).
+- [x] Bloco de anotações rápidas com salvamento automático (debounce), fixar notas e exportação MD/TXT (`productivity.quick_notes`).
+- [x] Registrador de tempo por atividade ou projeto (Time Tracker) com cronômetro, resumo e exportação CSV (`productivity.time_tracker`).
+
 
 ### Fase 11 — Calculadoras Especiais
 - [ ] Conversor de unidades de medida (comprimento, massa, dados, temp, etc.) (`calc.unit_converter`).

@@ -11,9 +11,35 @@ from wintoolbox.core.registry import get_tool
 from wintoolbox.core.settings import load_settings
 from wintoolbox.ui.icons import get_app_icon
 
+_GLOBAL_TRAY_MANAGER: Optional["SystemTrayManager"] = None
+
+
 def create_tray_icon_pixmap() -> QIcon:
     """Retorna o ícone oficial da aplicação (ui/Icon.png) para a bandeja do sistema."""
     return get_app_icon()
+
+
+def notify(title: str, message: str, is_error: bool = False) -> None:
+    """Função global para emitir notificação nativa do Windows na bandeja."""
+    global _GLOBAL_TRAY_MANAGER
+    if _GLOBAL_TRAY_MANAGER is not None:
+        _GLOBAL_TRAY_MANAGER.notify(title, message, is_error=is_error)
+        return
+
+    st = load_settings()
+    if not st.get("notifications_enabled", True):
+        return
+
+    app = QApplication.instance()
+    if app and QSystemTrayIcon.isSystemTrayAvailable():
+        tray = getattr(app, "_app_notification_tray", None)
+        if tray is None:
+            tray = QSystemTrayIcon(create_tray_icon_pixmap(), app)
+            tray.show()
+            setattr(app, "_app_notification_tray", tray)
+        icon_type = QSystemTrayIcon.MessageIcon.Critical if is_error else QSystemTrayIcon.MessageIcon.Information
+        tray.showMessage(title, message, icon_type, 4000)
+
 
 class SystemTrayManager:
     """Gerencia o ícone da bandeja, menu de contexto e notificações."""
@@ -28,6 +54,9 @@ class SystemTrayManager:
 
         self._build_menu()
         self.tray.show()
+        global _GLOBAL_TRAY_MANAGER
+        _GLOBAL_TRAY_MANAGER = self
+
 
     def _build_menu(self):
         menu = QMenu()

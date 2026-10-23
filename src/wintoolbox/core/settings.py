@@ -51,8 +51,15 @@ def get_settings_dir() -> Path:
     base.mkdir(parents=True, exist_ok=True)
     return base
 
+
+def get_app_dir() -> Path:
+    """Retorna o diretório base de dados da aplicação."""
+    return get_settings_dir()
+
+
 def get_settings_file() -> Path:
     return get_settings_dir() / "settings.json"
+
 
 def load_settings() -> Dict[str, Any]:
     """Carrega as configurações salvas ou valores padrão."""

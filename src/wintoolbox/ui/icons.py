@@ -29,6 +29,9 @@ CATEGORY_META: Dict[str, Tuple[str, str]] = {
     "Sistema": ("cat_system", NEUTRAL_ICON_COLOR),
     "Sistema Windows": ("cat_system", NEUTRAL_ICON_COLOR),
     "Compactação": ("cat_archive", NEUTRAL_ICON_COLOR),
+    "Desenvolvimento": ("cat_dev", NEUTRAL_ICON_COLOR),
+    "Dev": ("cat_dev", NEUTRAL_ICON_COLOR),
+    "Produtividade": ("cat_productivity", NEUTRAL_ICON_COLOR),
 }
 
 _CACHED_APP_ICON: Optional[QIcon] = None
@@ -290,6 +293,21 @@ def make_fluent_icon(name: str, color: str = NEUTRAL_ICON_COLOR, size: int = 16)
         p.drawRect(QRectF(pad, pad + h * 0.2, w, h * 0.8))
         p.drawLine(QPointF(pad, pad + h * 0.2), QPointF(s - pad, pad + h * 0.2))
         p.drawRect(QRectF(pad + w * 0.35, pad + h * 0.15, w * 0.3, h * 0.25))
+
+    elif name in ("cat_dev", "code"):
+        # Tags de código < />
+        p.drawLine(QPointF(pad + w * 0.32, pad + h * 0.25), QPointF(pad + w * 0.12, s * 0.5))
+        p.drawLine(QPointF(pad + w * 0.12, s * 0.5), QPointF(pad + w * 0.32, s - pad - h * 0.25))
+        p.drawLine(QPointF(s - pad - w * 0.32, pad + h * 0.25), QPointF(s - pad - w * 0.12, s * 0.5))
+        p.drawLine(QPointF(s - pad - w * 0.12, s * 0.5), QPointF(s - pad - w * 0.32, s - pad - h * 0.25))
+        p.drawLine(QPointF(pad + w * 0.6, pad + h * 0.18), QPointF(pad + w * 0.4, s - pad - h * 0.18))
+
+    elif name in ("cat_productivity", "check_list"):
+        # Prancheta com checklist e clipe superior
+        p.drawRoundedRect(QRectF(pad + 1, pad + h * 0.12, w - 2, h * 0.88), 1.5, 1.5)
+        p.drawRoundedRect(QRectF(pad + w * 0.28, pad, w * 0.44, h * 0.22), 1.0, 1.0)
+        p.drawLine(QPointF(pad + w * 0.25, pad + h * 0.45), QPointF(s - pad - w * 0.25, pad + h * 0.45))
+        p.drawLine(QPointF(pad + w * 0.25, pad + h * 0.68), QPointF(s - pad - w * 0.25, pad + h * 0.68))
 
     else:
         # Fallback geométrico limpo (quadradinho arredondado discreto)

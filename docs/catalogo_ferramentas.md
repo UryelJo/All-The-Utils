@@ -698,6 +698,125 @@ Este documento mantém o inventário detalhado de todas as ferramentas disponív
   - Player embutido nativo utilizando `QMediaPlayer` e `QVideoWidget` do PySide6.
   - Controles de Play, Pause, Stop, seek por slider de progresso, relógio de tempo atual/total e ajuste de volume.
 
+---
 
+## 11. Ferramentas para Desenvolvedores (`tools/dev/`)
 
+### `dev.fake_data` — Gerador de Dados Fictícios
+- **Tipo**: `Tool` (Interativo e Lote)
+- **Recursos**:
+  - **Aba Dados Estruturados em Lote**:
+    - Algoritmos matemáticos oficiais de validação para CPF (com e sem pontuação) e CNPJ (com e sem pontuação).
+    - Geração de nomes completos com distribuição brasileira, e-mails realistas, telefones/celulares com DDDs regionais, endereços completos (logradouro, número, bairro, cidade, UF e CEP válido).
+    - Suporte a dados técnicos: endereços IPv4, endereços MAC e identificadores UUID v4.
+    - Exportação multi-formato em 1 clique: JSON formatado, CSV delimitado por ponto e vírgula, instruções SQL `INSERT INTO` e Texto delimitado por tabulação.
+    - Cópia para a área de transferência ou salvamento direto em arquivo de disco.
+  - **Aba Gerador Lorem Ipsum**:
+    - Geração sintética de texto padrão de preenchimento em Parágrafos, Frases ou Palavras.
+
+### `dev.sqlite_viewer` — Visualizador de Bancos SQLite
+- **Tipo**: `Tool` (Interativo)
+- **Recursos**:
+  - Acesso protegido e seguro via URI somente-leitura (`file:...mode=ro`), evitando locks em bancos operacionais.
+  - Painel lateral com lista de tabelas e views, contagem de registros e busca instantânea.
+  - Visualização de registros com paginação e ordenação de alta performance via `DataTableView` (`RecordTableModel`).
+  - **Editor de Consultas SQL**: Execução de scripts livres `SELECT`, cálculo de tempo de resposta em milissegundos e exportação de resultados para CSV ou JSON.
+  - **Esquema e DDL**: Inspeção de colunas, tipos de dados, chaves primárias, restrições NOT NULL e código DDL `CREATE TABLE` original.
+
+### `dev.color_converter` — Conversor de Cores
+- **Tipo**: `Tool` (Interativo)
+- **Recursos**:
+  - Conversão matemática bidirecional e instantânea entre notações HEX (#RGB, #RGBA, #RRGGBB, #RRGGBBAA), RGB (0-255), HSL (0-360°, 0-100%), HSV (0-360°, 0-100%) e CMYK (0-100%).
+  - Caixa de pré-visualização visual dinâmica com teste de contraste ao vivo sobre o fundo da cor.
+  - Seletor nativo do sistema operacional via `QColorDialog`.
+  - **Métricas de Acessibilidade WCAG 2.1**: Cálculo de luminância relativa e razão de contraste com fundos branco e preto, com selos de aprovação nos níveis AA e AAA.
+  - **Snippets Prontos para Dev**: Geração e cópia em 1 clique de notações para CSS HEX, CSS RGB/RGBA, CSS HSL/HSLA, Tailwind CSS (`bg-[#...]`), Python, Tuplas Normalizadas (0.0-1.0), Android/Flutter (`0xFF...`) e Unity C# (`new Color(...)`).
+
+### `dev.cron_calculator` — Calculador de Cron
+- **Tipo**: `Tool` (Interativo)
+- **Recursos**:
+  - Suporte a expressões cron clássicas de 5 campos (minuto, hora, dia do mês, mês, dia da semana) e 6 campos (com segundos).
+  - Presets rápidos de agendamentos comuns (a cada minuto, a cada 5/15/30 min, horário comercial de dias úteis, início do mês, etc.).
+  - Tradutor semântico explicativo em Português do Brasil claro e legível.
+  - Motor de cálculo temporal determinístico: simula e projeta as próximas 1 a 100 execuções cronometradas com dia da semana em português.
+  - Cópia da expressão e da lista completa de datas futuras para a área de transferência.
+
+### `dev.pyinstaller_wrapper` — Gerador de Executáveis
+- **Tipo**: `Tool` (Interativo e Automação)
+- **Recursos**:
+  - Detecção automática da instalação e versão do PyInstaller no ambiente ativo do Python (`sys.executable`).
+  - Configuração visual simplificada: script de entrada `.py`/`.pyw`, nome do executável, ícone `.ico` e diretório de saída (`dist/`).
+  - Seleção de empacotamento: Arquivo Standalone Único (`--onefile`) vs Pasta de Dependências (`--onedir`).
+  - Switch para ocultar a janela de console preta do terminal (`--windowed` / `--noconsole`).
+  - Configuração de módulos extras (`--hidden-import`) e arquivos/pastas adicionais (`--add-data`).
+  - Geração de comando CLI em tempo real, cópia em 1 clique e exportação de script batch `.bat` para automações CI/CD.
+  - Compilação direta e assíncrona com `QProcess`, botão de cancelamento e saída de logs em tempo real via `LogPanelWidget`.
+
+### `dev.project_scaffold` — Scaffold de Projetos
+- **Tipo**: `Tool` (Interativo e Automação)
+- **Recursos**:
+  - Geração padronizada de arquivos essenciais para inicialização de repositórios modernos.
+  - Templates curados de `.gitignore` para Python, Node.js / TypeScript, Rust, Go, C# / .NET, C / C++ e Flutter / Dart, incluindo exclusões de sistema operacional (.DS_Store, Thumbs.db) e IDEs (.vscode, .idea).
+  - Textos completos de licenças Open Source com preenchimento automático do ano corrente e autor/organização: MIT, Apache 2.0, GNU GPL v3, BSD 3-Clause e The Unlicense.
+  - Criação de `README.md` estruturado com seções de instalação, uso e licença.
+  - Criação de arquivos de convenção `.editorconfig` e `.env.example`.
+  - Abas de pré-visualização ao vivo do conteúdo dos arquivos e criação direta na pasta selecionada no disco.
+
+---
+
+## 12. Produtividade e Utilidades Pessoais (`tools/productivity/`)
+
+### `productivity.clipboard_history` — Histórico da Área de Transferência
+- **Tipo**: `Tool` (Interativo)
+- **Recursos**:
+  - Monitoramento contínuo em tempo real de textos copiados no Windows via sinal nativo da área de transferência (`dataChanged`).
+  - Banco SQLite local com índices rápidos e deduplicação inteligente de entradas consecutivas.
+  - Marcação de itens favoritos (preservados mesmo durante a limpeza do histórico).
+  - Campo de pesquisa instantânea tolerante a acentuação.
+  - Ações para cada item: copiar novamente em 1 clique (ou duplo clique), favoritar, excluir e limpeza em lote do histórico.
+
+### `productivity.todo` — Lista de Tarefas (To-Do)
+- **Tipo**: `Tool` (Interativo)
+- **Recursos**:
+  - Gerenciador minimalista e local de tarefas com persistência em SQLite.
+  - Categorização dinâmica por projeto/área (Trabalho, Pessoal, Estudos, Projetos).
+  - Controle de prioridades: Baixa, Média, Alta e Urgente com destaques visuais adequados.
+  - Prazos de entrega com seletor de calendário e filtros rápidos (Pendentes, Todas, Concluídas).
+  - Painel de progresso percentual e métricas de produtividade em tempo real.
+
+### `productivity.pomodoro` — Timer Pomodoro de Foco
+- **Tipo**: `Tool` (Interativo)
+- **Recursos**:
+  - Máquina de estados determinística com modos de Foco, Pausa Curta e Pausa Longa.
+  - Relógio digital grande com fonte Cascadia Mono e barra de progresso suave.
+  - Alertas automáticos ao final de cada etapa com notificação nativa do Windows na bandeja do sistema.
+  - Contador de ciclos concluídos e total acumulado de minutos focados no dia.
+  - Configuração customizada das durações dos intervalos e botão para pular etapas manualmente.
+
+### `productivity.reminders` — Alarmes e Lembretes
+- **Tipo**: `Tool` (Interativo)
+- **Recursos**:
+  - Agendamento de alarmes com data, horário preciso e detalhes opcionais.
+  - Atalhos para agendamento rápido (+15 min, +30 min, +1 hora) em 1 clique.
+  - Suporte a repetição automática: Não repetir, Diariamente, Dias úteis (Seg a Sex) e Semanalmente.
+  - Verificador em segundo plano que dispara notificações nativas na área de trabalho do Windows e toasts ao atingir o horário.
+  - Painel de gerenciamento com opção de pausar, reativar e excluir lembretes.
+
+### `productivity.quick_notes` — Bloco de Notas Rápidas
+- **Tipo**: `Tool` (Interativo)
+- **Recursos**:
+  - Interface em dois painéis (Splitter): lista de notas à esquerda e editor à direita.
+  - Salvamento automático contínuo em tempo real com debounce para evitar perda de dados.
+  - Suporte a fixar notas importantes no topo da lista.
+  - Contadores ao vivo de palavras e caracteres.
+  - Exportação da anotação para arquivos Markdown (`.md`) ou Texto (`.txt`).
+
+### `productivity.time_tracker` — Registrador de Tempo (Time Tracker)
+- **Tipo**: `Tool` (Interativo)
+- **Recursos**:
+  - Cronômetro ao vivo para rastreamento de tarefas por nome e projeto/categoria.
+  - Resumo consolidado do tempo total investido por projeto.
+  - Histórico detalhado de atividades com hora de início, fim e duração formatada (`HH:MM:SS`).
+  - Entrada manual de horas para registros retroativos.
+  - Exportação de relatórios completos em formato CSV para planilhas.
 
