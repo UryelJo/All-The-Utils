@@ -220,6 +220,73 @@ Este documento mantém o inventário detalhado de todas as ferramentas disponív
   - Filtro para ocultar tarefas padrão da Microsoft e focar nas tarefas criadas por softwares instalados.
   - Ações imediatas: Executar Tarefa Agora (`schtasks /run`), Ativar e Desativar tarefas agendadas.
 
+### `system.winget` — Gerenciador de Pacotes e Programas (winget)
+- **Tipo**: `Tool` (Interativo e Automação de Software)
+- **Recursos**:
+  - Integração com o Windows Package Manager oficial (`winget.exe`).
+  - Verificação de atualizações pendentes de todos os programas instalados.
+  - Ação em 1 clique para "Atualizar Todos os Programas" em lote.
+  - Catálogo curado de softwares populares organizados por categorias (Navegadores, Desenvolvimento, Utilitários, Comunicação, Multimídia).
+  - Instalação e atualização silenciosa sem assistentes manuais.
+
+### `system.disk_health` — Diagnóstico de Saúde de Discos e SSDs (SMART)
+- **Tipo**: `Tool` (Diagnóstico de Armazenamento)
+- **Recursos**:
+  - Diagnóstico físico de discos HDD e SSDs NVMe/SATA via PowerShell e CIM (`Get-PhysicalDisk`, `Get-StorageReliabilityCounter`).
+  - Métricas de integridade: Status de Saúde, Desgaste de SSD (Wear % e Vida Útil Restante), Temperatura atual em °C, Erros de Leitura/Gravação e Horas Ligado (Power-On Hours).
+  - Identificação de Modelo, Número de Série, Tipo de Mídia e Tipo de Barramento (NVMe, SATA, USB).
+
+### `system.crash_analyzer` — Analisador de Falhas e Telas Azuis (BSOD)
+- **Tipo**: `Tool` (Diagnóstico Forense do Sistema)
+- **Recursos**:
+  - Varredura e correlação de eventos críticos de desligamento e pane no Visualizador de Eventos:
+    - Evento 41 (Kernel-Power / Desligamento Inesperado).
+    - Evento 1001 (BugCheck / Tela Azul da Morte - BSOD).
+    - Eventos 18 e 19 (Erros Críticos de Hardware WHEA).
+  - Tradutor semântico de códigos de erro de parada (BugCheck Code / Stop Code) para explicações claras e possíveis causas.
+  - Detecção e listagem de arquivos de despejo de memória (Minidumps) em `C:\Windows\Minidump` com data e tamanho.
+
+### `system.restore_points` — Pontos de Restauração do Windows
+- **Tipo**: `Tool` (Proteção e Recuperação do Sistema)
+- **Recursos**:
+  - Listagem de pontos de restauração existentes no computador com Descrição, Data/Hora e Tipo de Sequência.
+  - Criação instantânea de novo Ponto de Restauração com nome customizado via WMI / PowerShell (`Checkpoint-Computer`).
+  - Atalho direto para iniciar o Assistente Oficial de Restauração do Sistema do Windows (`rstrui.exe`).
+
+### `system.repair_center` — Central de Reparos Rápidos do Windows
+- **Tipo**: `Tool` (Manutenção do Sistema)
+- **Recursos**:
+  - Reparos rápidos em 1 clique para problemas comuns do Windows:
+    - **Destravar Spooler de Impressão**: Interrompe o serviço, limpa arquivos presos na pasta `PRINTERS` e reinicia o spooler.
+    - **Reconstruir Cache de Ícones e Miniaturas**: Finaliza o Explorer, apaga bancos `IconCache.db` e `thumbcache_*.db` corrompidos e reabre a interface.
+    - **Resetar Componentes do Windows Update**: Para serviços relacionados, renomeia as pastas `SoftwareDistribution` e `Catroot2` e reinicia os serviços.
+    - **Resetar Microsoft Store**: Executa a limpeza e reset nativo do cache da loja via `wsreset.exe`.
+
+### `system.privacy` — Otimizador de Privacidade e Telemetria
+- **Tipo**: `Tool` (Ajustes de Registro e Privacidade)
+- **Recursos**:
+  - Controle centralizado de opções de privacidade e desativação de coletas desnecessárias no Windows 10 e 11:
+    - Desativar Telemetria e Diagnósticos da Microsoft (`AllowTelemetry = 0`).
+    - Desativar ID de Anúncios e Rastreamento de Usuário.
+    - Desativar Sugestões e Dicas do Windows no Menu Iniciar e Configurações.
+    - Desativar Integração do Windows Copilot.
+    - Desativar Snapshots do Windows Recall de Inteligência Artificial.
+    - Desativar Rastreamento de Execução de Aplicativos e Histórico de Atividade.
+  - Opção para criar Ponto de Restauração do Sistema automaticamente antes de aplicar as alterações.
+
+### `system.context_menu` — Restaurador do Menu de Contexto Clássico
+- **Tipo**: `Tool` (Customização do Windows 11)
+- **Recursos**:
+  - Alternância entre o Menu de Contexto Clássico completo (estilo Windows 10 sem necessidade de clicar em "Mostrar mais opções") e o Menu Moderno do Windows 11 através da chave de registro `{86ca1aa0-34aa-4e8b-a509-50c905bae2a2}`.
+  - Botão integrado para reiniciar o `explorer.exe` e aplicar a alteração instantaneamente.
+
+### `system.license_info` — Informações de Licença e Chave OEM da BIOS
+- **Tipo**: `Tool` (Auditoria e Licenciamento)
+- **Recursos**:
+  - Extração direta da Chave de Produto original de fábrica (OEM Product Key) gravada na tabela MSDM da BIOS/UEFI da placa-mãe via CIM / SoftwareLicensingService.
+  - Consulta do Status Oficial de Ativação do Windows via script nativo `slmgr.vbs /dli` (Edição, Canal de Licença e Estado de Licença).
+  - Botão de cópia rápida da chave original do produto.
+
 ---
 
 
@@ -311,6 +378,31 @@ Este documento mantém o inventário detalhado de todas as ferramentas disponív
   - Upload de arquivos locais para o servidor remoto com barra de progresso.
   - Exclusão de itens remotos com confirmação de segurança.
 
+### `network.connections` — Monitor de Conexões de Rede por Processo
+- **Tipo**: `Tool` (Monitoramento ao Vivo estilo TCPView)
+- **Recursos**:
+  - Monitoramento contínuo de sockets e conexões de rede em tempo real via `psutil.net_connections`.
+  - Exibição de Protocolo (TCP/UDP), Endereço e Porta Local, Endereço e Porta Remota, Estado da Conexão (ESTABLISHED, LISTEN, CLOSE_WAIT, etc.), PID e Nome do Processo associado.
+  - Tabela interativa com `DataTableView`, ordenação dinâmica, busca rápida por texto e filtro por estado.
+  - Ação em 1 clique para finalizar processo suspeito ou indesejado diretamente da interface.
+
+### `network.latency_monitor` — Monitor Contínuo de Latência e Jitter
+- **Tipo**: `Tool` (Telemetria e Diagnóstico de Conexão)
+- **Recursos**:
+  - Pings contínuos com intervalo customizável contra qualquer host ou IP (ex: `1.1.1.1`, `8.8.8.8`).
+  - Cálculo estatístico em tempo real:
+    - Jitter médio e instantâneo conforme a especificação oficial RFC 3550.
+    - Latência Mínima, Média e Máxima em milissegundos.
+    - Taxa de Perda de Pacotes (% Packet Loss).
+  - Histórico dos últimos 30 pacotes e visualização gráfica com indicador de status da conexão.
+
+### `network.firewall` — Gerenciador de Regras do Firewall do Windows
+- **Tipo**: `Tool` (Segurança de Rede do Windows)
+- **Recursos**:
+  - Consulta estruturada de regras ativas do Windows Defender Firewall via PowerShell (`Get-NetFirewallRule`).
+  - Tabela com Nome de Exibição, Direção (Entrada / Saída), Ação (Permitir / Bloquear) e Status Ativado/Desativado.
+  - Bloqueio Rápido de Aplicativo: seletor de arquivo `.exe` para criar regras de bloqueio de entrada e saída com 1 clique (`New-NetFirewallRule -Action Block`).
+
 ---
 
 ## 4. Texto e Redação (`tools/text/`)
@@ -345,6 +437,15 @@ Este documento mantém o inventário detalhado de todas as ferramentas disponív
   - Validação oficial de dígitos verificadores de CPF e CNPJ (Módulo 11).
   - Formatação e desformatação rápida (com ou sem pontuação).
   - Gerador de CPF e CNPJ válidos para ambientes de homologação e testes de software.
+
+### `text.pix_generator` — Gerador de Cobrança Pix e QR Code (BR Code)
+- **Tipo**: `Tool` (Financeiro e Padrão Banco Central)
+- **Recursos**:
+  - Geração de código "Copia e Cola" Pix no padrão oficial EMVCo / BR Code do Banco Central do Brasil.
+  - Cálculo matemático do checksum CRC16-CCITT polinomial `0x1021` (início `0xFFFF`).
+  - Suporte a todos os tipos de chaves Pix: CPF, CNPJ, E-mail, Telefone celular (`+55...`) e Chave Aleatória EVP.
+  - Campos adicionais: Nome do Beneficiário, Cidade, Valor em Reais (opcional) e Identificador de Transação / TxID (opcional).
+  - Renderização instantânea do QR Code na tela, botão para copiar código Copia e Cola e botão para salvar a imagem do QR Code em PNG.
 
 ---
 
@@ -530,6 +631,42 @@ Este documento mantém o inventário detalhado de todas as ferramentas disponív
     - **Arquivo Compactado ZIP (Snapshot)**: Empacota a pasta inteira com compressão Deflate e carimbo de data e hora no nome (`backup_PASTA_YYYY-MM-DD_HHMMSS.zip`).
     - **Pasta Incremental Espelhada**: Copia apenas os arquivos novos ou com tamanho/mtime alterados desde o último backup, economizando espaço em disco e tempo de transferência.
   - Tabela de histórico da sessão com contagem de arquivos transferidos, bytes transferidos e botão de acesso direto à pasta no Explorer.
+
+### `files.encoding_converter` — Conversor de Codificação de Texto e Finais de Linha
+- **Tipo**: `FileTool` (Processamento em Lote Automatizado)
+- **Extensões Suportadas**: `.txt`, `.csv`, `.log`, `.json`, `.xml`, `.html`, `.css`, `.js`, `.ts`, `.py`, `.sql`, `.md`, `.ini`, `.cfg`, `.yaml`, `.yml`
+- **Recursos**:
+  - Detecção automática de codificação de entrada com fallback inteligente.
+  - Conversão em lote para: UTF-8 (padrão universal), UTF-8 com BOM, Windows-1252 / ANSI, ISO-8859-1 (Latin1), UTF-16 LE e UTF-16 BE.
+  - Normalização de quebras de linha entre CRLF (padrão Windows `\r\n`) e LF (padrão Linux/macOS `\n`).
+  - Gravação atômica segura via motor central de lote.
+
+### `files.unblock` — Desbloqueador de Arquivos em Lote (Mark of the Web)
+- **Tipo**: `FileTool` (Processamento em Lote Automatizado)
+- **Extensões Suportadas**: Todas as extensões de arquivo
+- **Recursos**:
+  - Remove o fluxo alternativo NTFS (`Zone.Identifier`) que o Windows anexa a arquivos baixados de navegadores, clientes de e-mail ou descompactados.
+  - Elimina bloqueios e avisos de segurança ao abrir planilhas, macros do Office, arquivos compactados ou instaladores `.exe`.
+  - Desbloqueio direto via API Win32 do Windows (`DeleteFileW`) de alta performance.
+
+### `files.permissions` — Reparador de Permissões NTFS e Acesso Negado
+- **Tipo**: `Tool` (Correção de Permissões e Propriedade)
+- **Recursos**:
+  - Resolução de erros de "Acesso Negado" ao tentar abrir, mover ou renomear arquivos e pastas herdados de outros usuários ou reinstalações do Windows.
+  - **Tomar Posse (Take Ownership)**: Executa `takeown.exe` atribuindo a propriedade do arquivo ou pasta ao grupo de Administradores local.
+  - **Redefinir Permissões (Reset ACL)**: Executa `icacls.exe /reset /t /c` para restaurar a herança de permissões limpas a partir da pasta pai.
+  - Suporte a processamento recursivo em subpastas e arquivos filhos.
+
+### `files.checksum_manifest` — Manifesto de Checksums de Pasta (.sha256 / .md5)
+- **Tipo**: `Tool` (Interface em 2 Abas: Gerar e Verificar)
+- **Recursos**:
+  - **Aba Gerar Manifesto**:
+    - Varre todos os arquivos de um diretório e gera um arquivo de manifesto no formato padrão GNU (`manifest.sha256` ou `manifest.md5`).
+    - Algoritmos suportados: SHA-256, SHA-512 e MD5.
+  - **Aba Verificar Integridade**:
+    - Lê o arquivo de manifesto e valida cada arquivo no disco.
+    - Classificação imediata com badges visuais: OK (verde), MODIFICADO (vermelho) ou AUSENTE (laranja).
+    - Resumo estatístico com total de arquivos íntegros, alterados e faltantes.
 
 ---
 
@@ -819,4 +956,153 @@ Este documento mantém o inventário detalhado de todas as ferramentas disponív
   - Histórico detalhado de atividades com hora de início, fim e duração formatada (`HH:MM:SS`).
   - Entrada manual de horas para registros retroativos.
   - Exportação de relatórios completos em formato CSV para planilhas.
+
+---
+
+## 13. Calculadoras Especiais (`tools/calc/`)
+
+### `calc.unit_converter` — Conversor de Unidades
+- **Tipo**: `Tool` (Interativo)
+- **Recursos**:
+  - Conversão instantânea de grandezas físicas e digitais em tempo real:
+    - **Comprimento**: Metro, Quilômetro, Centímetro, Milímetro, Micrômetro, Nanômetro, Polegada, Pé, Jarda, Milha e Milha Náutica.
+    - **Massa e Peso**: Quilograma, Grama, Miligrama, Tonelada Métrica, Libra, Onça e Arroba Brasileira (15 kg).
+    - **Dados Digitais**: Bit, Byte, Kilobyte (KB/1000), Megabyte (MB), Gigabyte (GB), Terabyte (TB), Petabyte (PB), Kibibyte (KiB/1024), Mebibyte (MiB), Gibibyte (GiB) e Tebibyte (TiB).
+    - **Área**: Metro Quadrado, Quilômetro Quadrado, Centímetro Quadrado, Hectare, Acre, Pé Quadrado e Alqueire Paulista (24.200 m²).
+    - **Volume**: Litro, Mililitro, Metro Cúbico, Centímetro Cúbico, Galão Americano (gal), Barril de Petróleo (bbl), Xícara e Colher de Sopa.
+    - **Temperatura**: Graus Celsius (°C), Graus Fahrenheit (°F) e Kelvin (K) com fórmulas matemáticas exatas de translação e escala.
+    - **Pressão**: Pascal (Pa), Kilopascal (kPa), Bar, Atmosfera Padrão (atm), PSI (lbf/in²) e mmHg (Torr).
+    - **Velocidade**: Metros por segundo (m/s), Quilômetros por hora (km/h), Milhas por hora (mph), Nós marítimos (knots) e Pés por segundo (ft/s).
+  - Botão de inversão rápida das unidades e cópia do resultado formatado em 1 clique.
+
+### `calc.date_calculator` — Calculadora de Datas e Prazos
+- **Tipo**: `Tool` (Interativo em 3 Abas)
+- **Recursos**:
+  - **Aba Diferença entre Datas**:
+    - Cálculo preciso do intervalo total em dias, semanas, meses e horas.
+    - Contagem detalhada de dias úteis, dias de finais de semana e feriados nacionais ocorridos no período.
+    - Lista discriminada de todos os feriados nacionais compreendidos entre as datas.
+  - **Aba Adicionar / Subtrair Dias Úteis**:
+    - Soma ou subtração de N dias úteis a partir de uma data inicial.
+    - Pula automaticamente fins de semana (sábados e domingos) e todos os feriados oficiais.
+  - **Aba Feriados Nacionais Brasileiros**:
+    - Motor algorítmico completo baseado no Algoritmo de Butcher (Meeus/Jones/Butcher) para determinação precisa da Páscoa e derivação de todos os feriados móveis: Carnaval (Terça-feira), Sexta-feira Santa e Corpus Christi.
+    - Tabela completa de feriados fixos e móveis de qualquer ano com visualizador por calendário.
+
+### `calc.finance` — Calculadora Financeira
+- **Tipo**: `Tool` (Interativo em 3 Abas)
+- **Recursos**:
+  - **Aba Juros Compostos**:
+    - Simulação com aporte inicial, aportes mensais recorrentes, taxa de juros anual e período em meses ou anos.
+    - Conversão matemática para taxa mensal equivalente `(1 + i)^(1/12) - 1`.
+    - Resumo analítico com Total Investido, Total Ganho em Juros, Saldo Bruto Final e tabela de evolução por ano.
+  - **Aba Financiamento (Price e SAC)**:
+    - Simulação de financiamento imobiliário e veicular.
+    - **Tabela Price**: Parcelas constantes fixas com amortização crescente e juros decrescentes.
+    - **Tabela SAC**: Amortização constante com parcelas decrescentes.
+    - Resumo comparativo: primeira parcela, última parcela, total pago e total pago exclusivamente em juros bancários.
+  - **Aba Margem e Markup**:
+    - Cálculo instantâneo a partir do preço de custo e venda, determinando lucro líquido, margem sobre a venda e índice de markup sobre o custo.
+
+### `calc.subnet_calculator` — Calculadora de Sub-redes IPv4 / CIDR
+- **Tipo**: `Tool` (Interativo)
+- **Recursos**:
+  - Suporta entrada em notação CIDR (ex: `192.168.1.100/24`) ou IP + máscara de rede (ex: `10.0.0.1` + `255.255.255.0`).
+  - Análise profunda:
+    - Endereço de rede e endereço de broadcast.
+    - Máscara decimal e máscara coringa (Wildcard Mask).
+    - Primeiro host utilizável e último host utilizável.
+    - Total de endereços IP e total de hosts úteis.
+    - Classificação IPv4: Classe A, B, C, D (Multicast) ou E (Experimental).
+    - Tipo de rede: Privada (RFC 1918), Pública, Loopback ou Link-Local (APIPA).
+    - Representação binária formatada (8.8.8.8) para o IP e a máscara.
+
+### `calc.world_clock` — Relógio Mundial e Fusos Horários
+- **Tipo**: `Tool` (Interativo em 2 Abas)
+- **Recursos**:
+  - **Aba Relógio Mundial**:
+    - Mostrador em tempo real das principais cidades de referência global: Brasília / São Paulo (UTC-3), UTC / GMT, Nova York, Los Angeles, Londres, Paris/Berlim, Moscou, Dubai, Nova Déli, Tóquio, Pequim e Sydney.
+    - Exibe hora ao vivo, data, fuso horário IANA, sigla de horário de verão e offset UTC.
+  - **Aba Conversor entre Fusos**:
+    - Seleção de data/hora de origem, fuso de partida e fuso de destino.
+    - Lista de fusos completa baseada na biblioteca IANA `zoneinfo` nativa do Python.
+    - Cálculo de diferença de horas entre as regiões e horário convertido com 1 clique.
+
+---
+
+## 14. Automação e Macros Locais (`tools/automation/`)
+
+### `automation.autoclicker` — Auto Clicker
+- **Tipo**: `Tool` (Interativo e Automação)
+- **Recursos**:
+  - Disparo de cliques em alta velocidade automatizado via Win32 API (`mouse_event`).
+  - Intervalo de disparo milimetricamente configurável em milissegundos, segundos, minutos ou horas.
+  - Seleção do botão do mouse: Botão Esquerdo, Botão Direito ou Botão do Meio.
+  - Tipo de clique: Clique Simples ou Duplo Clique.
+  - Localização do disparo: Posição Atual do Cursor do Mouse ou Coordenadas Fixas (X, Y) na tela com botão capturador de coordenadas em tempo real.
+  - Suporte a limitação por número total de cliques ou execução contínua até interrupção manual.
+
+### `automation.window_manager` — Gerenciador de Janelas do Windows
+- **Tipo**: `Tool` (Interativo)
+- **Recursos**:
+  - Enumeração ao vivo de todas as janelas ativas da área de trabalho com títulos e identificadores HWND.
+  - **Sempre no Topo (Always on Top)**: Fixa qualquer aplicativo sobreposto às demais janelas sem precisar de utilitários externos.
+  - **Transparência / Opacidade**: Controle deslizante de 10% a 100% de opacidade utilizando a flag de sistema `WS_EX_LAYERED` e `SetLayeredWindowAttributes`.
+  - **Snap e Posicionamento**: Posiciona instantaneamente a janela selecionada na metade esquerda, metade direita, metade superior, metade inferior, centralizada na área útil de trabalho ou maximizada.
+
+### `automation.script_runner` — Executor de Scripts
+- **Tipo**: `Tool` (Interativo e Console)
+- **Recursos**:
+  - Execução e gerenciamento de scripts locais sem necessidade de abrir terminais pretos separados.
+  - Suporte nativo a scripts PowerShell (`.ps1`), Batch (`.bat`), Comandos (`.cmd`), Python (`.py`, `.pyw`) e VBScript (`.vbs`).
+  - Biblioteca persistente de scripts favoritos com argumentos pré-configurados e diretório de trabalho.
+  - Execução assíncrona com captura de saída de texto em tempo real (STDOUT e STDERR) via painel `LogPanelWidget` com rolagem automática, botão de limpar e botão para cancelar o processo em execução.
+
+### `automation.workspace_launcher` — Lançador de Ambientes de Trabalho (Workspaces)
+- **Tipo**: `Tool` (Interativo e Automação)
+- **Recursos**:
+  - Lançamento de lotes de produtividade em 1 clique: abre múltiplos programas, pastas de projetos no Windows Explorer e URLs/portais no navegador padrão simultaneamente.
+  - Presets iniciais inclusos (Desenvolvimento Web, Estudos e Pesquisas) e criação ilimitada de novos perfis customizados.
+  - Adição simplificada de itens via seletores nativos de executáveis, pastas do sistema e caixas de URL.
+  - Relatório detalhado de execução com validação de sucesso para cada item disparado.
+
+### `automation.folder_rules` — Automação de Pastas por Regras
+- **Tipo**: `Tool` (Interativo e Automação)
+- **Recursos**:
+  - Triagem e organização automática de arquivos em diretórios com grande acúmulo (ex: pasta de Downloads ou Desktop).
+  - Condições de filtragem configuráveis:
+    - Por Extensão (ex: `.pdf, .docx` ou `.png, .jpg`).
+    - Por Palavras-chave no nome do arquivo (ex: `relatorio, nota, boleto`).
+    - Por Idade do arquivo (mais antigo que N dias).
+    - Por Tamanho (maior que N megabytes).
+  - Ações suportadas: Mover para pasta de destino, Copiar ou Excluir.
+  - **Modo Simulação (Dry Run)**: Avalia todos os arquivos da pasta e exibe na tabela visual exatamente o que seria feito antes de realizar qualquer alteração física no disco.
+  - Execução segura com tratamento automático de arquivos de mesmo nome para evitar sobrescrita acidental.
+
+---
+
+## 15. Segurança e Auditoria (`tools/security/`)
+
+### `security.pwned_check` — Verificador de Senhas Vazadas (Have I Been Pwned)
+- **Tipo**: `Tool` (Privacidade e Segurança com K-Anonimato)
+- **Recursos**:
+  - Consulta segura se uma senha já foi exposta em grandes vazamentos de dados públicos na internet.
+  - **K-Anonimato Rigoroso**: O texto da senha NUNCA é transmitido. Apenas os 5 primeiros caracteres do hash SHA-1 são enviados à API do Have I Been Pwned; o restante do hash é comparado 100% localmente no cliente.
+  - Exibição de quantas vezes a senha foi encontrada em vazamentos com badges de alerta visual em vermelho ou verde para senhas seguras.
+
+### `security.virustotal` — Consulta de Reputação no VirusTotal (Hash Lookup)
+- **Tipo**: `Tool` (Inteligência contra Ameaças)
+- **Recursos**:
+  - Consulta o veredito de mais de 70 motores antivírus mundiais para qualquer executável, instalador ou arquivo suspeito.
+  - Consulta por cálculo de hash SHA-256 local, sem upload de arquivos privados para a nuvem.
+  - Gestão de chave de API em conformidade com as regras do projeto: consome exclusivamente o token centralizado nas configurações do aplicativo (`api_tokens.virustotal`).
+  - Resumo de detecção com total de motores maliciosos, suspeitos e limpos, além de link direto para o relatório completo no portal VirusTotal.
+
+### `security.signature_check` — Verificador de Assinatura Digital (Authenticode)
+- **Tipo**: `Tool` (Integridade e Autenticidade de Binários)
+- **Recursos**:
+  - Validação da assinatura digital Authenticode de arquivos executáveis (`.exe`) e bibliotecas (`.dll`) do Windows via PowerShell / Win32 API.
+  - Identificação de Status da Assinatura: `Valid` (Válida), `NotSigned` (Não Assinado), `HashMismatch` (Adulterado) ou `NotTrusted` (Não Confiável).
+  - Extração de Certificado: Nome do Signatário / Empresa Emissora, Algoritmo de Hash (ex: SHA-256) e Carimbo de Data/Hora (Timestamp).
+
 

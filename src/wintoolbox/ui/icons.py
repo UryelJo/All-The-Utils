@@ -30,8 +30,13 @@ CATEGORY_META: Dict[str, Tuple[str, str]] = {
     "Sistema Windows": ("cat_system", NEUTRAL_ICON_COLOR),
     "Compactação": ("cat_archive", NEUTRAL_ICON_COLOR),
     "Desenvolvimento": ("cat_dev", NEUTRAL_ICON_COLOR),
-    "Dev": ("cat_dev", NEUTRAL_ICON_COLOR),
     "Produtividade": ("cat_productivity", NEUTRAL_ICON_COLOR),
+    "Calculadoras": ("cat_calc", NEUTRAL_ICON_COLOR),
+    "Calculadora": ("cat_calc", NEUTRAL_ICON_COLOR),
+    "Automação": ("cat_automation", NEUTRAL_ICON_COLOR),
+    "Automações": ("cat_automation", NEUTRAL_ICON_COLOR),
+    "Segurança": ("cat_security", NEUTRAL_ICON_COLOR),
+    "Segurança e Auditoria": ("cat_security", NEUTRAL_ICON_COLOR),
 }
 
 _CACHED_APP_ICON: Optional[QIcon] = None
@@ -308,6 +313,39 @@ def make_fluent_icon(name: str, color: str = NEUTRAL_ICON_COLOR, size: int = 16)
         p.drawRoundedRect(QRectF(pad + w * 0.28, pad, w * 0.44, h * 0.22), 1.0, 1.0)
         p.drawLine(QPointF(pad + w * 0.25, pad + h * 0.45), QPointF(s - pad - w * 0.25, pad + h * 0.45))
         p.drawLine(QPointF(pad + w * 0.25, pad + h * 0.68), QPointF(s - pad - w * 0.25, pad + h * 0.68))
+
+    elif name in ("cat_calc", "calculator"):
+        # Calculadora (corpo, visor superior e grade de 4 botões)
+        p.drawRoundedRect(QRectF(pad + 1, pad, w - 2, h), 2.0, 2.0)
+        p.drawRect(QRectF(pad + 3, pad + 2, w - 6, h * 0.26))
+        # Botões
+        cx, cy = pad + w * 0.3, pad + h * 0.52
+        p.drawPoint(QPointF(cx, cy))
+        p.drawPoint(QPointF(cx + w * 0.4, cy))
+        p.drawPoint(QPointF(cx, cy + h * 0.25))
+        p.drawPoint(QPointF(cx + w * 0.4, cy + h * 0.25))
+
+    elif name in ("cat_automation", "bolt", "magic"):
+        # Seta circular ou raio vetorial limpo
+        p.drawPolygon([
+            QPointF(s * 0.55, pad),
+            QPointF(pad + w * 0.15, s * 0.52),
+            QPointF(s * 0.48, s * 0.52),
+            QPointF(s * 0.42, s - pad),
+            QPointF(s - pad - w * 0.15, s * 0.45),
+            QPointF(s * 0.52, s * 0.45),
+        ])
+
+    elif name in ("cat_security", "shield", "lock"):
+        # Escudo de segurança geométrico limpo
+        p.drawPolygon([
+            QPointF(pad + 1, pad + 1),
+            QPointF(s - pad - 1, pad + 1),
+            QPointF(s - pad - 1, pad + h * 0.55),
+            QPointF(s * 0.5, s - pad),
+            QPointF(pad + 1, pad + h * 0.55)
+        ])
+        p.drawLine(QPointF(s * 0.5, pad + 3), QPointF(s * 0.5, s - pad - 3))
 
     else:
         # Fallback geométrico limpo (quadradinho arredondado discreto)

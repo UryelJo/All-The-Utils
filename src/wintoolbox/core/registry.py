@@ -136,6 +136,9 @@ def _ensure_loaded() -> None:
         "wintoolbox.tools.media",
         "wintoolbox.tools.dev",
         "wintoolbox.tools.productivity",
+        "wintoolbox.tools.calc",
+        "wintoolbox.tools.automation",
+        "wintoolbox.tools.security",
     ):
         try:
             __import__(pkg)

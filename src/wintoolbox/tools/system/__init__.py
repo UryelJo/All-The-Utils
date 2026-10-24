@@ -13,3 +13,13 @@ import wintoolbox.tools.system.power_manager
 import wintoolbox.tools.system.driver_backup
 import wintoolbox.tools.system.quick_tweaks
 import wintoolbox.tools.system.task_scheduler
+
+# Fase 15: Sistema e Windows
+import wintoolbox.tools.system.winget
+import wintoolbox.tools.system.disk_health
+import wintoolbox.tools.system.crash_analyzer
+import wintoolbox.tools.system.restore_points
+import wintoolbox.tools.system.repair_center
+import wintoolbox.tools.system.privacy
+import wintoolbox.tools.system.context_menu
+import wintoolbox.tools.system.license_info

@@ -254,17 +254,19 @@ Para evitar limitação de recursos que dependem de serviços de terceiros (como
 - [x] Registrador de tempo por atividade ou projeto (Time Tracker) com cronômetro, resumo e exportação CSV (`productivity.time_tracker`).
 
 
-### Fase 11 — Calculadoras Especiais
-- [ ] Conversor de unidades de medida (comprimento, massa, dados, temp, etc.) (`calc.unit_converter`).
-- [ ] Calculadora de datas, dias úteis e prazos (`calc.date_calculator`).
-- [ ] Calculadora financeira (juros compostos, parcelas, descontos) (`calc.finance`).
-- [ ] Calculadora de sub-redes IPv4 / CIDR (`calc.subnet_calculator`).
-- [ ] Relógio mundial com fusos horários de referência e conversor de horas (`calc.world_clock`).
+### Fase 11 — Calculadoras Especiais (Concluída - 5 Novas Ferramentas)
+- [x] Conversor de unidades de medida (comprimento, massa, dados, temperatura, volume, pressão, velocidade) (`calc.unit_converter`).
+- [x] Calculadora de datas, contagem e adição de dias úteis com feriados nacionais brasileiros via algoritmo de Páscoa (`calc.date_calculator`).
+- [x] Calculadora financeira com juros compostos e aportes, financiamento Price/SAC e margem/markup (`calc.finance`).
+- [x] Calculadora de sub-redes IPv4 / CIDR com análise de hosts, broadcast, classificação e binário (`calc.subnet_calculator`).
+- [x] Relógio mundial com fusos horários de referência IANA e conversor de horas entre fusos (`calc.world_clock`).
 
-### Fase 12 — Automação e Macros Locais
-- [ ] Autoclicker configurável e gravador simples de sequências (`automation.macro_recorder`).
-- [ ] Gerenciador de janelas: sempre no topo, transparência e reposicionamento (`automation.window_manager`).
-- [ ] Executor de scripts em lote (.bat, .ps1, .py) com console em tempo real (`automation.script_runner`).
+### Fase 12 — Automação e Macros Locais (Concluída - 5 Novas Ferramentas Turbinadas)
+- [x] Auto Clicker de alta velocidade configurável por tempo, botão e coordenadas fixas ou cursor com Win32 API (`automation.autoclicker`).
+- [x] Gerenciador de janelas: fixar sempre no topo, transparência de 10% a 100% e snap em 6 posições da tela (`automation.window_manager`).
+- [x] Executor de scripts locais (.bat, .ps1, .py, .cmd, .vbs) com biblioteca de scripts salvos e console em tempo real (`automation.script_runner`).
+- [x] *Incremento de Automação*: Lançador de ambientes de trabalho (Workspaces) que abre lotes de apps, pastas e URLs com 1 clique (`automation.workspace_launcher`).
+- [x] *Incremento de Automação*: Automação de pastas por regras (tipo, palavras-chave, idade, tamanho) com modo simulação (Dry Run) (`automation.folder_rules`).
 
 ### Fase 13 — Segurança e Cofre Local
 - [ ] Cofre local de senhas criptografado com senha mestra AES-GCM em SQLite (`security.password_vault`).
@@ -273,27 +275,27 @@ Para evitar limitação de recursos que dependem de serviços de terceiros (como
 
 ### Fase 15 — Lacunas Identificadas na Auditoria (não catalogadas nem planejadas)
 Sistema e Windows:
-- [ ] Instalador/atualizador de programas via winget, com lista curada e "atualizar tudo" (`system.winget`).
-- [ ] Saúde do disco: SMART, temperatura e desgaste de SSD via `Get-PhysicalDisk`/`Get-StorageReliabilityCounter` (`system.disk_health`).
-- [ ] Analisador de travamentos: desligamentos inesperados (evento 41), BSODs/minidumps e erros WHEA, aprofundando os logs críticos de `system.tools` (`system.crash_analyzer`).
-- [ ] Pontos de restauração: listar, criar e abrir a restauração (`system.restore_points`).
-- [ ] Central de reparos: destravar fila de impressão (spooler), resetar componentes do Windows Update e da Microsoft Store, cache de ícones/miniaturas (`system.repair_center`; SFC/DISM já existem em `system.tools`).
-- [ ] Privacidade e debloat do Windows 10/11 (telemetria, anúncios, apps pré-instalados, Copilot/Recall), criando ponto de restauração antes (`system.privacy`).
-- [ ] Menu de contexto clássico do Windows 11 e limpeza de entradas do menu do Explorer (`system.context_menu`).
-- [ ] Chave do produto (OEM/BIOS) e status de ativação do Windows (`system.license_info`).
+- [x] Instalador/atualizador de programas via winget, com lista curada e "atualizar tudo" (`system.winget`).
+- [x] Saúde do disco: SMART, temperatura e desgaste de SSD via `Get-PhysicalDisk`/`Get-StorageReliabilityCounter` (`system.disk_health`).
+- [x] Analisador de travamentos: desligamentos inesperados (evento 41), BSODs/minidumps e erros WHEA, aprofundando os logs críticos de `system.tools` (`system.crash_analyzer`).
+- [x] Pontos de restauração: listar, criar e abrir a restauração (`system.restore_points`).
+- [x] Central de reparos: destravar fila de impressão (spooler), resetar componentes do Windows Update e da Microsoft Store, cache de ícones/miniaturas (`system.repair_center`; SFC/DISM já existem em `system.tools`).
+- [x] Privacidade e debloat do Windows 10/11 (telemetria, anúncios, apps pré-instalados, Copilot/Recall), criando ponto de restauração antes (`system.privacy`).
+- [x] Menu de contexto clássico do Windows 11 e limpeza de entradas do menu do Explorer (`system.context_menu`).
+- [x] Chave do produto (OEM/BIOS) e status de ativação do Windows (`system.license_info`).
 
 Rede:
-- [ ] Conexões ativas por processo, estilo TCPView (`network.connections`; usar `DataTableView`).
-- [ ] Monitor contínuo de latência, jitter e perda de pacotes com gráfico (`network.latency_monitor`).
-- [ ] Regras do Firewall do Windows: listar e bloquear aplicativo (`network.firewall`).
+- [x] Conexões ativas por processo, estilo TCPView (`network.connections`; usar `DataTableView`).
+- [x] Monitor contínuo de latência, jitter e perda de pacotes com gráfico (`network.latency_monitor`).
+- [x] Regras do Firewall do Windows: listar e bloquear aplicativo (`network.firewall`).
 
 Arquivos:
 - [ ] Extração de .7z e .rar (py7zr / 7-Zip empacotado) no `archive.manager`, hoje limitado a ZIP/TAR.
-- [ ] Detector e conversor de codificação de texto (ANSI/UTF-8/UTF-16, CRLF/LF) em lote (`files.encoding_converter`).
-- [ ] Desbloquear arquivos baixados em lote (remover Mark of the Web / Zone.Identifier) (`files.unblock`).
+- [x] Detector e conversor de codificação de texto (ANSI/UTF-8/UTF-16, CRLF/LF) em lote (`files.encoding_converter`).
+- [x] Desbloquear arquivos baixados em lote (remover Mark of the Web / Zone.Identifier) (`files.unblock`).
 - [ ] Mover pasta para outro disco mantendo junction (`files.junction_mover`).
-- [ ] Permissões NTFS: tomar posse e redefinir permissões (`files.permissions`).
-- [ ] Manifesto de checksums de pasta (.sha256): gerar e verificar (`files.checksum_manifest`).
+- [x] Permissões NTFS: tomar posse e redefinir permissões (`files.permissions`).
+- [x] Manifesto de checksums de pasta (.sha256): gerar e verificar (`files.checksum_manifest`).
 
 PDF e Mídia:
 - [ ] Reordenar, girar e excluir páginas por miniaturas (`pdf.page_organizer`; renderização via pypdfium2).
@@ -304,12 +306,12 @@ PDF e Mídia:
 - [ ] Transcrição de áudio offline (faster-whisper, opcional por tamanho) (`media.transcribe`).
 
 Brasil e Segurança:
-- [ ] Gerador de Pix "copia e cola" e QR Code no padrão BR Code (EMV + CRC16) (`text.pix_generator`).
+- [x] Gerador de Pix "copia e cola" e QR Code no padrão BR Code (EMV + CRC16) (`text.pix_generator`).
 - [ ] Feriados nacionais na calculadora de dias úteis já planejada (`calc.date_calculator`).
 - [ ] Consultas BrasilAPI adicionais: FIPE, DDD, bancos e feriados (`network.public_apis`).
-- [ ] Verificador de senha vazada (Have I Been Pwned, k-anonimato) (`security.pwned_check`).
-- [ ] Consulta de hash no VirusTotal usando `api_tokens` (`security.virustotal`).
-- [ ] Verificador de assinatura digital (Authenticode) de executáveis, integrável ao `system.startup_manager` (`security.signature_check`).
+- [x] Verificador de senha vazada (Have I Been Pwned, k-anonimato) (`security.pwned_check`).
+- [x] Consulta de hash no VirusTotal usando `api_tokens` (`security.virustotal`).
+- [x] Verificador de assinatura digital (Authenticode) de executáveis, integrável ao `system.startup_manager` (`security.signature_check`).
 
 ### Fase 14 — Empacotamento, Distribuição e Modo Portátil
 - [x] Fila central de tarefas assíncronas em segundo plano (`core/tasks.py`, `BackgroundLoader`).
@@ -322,15 +324,15 @@ Brasil e Segurança:
 ---
 
 ## 7. Métrica de Qualidade e Testes
-- **Total de Ferramentas Registradas**: 79 ferramentas operacionais.
-- **Padrão Arquitetural de Lógica Desacoplada**: 100% das 79 ferramentas possuem divisão estrita entre UI (`tool.py`) e regras de negócio puras (`logic.py`), com zero importações de `PySide6` na camada de lógica.
+- **Total de Ferramentas Registradas**: 120 ferramentas operacionais em 15 categorias.
+- **Padrão Arquitetural de Lógica Desacoplada**: 100% das 120 ferramentas possuem divisão estrita entre UI (`tool.py`) e regras de negócio puras (`logic.py`), com zero importações de `PySide6` na camada de lógica.
 - **Aceleração por Hardware (GPU) & Paralelismo**:
   - Detecção automática de GPUs instaladas (NVIDIA GeForce/RTX via `nvidia-smi` / WMI, AMD Radeon e Intel Arc/Iris).
   - Aceleração por hardware no FFmpeg via **NVIDIA NVENC** (`h264_nvenc`, `hevc_nvenc`), **AMD AMF** (`h264_amf`, `hevc_amf`) e **Intel QuickSync** (`h264_qsv`) com fallback automático resiliente para CPU (`libx264`).
   - Motor de lote concorrente (`core/batch.py`) com `ThreadPoolExecutor` dimensionado automaticamente de acordo com os núcleos da máquina (`optimal_batch_workers = min(cpu_cores, 8)`).
   - Cálculo de hashes concorrente em lote na ferramenta de localização de arquivos duplicados (`files.duplicates`).
-- **Cobertura de Testes**: 101 testes unitários e de integração executados com 100% de aprovação no `pytest` (incluindo testes de arquitetura, aceleração de hardware e cobertura das 7 ferramentas da Fase 8).
-- **Tempo de Execução dos Testes**: ~22.0s.
+- **Cobertura de Testes**: 181 testes unitários e de integração executados com 100% de aprovação no `pytest` (incluindo testes de arquitetura, aceleração de hardware e suíte da Fase 15).
+- **Tempo de Execução dos Testes**: ~37.0s.
 
 
 ---
