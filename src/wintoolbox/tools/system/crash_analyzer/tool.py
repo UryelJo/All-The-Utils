@@ -48,7 +48,6 @@ class CrashAnalyzerView(QWidget):
         layout.addWidget(ToolHeader(
             self.tool.name,
             self.tool.description,
-            self.tool.category
         ))
 
         top_bar = QHBoxLayout()

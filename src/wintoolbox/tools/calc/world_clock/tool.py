@@ -4,7 +4,7 @@ Interface gráfica do Relógio Mundial e Conversor de Fusos.
 from datetime import datetime
 from typing import Optional
 from PySide6.QtCore import QDateTime, Qt, QTimer
-from PySide6.QtGui import QFont
+from PySide6.QtGui import QColor, QFont
 from PySide6.QtWidgets import (
     QApplication, QComboBox, QDateTimeEdit, QFrame, QGridLayout,
     QGroupBox, QHBoxLayout, QHeaderView, QLabel, QLineEdit, QPushButton,
@@ -96,7 +96,7 @@ class WorldClockView(QWidget):
             time_item = QTableWidgetItem(c["time_str"])
             time_item.setFont(QFont("Cascadia Mono", 11, QFont.Weight.Bold))
             if "Brasília" in c["city"]:
-                time_item.setStyleSheet("color: #10B981;")
+                time_item.setForeground(QColor("#10B981"))
             self.table_clocks.setItem(row, 2, time_item)
 
             # Data

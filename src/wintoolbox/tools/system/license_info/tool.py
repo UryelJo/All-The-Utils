@@ -45,7 +45,6 @@ class LicenseInfoView(QWidget):
         layout.addWidget(ToolHeader(
             self.tool.name,
             self.tool.description,
-            self.tool.category
         ))
 
         # Card de Status de Ativação

@@ -20,9 +20,10 @@ class LogPanelWidget(QFrame):
     # Permite chamar append_log de threads de trabalho (ex: servidor HTTP) com segurança
     _log_requested = Signal(str, str)
 
-    def __init__(self, parent: Optional[QWidget] = None):
+    def __init__(self, parent: Optional[QWidget] = None, title: str = "Log de Execução"):
         super().__init__(parent)
         self.setProperty("class", "card")
+        self._title = title
         self._is_collapsed = False
         self._log_requested.connect(self._append_log_ui)
 
@@ -36,7 +37,7 @@ class LogPanelWidget(QFrame):
         header_layout = QHBoxLayout()
         header_layout.setContentsMargins(0, 0, 0, 0)
 
-        self.btn_toggle = QPushButton("Log de Execução (Ocultar)")
+        self.btn_toggle = QPushButton(f"{self._title} (Ocultar)")
         self.btn_toggle.setProperty("class", "ghost")
         self.btn_toggle.setStyleSheet("font-weight: 600; text-align: left; padding: 2px 4px;")
         self.btn_toggle.clicked.connect(self.toggle_collapse)
@@ -68,12 +69,12 @@ class LogPanelWidget(QFrame):
             self.txt_log.setVisible(False)
             self.btn_clear.setVisible(False)
             self.btn_copy.setVisible(False)
-            self.btn_toggle.setText("Log de Execução (Expandir)")
+            self.btn_toggle.setText(f"{self._title} (Expandir)")
         else:
             self.txt_log.setVisible(True)
             self.btn_clear.setVisible(True)
             self.btn_copy.setVisible(True)
-            self.btn_toggle.setText("Log de Execução (Ocultar)")
+            self.btn_toggle.setText(f"{self._title} (Ocultar)")
 
     def append_log(self, level: str, message: str) -> None:
         self._log_requested.emit(level, message)

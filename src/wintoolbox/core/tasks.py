@@ -116,6 +116,35 @@ class TaskRunner:
         if self.current_worker:
             self.current_worker.cancel()
 
+    @classmethod
+    def run(
+        cls,
+        task_fn: Callable[..., Any],
+        on_success: Optional[Callable[[Any], None]] = None,
+        on_error: Optional[Callable[[Any], None]] = None,
+        on_progress: Optional[Callable[[int, int, str], None]] = None,
+    ) -> "TaskWorker":
+        """Executa uma função em segundo plano com suporte a on_success e on_error."""
+        def _wrapper(ctx: TaskContext):
+            try:
+                import inspect
+                sig = inspect.signature(task_fn)
+                if len(sig.parameters) > 0:
+                    return task_fn(ctx)
+                return task_fn()
+            except (TypeError, ValueError):
+                return task_fn()
+
+        def _on_done(result, exc):
+            if exc is not None:
+                if on_error:
+                    on_error(exc)
+            else:
+                if on_success:
+                    on_success(result)
+
+        return run_task(_wrapper, on_done=_on_done, on_progress=on_progress)
+
 def run_task(
     task_fn: Callable[[TaskContext], Any],
     on_done: Optional[Callable[[Any, Optional[Exception]], None]] = None,

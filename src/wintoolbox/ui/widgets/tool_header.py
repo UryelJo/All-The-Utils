@@ -12,8 +12,15 @@ def make_tool_header(tool: BaseTool) -> QWidget:
 class ToolHeader(QWidget):
     """Componente reutilizável de cabeçalho com título e descrição."""
 
-    def __init__(self, title: str, description: str = "", parent: QWidget | None = None):
-        super().__init__(parent)
+    def __init__(
+        self,
+        title: str,
+        description: str = "",
+        category_or_parent: QWidget | str | None = None,
+        parent: QWidget | None = None,
+    ):
+        actual_parent = parent if parent is not None else (category_or_parent if isinstance(category_or_parent, QWidget) else None)
+        super().__init__(actual_parent)
         lay = QVBoxLayout(self)
         lay.setContentsMargins(0, 0, 0, 4)
         lay.setSpacing(4)

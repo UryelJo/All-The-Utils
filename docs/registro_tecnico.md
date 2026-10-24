@@ -331,8 +331,8 @@ Brasil e Segurança:
   - Aceleração por hardware no FFmpeg via **NVIDIA NVENC** (`h264_nvenc`, `hevc_nvenc`), **AMD AMF** (`h264_amf`, `hevc_amf`) e **Intel QuickSync** (`h264_qsv`) com fallback automático resiliente para CPU (`libx264`).
   - Motor de lote concorrente (`core/batch.py`) com `ThreadPoolExecutor` dimensionado automaticamente de acordo com os núcleos da máquina (`optimal_batch_workers = min(cpu_cores, 8)`).
   - Cálculo de hashes concorrente em lote na ferramenta de localização de arquivos duplicados (`files.duplicates`).
-- **Cobertura de Testes**: 181 testes unitários e de integração executados com 100% de aprovação no `pytest` (incluindo testes de arquitetura, aceleração de hardware e suíte da Fase 15).
-- **Tempo de Execução dos Testes**: ~37.0s.
+- **Cobertura de Testes**: 182 testes unitários e de integração executados com 100% de aprovação no `pytest` (incluindo testes de arquitetura, aceleração de hardware, teste de renderização de view de todas as 120 ferramentas e suíte da Fase 15).
+- **Tempo de Execução dos Testes**: ~47.0s.
 
 
 ---

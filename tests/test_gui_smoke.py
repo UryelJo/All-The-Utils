@@ -163,7 +163,22 @@ def test_fluent_micro_components(qtbot):
 
     toast = show_toast(card, "Sucesso", "Operação concluída", kind="success", duration_ms=500)
     assert toast is not None
+    toast_err = show_toast(card, "Erro", "Falha de teste", is_error=True, duration_ms=500)
+    assert toast_err is not None
 
     assert normalize_text("Conversão de Áudio e Vídeo") == "conversao de audio e video"
     assert not make_fluent_icon("home").isNull()
     assert not get_category_icon("Imagens").isNull()
+
+
+def test_all_registered_tools_build_view(qtbot):
+    """Garante que a UI de cada uma das 120 ferramentas registradas inicializa sem erros de construtor ou QWidget."""
+    from wintoolbox.core.registry import get_all_tools
+    window = MainWindow()
+    qtbot.addWidget(window)
+    window.show()
+
+    for tool in get_all_tools():
+        window.navigate_to(tool.id)
+        assert window.stack.currentWidget() is not None, f"Falha ao inicializar view da ferramenta {tool.id}"
+

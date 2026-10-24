@@ -47,7 +47,6 @@ class PixGeneratorView(QWidget):
         layout.addWidget(ToolHeader(
             self.tool.name,
             self.tool.description,
-            self.tool.category
         ))
 
         # Divisão em dois lados: formulário à esquerda e resultado/QR Code à direita

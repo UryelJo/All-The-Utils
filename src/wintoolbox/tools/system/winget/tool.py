@@ -47,7 +47,6 @@ class WingetView(QWidget):
         layout.addWidget(ToolHeader(
             self.tool.name,
             self.tool.description,
-            self.tool.category
         ))
 
         if not is_winget_installed():

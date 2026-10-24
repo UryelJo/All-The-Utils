@@ -42,7 +42,6 @@ class PwnedCheckView(QWidget):
         layout.addWidget(ToolHeader(
             self.tool.name,
             self.tool.description,
-            self.tool.category
         ))
 
         # Aviso explicativo sobre Privacidade e k-anonimato

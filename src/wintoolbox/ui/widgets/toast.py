@@ -90,6 +90,7 @@ def show_toast(
     message: str = "",
     kind: str = "info",
     duration_ms: int = 3500,
+    is_error: bool = False,
 ) -> Optional[ToastWidget]:
     """Exibe um Toast não-bloqueante na janela principal da aplicação."""
     if context_widget is None:
@@ -97,6 +98,8 @@ def show_toast(
     top_win = context_widget.window()
     if top_win is None:
         return None
+    if is_error and kind == "info":
+        kind = "error"
     return ToastWidget(
         parent=top_win,
         title=title,

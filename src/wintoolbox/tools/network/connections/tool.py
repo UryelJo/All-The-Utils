@@ -45,7 +45,6 @@ class ConnectionsView(QWidget):
         layout.addWidget(ToolHeader(
             self.tool.name,
             self.tool.description,
-            self.tool.category
         ))
 
         # Barra de ferramentas superior

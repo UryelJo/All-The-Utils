@@ -46,7 +46,6 @@ class RepairCenterView(QWidget):
         layout.addWidget(ToolHeader(
             self.tool.name,
             self.tool.description,
-            self.tool.category
         ))
 
         scroll = QScrollArea()

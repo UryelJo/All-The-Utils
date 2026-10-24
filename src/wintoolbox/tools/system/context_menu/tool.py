@@ -43,7 +43,6 @@ class ContextMenuView(QWidget):
         layout.addWidget(ToolHeader(
             self.tool.name,
             self.tool.description,
-            self.tool.category
         ))
 
         # Card de Status Atual
