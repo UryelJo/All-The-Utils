@@ -1105,4 +1105,78 @@ Este documento mantém o inventário detalhado de todas as ferramentas disponív
   - Identificação de Status da Assinatura: `Valid` (Válida), `NotSigned` (Não Assinado), `HashMismatch` (Adulterado) ou `NotTrusted` (Não Confiável).
   - Extração de Certificado: Nome do Signatário / Empresa Emissora, Algoritmo de Hash (ex: SHA-256) e Carimbo de Data/Hora (Timestamp).
 
+---
+
+## 16. Ferramentas Adicionais e Especializadas
+
+### `files.junction_mover` — Mover Pasta Mantendo Junção NTFS (Directory Junction)
+- **Tipo**: `Tool` (Interativo e Operações de Disco)
+- **Identificador**: `files.junction_mover`
+- **Recursos**:
+  - Move pastas pesadas (como bibliotecas de jogos, máquinas virtuais, caches de IDEs ou pastas de usuários) para outro disco ou partição física sem quebrar os programas que as utilizam.
+  - Criação automática de Junção NTFS transparente (`_winapi.CreateJunction` nativo do Windows), dispensando privilégios de Administrador.
+  - Validação de espaço livre no disco de destino com margem de segurança.
+  - Indicador de tamanho e contagem recursiva de arquivos antes da execução.
+  - Processo assíncrono com barra de progresso e tratamento contra reparse points aninhados.
+
+### `pdf.page_organizer` — Organizador Visual de Páginas PDF
+- **Tipo**: `Tool` (Interativo com Miniaturas Visuais)
+- **Identificador**: `pdf.page_organizer`
+- **Recursos**:
+  - Reordenação, rotação e exclusão visual de páginas de documentos PDF.
+  - Renderização ultrarrápida de miniaturas em memória via `pypdfium2` (sem arquivos temporários no disco).
+  - Botões de navegação rápida por página: mover para a esquerda (`<`), mover para a direita (`>`), girar em 90° graus e excluir/restaurar página.
+  - Exportação e montagem de novo documento PDF através de `pypdf`.
+
+### `pdf.stamp` — Carimbo, Marca d'Água e Numeração de Páginas PDF
+- **Tipo**: `FileTool` (Processamento em Lote Automatizado)
+- **Identificador**: `pdf.stamp`
+- **Recursos**:
+  - Aplicação de carimbos diagonais translúcidos ("CONFIDENCIAL", "RASCUNHO", "CÓPIA", "APROVADO" ou texto livre) com ângulo, opacidade e cor customizáveis.
+  - Numeração automática de páginas com suporte a posições (rodapé direito, rodapé centralizado, cabeçalho) e formatos flexíveis (`Página {page} de {total}`, `{page}/{total}`, `{page}`).
+  - Filtragem de páginas por intervalo (ex: `1-5, 8, 11-15`) ou em todo o documento.
+  - Motor de renderização vetorial preciso com `reportlab` e composição com `pypdf`.
+
+### `media.normalize` — Normalização de Volume em Lote (EBU R128 Loudnorm)
+- **Tipo**: `FileTool` (Processamento em Lote Automatizado)
+- **Identificador**: `media.normalize`
+- **Recursos**:
+  - Normalização da sonoridade de áudios e vídeos pelo padrão broadcast internacional EBU R128 / ITU-R BS.1770 (`loudnorm`).
+  - Presets prontos para streaming: Spotify/YouTube (-14 LUFS), Apple Music (-16 LUFS), Televisão / Broadcast (-23 LUFS) ou modo Personalizado.
+  - Tratamento inteligente de vídeos: preserva a trilha de vídeo original intocada (`-c:v copy`), normalizando apenas as faixas de áudio sem perda de tempo ou qualidade de imagem.
+  - Suporte a múltiplos formatos de áudio e vídeo (.mp4, .mkv, .mp3, .wav, .flac, .m4a, .aac, .ogg).
+
+### `media.subtitles` — Editor e Conversor de Legendas (SRT / WebVTT)
+- **Tipo**: `Tool` (Interativo e Utilitário de Mídia)
+- **Identificador**: `media.subtitles`
+- **Recursos**:
+  - Conversão bidirecional entre arquivos de legenda SubRip (`.srt`) e WebVTT (`.vtt`).
+  - Tabela interativa com listagem de todas as falas, tempos de início, tempos de fim e texto.
+  - **Ajuste de Sincronia (Time Shift)**: Adicione ou subtraia tempo em milissegundos ou use os botões rápidos (+0.5s, -0.5s, +1.0s, -1.0s) para sincronizar perfeitamente áudio e vídeo com atraso ou adiantamento.
+  - Limpeza automática de marcações HTML (`<i>`, `<b>`, etc.) e normalização de quebras de linha CRLF/LF.
+
+### `media.transcribe` — Transcrição de Áudio Offline por Inteligência Artificial
+- **Tipo**: `Tool` (Interativo e IA Local)
+- **Identificador**: `media.transcribe`
+- **Recursos**:
+  - Transcrição de áudio e extração de fala 100% offline via modelos Whisper (`faster-whisper` ou `openai-whisper`).
+  - Extração automática de áudio mono 16 kHz via FFmpeg a partir de qualquer arquivo de vídeo ou áudio.
+  - Seleção de modelo (Tiny, Base, Small, Medium) e seleção de idioma (português, inglês ou detecção automática).
+  - Exportação direta para texto puro (`.txt`) ou arquivo de legenda sincronizado (`.srt`).
+  - Interface amigável com orientação de instalação caso as dependências de IA ainda não estejam presentes no ambiente Python do usuário.
+
+---
+
+## 17. Atualizações e Expansões de Ferramentas Existentes
+
+- **`archive.manager`**: Expandido com suporte nativo a descompactação e inspeção de arquivos `.7z` (via `py7zr`, `7z.exe` ou `tar.exe` bsdtar nativo do Windows) e `.rar` (via `7z.exe`, `unrar.exe` ou `bsdtar`). Suporte integrado também ao Smart Drop Router.
+- **`data.doc_converter`**: Adicionada opção de exportação de Markdown e HTML diretamente para PDF formatado em página A4 através de `QTextDocument` e `QPdfWriter`, sem necessidade de bibliotecas externas pesadas.
+- **`calc.date_calculator`**: Incorporado cálculo algorítmico de feriados nacionais brasileiros móveis (Páscoa, Carnaval, Sexta-feira Santa, Corpus Christi) e fixos (incluindo Consciência Negra). Adicionada 4ª aba dedicada "Feriados do Ano" com listagem completa, contagem de feriados em dias úteis e fins de semana, e botão para copiar.
+- **`network.public_apis`**: Expandido com consultas completas adicionais da BrasilAPI:
+  - **DDD**: Consulta de código DDD com estado (UF) e lista completa ordenada de todos os municípios atendidos.
+  - **Bancos**: Consulta de todos os bancos cadastrados no Banco Central/FEBRABAN com código COMPE, razão social, nome comercial e ISPB, com filtro de busca em tempo real.
+  - **Feriados Nacionais**: Consulta oficial de feriados nacionais por ano via endpoint BrasilAPI.
+  - **Tabela FIPE**: Consulta do valor de mercado e histórico de veículos pelo código FIPE oficial.
+
+
 

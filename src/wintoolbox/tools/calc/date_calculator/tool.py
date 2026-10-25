@@ -7,14 +7,14 @@ from PySide6.QtCore import QDate, Qt
 from PySide6.QtGui import QFont
 from PySide6.QtWidgets import (
     QApplication, QCheckBox, QDateEdit, QFrame, QGridLayout, QGroupBox,
-    QHBoxLayout, QLabel, QLineEdit, QListWidget, QListWidgetItem,
-    QPushButton, QSpinBox, QTabWidget, QVBoxLayout, QWidget
+    QHBoxLayout, QHeaderView, QLabel, QLineEdit, QListWidget, QListWidgetItem,
+    QPushButton, QSpinBox, QTabWidget, QTableWidget, QTableWidgetItem, QVBoxLayout, QWidget
 )
 
 from wintoolbox.core.logging_setup import get_logger
 from wintoolbox.core.registry import Tool, register
 from wintoolbox.tools.calc.date_calculator.logic import (
-    add_business_days, add_calendar_interval, diff_dates
+    add_business_days, add_calendar_interval, diff_dates, get_detailed_holidays_for_year
 )
 from wintoolbox.ui.widgets.toast import show_toast
 from wintoolbox.ui.widgets.tool_header import ToolHeader
@@ -54,6 +54,7 @@ class DateCalculatorView(QWidget):
         self.tabs.addTab(self._build_diff_tab(), "Diferença Entre Datas")
         self.tabs.addTab(self._build_business_days_tab(), "Calcular Dias Úteis")
         self.tabs.addTab(self._build_interval_tab(), "Somar / Subtrair Períodos")
+        self.tabs.addTab(self._build_holidays_tab(), "Feriados do Ano")
         root.addWidget(self.tabs, stretch=1)
 
     # 1. Aba Diferença
@@ -279,3 +280,81 @@ class DateCalculatorView(QWidget):
         dow_str = dow_pt[res_date.weekday()]
 
         self.lbl_cal_result.setText(f"{res_date.strftime('%d/%m/%Y')} ({dow_str})")
+
+    # 4. Aba Feriados Nacionais do Ano
+    def _build_holidays_tab(self) -> QWidget:
+        tab = QWidget()
+        layout = QVBoxLayout(tab)
+        layout.setContentsMargins(8, 12, 8, 8)
+        layout.setSpacing(10)
+
+        header_row = QHBoxLayout()
+        header_row.addWidget(QLabel("Ano de Referência:"))
+
+        self.spin_holidays_year = QSpinBox()
+        self.spin_holidays_year.setRange(1900, 2199)
+        self.spin_holidays_year.setValue(QDate.currentDate().year())
+        self.spin_holidays_year.setFixedWidth(90)
+        self.spin_holidays_year.valueChanged.connect(self._refresh_holidays_table)
+        header_row.addWidget(self.spin_holidays_year)
+
+        btn_copy = QPushButton("Copiar Feriados")
+        btn_copy.clicked.connect(self._copy_holidays_to_clipboard)
+        header_row.addWidget(btn_copy)
+
+        header_row.addStretch(1)
+        layout.addLayout(header_row)
+
+        self.table_holidays = QTableWidget(0, 4)
+        self.table_holidays.setHorizontalHeaderLabels(["Data", "Dia da Semana", "Feriado Nacional", "Classificação"])
+        self.table_holidays.horizontalHeader().setSectionResizeMode(0, QHeaderView.ResizeToContents)
+        self.table_holidays.horizontalHeader().setSectionResizeMode(1, QHeaderView.ResizeToContents)
+        self.table_holidays.horizontalHeader().setSectionResizeMode(2, QHeaderView.Stretch)
+        self.table_holidays.horizontalHeader().setSectionResizeMode(3, QHeaderView.ResizeToContents)
+        self.table_holidays.verticalHeader().setVisible(False)
+        self.table_holidays.setAlternatingRowColors(True)
+        layout.addWidget(self.table_holidays, stretch=1)
+
+        self.lbl_holidays_summary = QLabel()
+        self.lbl_holidays_summary.setStyleSheet("color: rgba(255, 255, 255, 0.7); font-size: 12px;")
+        layout.addWidget(self.lbl_holidays_summary)
+
+        self._refresh_holidays_table()
+        return tab
+
+    def _refresh_holidays_table(self) -> None:
+        year = self.spin_holidays_year.value()
+        hols = get_detailed_holidays_for_year(year)
+
+        self.table_holidays.setRowCount(len(hols))
+        weekend_count = 0
+
+        for row, h in enumerate(hols):
+            it_date = QTableWidgetItem(h["formatted_date"])
+            it_dow = QTableWidgetItem(h["day_of_week"])
+            it_name = QTableWidgetItem(h["name"])
+            it_type = QTableWidgetItem(h["type"])
+
+            if h["is_weekend"]:
+                weekend_count += 1
+                it_dow.setText(f"{h['day_of_week']} (Fim de semana)")
+
+            self.table_holidays.setItem(row, 0, it_date)
+            self.table_holidays.setItem(row, 1, it_dow)
+            self.table_holidays.setItem(row, 2, it_name)
+            self.table_holidays.setItem(row, 3, it_type)
+
+        biz_hols = len(hols) - weekend_count
+        self.lbl_holidays_summary.setText(
+            f"Total de {len(hols)} feriados nacionais em {year}: {biz_hols} caem em dias úteis e {weekend_count} em fins de semana."
+        )
+
+    def _copy_holidays_to_clipboard(self) -> None:
+        year = self.spin_holidays_year.value()
+        hols = get_detailed_holidays_for_year(year)
+        lines = [f"Feriados Nacionais - {year}:"]
+        for h in hols:
+            lines.append(f"• {h['formatted_date']} ({h['day_of_week']}): {h['name']} [{h['type']}]")
+        text = "\n".join(lines)
+        QApplication.clipboard().setText(text)
+        show_toast(self, "Lista de feriados copiada para a área de transferência!")

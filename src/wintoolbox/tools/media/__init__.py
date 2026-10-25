@@ -9,3 +9,6 @@ import wintoolbox.tools.media.recorder
 import wintoolbox.tools.media.speech
 import wintoolbox.tools.media.id3_editor
 import wintoolbox.tools.media.player
+import wintoolbox.tools.media.normalize
+import wintoolbox.tools.media.subtitles
+import wintoolbox.tools.media.transcribe

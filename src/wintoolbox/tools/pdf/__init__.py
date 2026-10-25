@@ -8,3 +8,5 @@ import wintoolbox.tools.pdf.compress
 import wintoolbox.tools.pdf.rotate
 import wintoolbox.tools.pdf.security
 import wintoolbox.tools.pdf.office_convert
+import wintoolbox.tools.pdf.page_organizer
+import wintoolbox.tools.pdf.stamp

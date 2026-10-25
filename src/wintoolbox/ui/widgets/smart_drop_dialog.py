@@ -30,6 +30,8 @@ EXTRA_EXTENSION_MAPPING = {
     ".mp3": ["media.convert", "media.trim_merge", "media.id3_editor", "media.player"],
     ".wav": ["media.convert", "media.trim_merge", "media.player"],
     ".zip": ["archive.manager"],
+    ".7z": ["archive.manager"],
+    ".rar": ["archive.manager"],
     ".tar": ["archive.manager"],
     ".gz": ["archive.manager"],
     ".md": ["data.doc_converter"],

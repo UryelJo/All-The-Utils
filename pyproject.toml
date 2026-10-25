@@ -39,16 +39,20 @@ dependencies = [
     "winrt-Windows.Media.SpeechSynthesis>=3.0.0",
     "winrt-Windows.Storage>=3.0.0",
     "winrt-Windows.Storage.Streams>=3.0.0",
+    "reportlab>=4.0.0",
+    "py7zr>=0.20.0",
 ]
 
 [project.optional-dependencies]
 extras = [
     "static-ffmpeg>=2.5",           # ffmpeg/ffprobe para as ferramentas de mídia
+    "faster-whisper>=1.0.0",        # IA para transcrição offline (opcional)
 ]
 dev = [
     "pytest>=8.0.0",
     "pytest-qt>=4.4.0",
     "pyinstaller>=6.6.0",
+    "pip-audit>=2.7.0",
 ]
 
 [project.scripts]

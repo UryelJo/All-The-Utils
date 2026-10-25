@@ -28,3 +28,5 @@ winrt-Windows.Media.Ocr>=3.0.0
 winrt-Windows.Media.SpeechSynthesis>=3.0.0
 winrt-Windows.Storage>=3.0.0
 winrt-Windows.Storage.Streams>=3.0.0
+reportlab>=4.0.0
+py7zr>=0.20.0

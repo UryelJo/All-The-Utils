@@ -29,8 +29,8 @@ class ArchiveManagerTool(Tool):
     id = "archive.manager"
     name = "Compactador e Extrator de Arquivos"
     category = "Compactação"
-    description = "Compacte arquivos e pastas em ZIP/TAR, extraia pacotes e inspecione conteúdo interno"
-    keywords = ["zip", "tar", "compactar", "extrair", "descompactar", "arquivo", "pasta", "compressao"]
+    description = "Compacte arquivos e pastas em ZIP/TAR, extraia pacotes (ZIP, TAR, 7Z, RAR) e inspecione conteúdo interno"
+    keywords = ["zip", "tar", "7z", "rar", "compactar", "extrair", "descompactar", "arquivo", "pasta", "compressao"]
 
     def build_view(self, parent: Optional[QWidget] = None) -> QWidget:
         return ArchiveManagerView(self, parent)
@@ -277,7 +277,7 @@ class ArchiveManagerView(QWidget):
             self,
             "Selecionar Arquivo Compactado",
             "",
-            "Arquivos Compactados (*.zip *.tar *.tar.gz *.tgz *.tar.bz2 *.tar.xz)"
+            "Arquivos Compactados (*.zip *.7z *.rar *.tar *.tar.gz *.tgz *.tar.bz2 *.tar.xz)"
         )
         if f:
             p = Path(f)

@@ -41,13 +41,15 @@ def saudacao(nome: str) -> str:
 """
 
 
+from wintoolbox.ui.widgets.tool_header import ToolHeader
+
 @register
 class DocConverterTool(Tool):
     id = "data.doc_converter"
-    name = "Conversor de Markdown para HTML"
+    name = "Conversor de Markdown e HTML para PDF"
     category = "Dados e Estruturas"
-    description = "Edite, visualize e converta documentos Markdown (.md) em páginas HTML autônomas estilizadas"
-    keywords = ["markdown", "html", "documento", "converter", "md", "preview", "visualizador", "exportar"]
+    description = "Edite, visualize e converta documentos Markdown (.md) em páginas HTML e documentos PDF profissionais via QTextDocument"
+    keywords = ["markdown", "html", "pdf", "documento", "converter", "md", "preview", "visualizador", "exportar"]
 
     def build_view(self, parent: Optional[QWidget] = None) -> QWidget:
         container = QFrame(parent)
@@ -55,9 +57,7 @@ class DocConverterTool(Tool):
         layout.setContentsMargins(16, 16, 16, 16)
         layout.setSpacing(10)
 
-        header = QLabel("Conversor de Markdown para HTML")
-        header.setStyleSheet("font-size: 16px; font-weight: 600;")
-        layout.addWidget(header)
+        layout.addWidget(ToolHeader(self.name, self.description))
 
         # Barra de ferramentas superior
         toolbar = QHBoxLayout()
@@ -81,6 +81,12 @@ class DocConverterTool(Tool):
         btn_export = QPushButton("Exportar como .html...")
         btn_export.clicked.connect(self._on_export_html)
         toolbar.addWidget(btn_export)
+
+        btn_export_pdf = QPushButton("Exportar PDF...")
+        btn_export_pdf.setProperty("class", "accent")
+        btn_export_pdf.setStyleSheet("font-weight: 600;")
+        btn_export_pdf.clicked.connect(self._on_export_pdf)
+        toolbar.addWidget(btn_export_pdf)
 
         btn_clear = QPushButton("Limpar")
         btn_clear.clicked.connect(self._on_clear)
@@ -166,6 +172,26 @@ class DocConverterTool(Tool):
                 QMessageBox.information(None, "Exportado", f"Arquivo HTML exportado com sucesso em:\n{file}")
             except Exception as e:
                 QMessageBox.critical(None, "Erro", f"Falha ao salvar: {e}")
+
+    def _on_export_pdf(self):
+        text = self.txt_markdown.toPlainText()
+        if not text.strip():
+            QMessageBox.warning(None, "Aviso", "O editor está vazio.")
+            return
+
+        file, _ = QFileDialog.getSaveFileName(None, "Exportar Documento PDF", "documento.pdf", "Documento PDF (*.pdf)")
+        if file:
+            try:
+                from PySide6.QtGui import QPageSize, QPdfWriter, QTextDocument
+                html = markdown_to_html(text, full_html=True)
+                doc = QTextDocument()
+                doc.setHtml(html)
+                writer = QPdfWriter(file)
+                writer.setPageSize(QPageSize(QPageSize.PageSizeId.A4))
+                doc.print_(writer)
+                QMessageBox.information(None, "Exportado", f"Arquivo PDF gerado com sucesso via QTextDocument em:\n{file}")
+            except Exception as e:
+                QMessageBox.critical(None, "Erro", f"Falha ao exportar PDF: {e}")
 
     def _on_clear(self):
         self.txt_markdown.clear()

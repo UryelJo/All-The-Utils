@@ -12,3 +12,18 @@ trigger: always_on
    - **Credenciais:** Registre qualquer nova chave de API EXCLUSIVAMENTE nas configurações globais de `api_tokens`. Nunca faça _hardcode_ de chaves no código da ferramenta.
    - Implemente customizações através de argumentos bem definidos ou arquivos de configuração, evitando _hardcode_ e complexidade desnecessária.
 4. **Documentação:** Ao finalizar, registre a nova ferramenta no `catalogo_ferramentas.md`, mantendo a estrutura padrão do arquivo.
+
+**DIRETRIZES DE QUALIDADE DE TESTES (ANTI-GAMBIARRA):**
+1. **Princípio da Validação do Efeito Real (Black-Box Testing):**
+   - Nunca considere um teste aprovado apenas porque `mock.called == True` ou `len(items) >= 1`.
+   - Se a ferramenta gera um arquivo (PDF, imagem, áudio, ZIP), o teste DEVE abrir o arquivo resultante com o leitor correspondente e validar o conteúdo interno (ex.: extrair o texto do PDF com `PdfReader`, conferir a taxa de amostragem em Hz do áudio, descompactar e ler o hash do arquivo no ZIP).
+   - Se a ferramenta move arquivos ou cria junções, o teste DEVE ler o arquivo real através do link e comprovar que o dado é idêntico.
+2. **Proibição de Asserções Frouxas:**
+   - Proibido usar `assert True`, `assert obj is not None` ou `>=` quando o valor esperado é determinístico (`==`).
+   - Todo teste deve incluir obrigatoriamente:
+     a) O "Happy Path" com verificação de saída exata.
+     b) Casos de borda (edge cases: strings vazias, anos bissextos, limites).
+     c) Cenários de falha (entradas maliciosas ou inválidas, como caminhos aninhados que causariam recursão infinita).
+3. **Isolamento de Rede sem Falsos Positivos:**
+   - Testes unitários NUNCA devem fazer chamadas reais para a internet.
+   - Os mocks de rede DEVEM testar cenários de falha reais do mundo real: respostas HTML de proxy (502 Bad Gateway), timeouts e JSONs malformados, garantindo que o código não quebre com `JSONDecodeError` na UI.

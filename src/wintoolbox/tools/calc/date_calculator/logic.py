@@ -4,13 +4,14 @@ Isolada de bibliotecas visuais ou dependências externas.
 """
 import calendar
 from datetime import date, datetime, timedelta
+from functools import lru_cache
 from typing import Any, Dict, List, Set, Tuple
 
 from wintoolbox.core.logging_setup import get_logger
 
 _log = get_logger("calc.date_calculator")
 
-# Feriados nacionais fixos brasileiros (mês, dia, nome)
+# Feriados nacionais fixos históricos brasileiros (mês, dia, nome)
 FIXED_BRAZILIAN_HOLIDAYS = [
     (1, 1, "Confraternização Universal"),
     (4, 21, "Tiradentes"),
@@ -19,7 +20,6 @@ FIXED_BRAZILIAN_HOLIDAYS = [
     (10, 12, "Nossa Senhora Aparecida"),
     (11, 2, "Finados"),
     (11, 15, "Proclamação da República"),
-    (11, 20, "Dia Nacional de Zumbi e da Consciência Negra"),
     (12, 25, "Natal"),
 ]
 
@@ -43,11 +43,16 @@ def calculate_easter(year: int) -> date:
     return date(year, month, day)
 
 
+@lru_cache(maxsize=64)
 def get_brazilian_holidays(year: int) -> Dict[date, str]:
     """Retorna o dicionário de feriados nacionais para o ano fornecido."""
-    holidays = {}
+    holidays: Dict[date, str] = {}
     for m, d, name in FIXED_BRAZILIAN_HOLIDAYS:
         holidays[date(year, m, d)] = name
+
+    # Consciência Negra tornou-se feriado nacional a partir de 2024 (Lei Federal nº 14.759/2023)
+    if year >= 2024:
+        holidays[date(year, 11, 20)] = "Dia Nacional de Zumbi e da Consciência Negra"
 
     # Feriados móveis derivados da Páscoa
     easter = calculate_easter(year)
@@ -60,6 +65,27 @@ def get_brazilian_holidays(year: int) -> Dict[date, str]:
     holidays[corpus_christi] = "Corpus Christi"
 
     return holidays
+
+
+def get_detailed_holidays_for_year(year: int) -> List[Dict[str, Any]]:
+    """Retorna lista ordenada com todos os feriados nacionais do ano, dia da semana e classificação."""
+    hols = get_brazilian_holidays(year)
+    dow_names = ["Segunda-feira", "Terça-feira", "Quarta-feira", "Quinta-feira", "Sexta-feira", "Sábado", "Domingo"]
+    
+    fixed_set = {(m, d) for m, d, _ in FIXED_BRAZILIAN_HOLIDAYS}
+    
+    result = []
+    for d, name in sorted(hols.items(), key=lambda x: x[0]):
+        is_fixed = (d.month, d.day) in fixed_set
+        result.append({
+            "date": d.isoformat(),
+            "formatted_date": d.strftime("%d/%m/%Y"),
+            "name": name,
+            "day_of_week": dow_names[d.weekday()],
+            "is_weekend": d.weekday() >= 5,
+            "type": "Nacional Fixo" if is_fixed else "Nacional Móvel",
+        })
+    return result
 
 
 def is_business_day(d: date, consider_holidays: bool = True) -> bool:

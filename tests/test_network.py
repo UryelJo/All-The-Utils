@@ -49,7 +49,7 @@ def test_get_local_interfaces():
     assert "name" in first
     assert "status" in first
 
-def test_generate_wifi_qr_pixmap():
+def test_generate_wifi_qr_pixmap(qapp):
     pix = generate_wifi_qr_pixmap(ssid="MinhaRede", password="123", auth_type="WPA2")
     assert not pix.isNull()
     assert pix.width() > 50

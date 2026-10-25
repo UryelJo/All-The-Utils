@@ -290,25 +290,25 @@ Rede:
 - [x] Regras do Firewall do Windows: listar e bloquear aplicativo (`network.firewall`).
 
 Arquivos:
-- [ ] Extração de .7z e .rar (py7zr / 7-Zip empacotado) no `archive.manager`, hoje limitado a ZIP/TAR.
+- [x] Extração de .7z e .rar (py7zr / 7-Zip empacotado / tar nativo) no `archive.manager`, hoje com suporte completo a ZIP/TAR/7Z/RAR.
 - [x] Detector e conversor de codificação de texto (ANSI/UTF-8/UTF-16, CRLF/LF) em lote (`files.encoding_converter`).
 - [x] Desbloquear arquivos baixados em lote (remover Mark of the Web / Zone.Identifier) (`files.unblock`).
-- [ ] Mover pasta para outro disco mantendo junction (`files.junction_mover`).
+- [x] Mover pasta para outro disco mantendo junction (`files.junction_mover`).
 - [x] Permissões NTFS: tomar posse e redefinir permissões (`files.permissions`).
 - [x] Manifesto de checksums de pasta (.sha256): gerar e verificar (`files.checksum_manifest`).
 
 PDF e Mídia:
-- [ ] Reordenar, girar e excluir páginas por miniaturas (`pdf.page_organizer`; renderização via pypdfium2).
-- [ ] Numeração de páginas, carimbo e marca d'água em PDF (`pdf.stamp`).
-- [ ] Markdown/HTML para PDF via QTextDocument (sem dependências) (`data.doc_converter`).
-- [ ] Normalização de volume (loudnorm) em lote (`media.normalize`).
-- [ ] Editor de legendas SRT/VTT: converter e ajustar sincronia (`media.subtitles`).
-- [ ] Transcrição de áudio offline (faster-whisper, opcional por tamanho) (`media.transcribe`).
+- [x] Reordenar, girar e excluir páginas por miniaturas (`pdf.page_organizer`; renderização via pypdfium2).
+- [x] Numeração de páginas, carimbo e marca d'água em PDF (`pdf.stamp`).
+- [x] Markdown/HTML para PDF via QTextDocument (sem dependências) (`data.doc_converter`).
+- [x] Normalização de volume (loudnorm EBU R128) em lote (`media.normalize`).
+- [x] Editor de legendas SRT/VTT: converter e ajustar sincronia (`media.subtitles`).
+- [x] Transcrição de áudio offline (faster-whisper / whisper com exportação para texto e legendas SRT) (`media.transcribe`).
 
 Brasil e Segurança:
 - [x] Gerador de Pix "copia e cola" e QR Code no padrão BR Code (EMV + CRC16) (`text.pix_generator`).
-- [ ] Feriados nacionais na calculadora de dias úteis já planejada (`calc.date_calculator`).
-- [ ] Consultas BrasilAPI adicionais: FIPE, DDD, bancos e feriados (`network.public_apis`).
+- [x] Feriados nacionais na calculadora de dias úteis e aba dedicada (`calc.date_calculator`).
+- [x] Consultas BrasilAPI adicionais: FIPE, DDD, bancos e feriados (`network.public_apis`).
 - [x] Verificador de senha vazada (Have I Been Pwned, k-anonimato) (`security.pwned_check`).
 - [x] Consulta de hash no VirusTotal usando `api_tokens` (`security.virustotal`).
 - [x] Verificador de assinatura digital (Authenticode) de executáveis, integrável ao `system.startup_manager` (`security.signature_check`).
@@ -324,8 +324,8 @@ Brasil e Segurança:
 ---
 
 ## 7. Métrica de Qualidade e Testes
-- **Total de Ferramentas Registradas**: 120 ferramentas operacionais em 15 categorias.
-- **Padrão Arquitetural de Lógica Desacoplada**: 100% das 120 ferramentas possuem divisão estrita entre UI (`tool.py`) e regras de negócio puras (`logic.py`), com zero importações de `PySide6` na camada de lógica.
+- **Total de Ferramentas Registradas**: 126 ferramentas operacionais em 15 categorias.
+- **Padrão Arquitetural de Lógica Desacoplada**: 100% das 126 ferramentas possuem divisão estrita entre UI (`tool.py`) e regras de negócio puras (`logic.py`), com zero importações de `PySide6` na camada de lógica.
 - **Aceleração por Hardware (GPU) & Paralelismo**:
   - Detecção automática de GPUs instaladas (NVIDIA GeForce/RTX via `nvidia-smi` / WMI, AMD Radeon e Intel Arc/Iris).
   - Aceleração por hardware no FFmpeg via **NVIDIA NVENC** (`h264_nvenc`, `hevc_nvenc`), **AMD AMF** (`h264_amf`, `hevc_amf`) e **Intel QuickSync** (`h264_qsv`) com fallback automático resiliente para CPU (`libx264`).

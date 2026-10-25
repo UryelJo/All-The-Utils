@@ -20,3 +20,4 @@ import wintoolbox.tools.files.encoding_converter
 import wintoolbox.tools.files.unblock
 import wintoolbox.tools.files.permissions
 import wintoolbox.tools.files.checksum_manifest
+import wintoolbox.tools.files.junction_mover
