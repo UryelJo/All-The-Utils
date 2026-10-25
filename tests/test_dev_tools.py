@@ -50,6 +50,8 @@ from wintoolbox.tools.dev.project_scaffold.logic import (
 )
 
 
+from wintoolbox.tools.text.validators_br.logic import validate_cpf, validate_cnpj
+
 # ==========================================
 # TESTES: 1. Fake Data
 # ==========================================
@@ -57,18 +59,25 @@ def test_fake_data_cpf_and_cnpj():
     cpf_fmt = generate_cpf(formatted=True)
     assert len(cpf_fmt) == 14
     assert cpf_fmt[3] == "." and cpf_fmt[7] == "." and cpf_fmt[11] == "-"
+    # Validação matemática rigorosa do dígito verificador gerado
+    is_valid_cpf, msg_cpf = validate_cpf(cpf_fmt)
+    assert is_valid_cpf is True, f"CPF gerado inválido: {msg_cpf}"
 
     cpf_raw = generate_cpf(formatted=False)
     assert len(cpf_raw) == 11
     assert cpf_raw.isdigit()
+    assert validate_cpf(cpf_raw)[0] is True
 
     cnpj_fmt = generate_cnpj(formatted=True)
     assert len(cnpj_fmt) == 18
     assert cnpj_fmt[2] == "." and cnpj_fmt[6] == "." and cnpj_fmt[10] == "/" and cnpj_fmt[15] == "-"
+    is_valid_cnpj, msg_cnpj = validate_cnpj(cnpj_fmt)
+    assert is_valid_cnpj is True, f"CNPJ gerado inválido: {msg_cnpj}"
 
     cnpj_raw = generate_cnpj(formatted=False)
     assert len(cnpj_raw) == 14
     assert cnpj_raw.isdigit()
+    assert validate_cnpj(cnpj_raw)[0] is True
 
 
 def test_fake_data_dataset_generation_and_export():
@@ -78,7 +87,8 @@ def test_fake_data_dataset_generation_and_export():
     for row in data:
         for f in fields:
             assert f in row
-            assert row[f] is not None
+            assert isinstance(row[f], str)
+            assert len(row[f].strip()) > 0
 
     # Exportação JSON
     json_out = export_dataset(data, format_type="json")
@@ -128,7 +138,8 @@ def test_sqlite_viewer_logic(tmp_path: Path):
     assert len(rows) == 2
     assert rows[0]["nome"] == "Alice"
     assert rows[1]["nome"] == "Bob"
-    assert elapsed >= 0.0
+    assert isinstance(elapsed, float)
+    assert 0.0 <= elapsed < 5.0
 
     # Exportação
     csv_res = export_query_results(rows, format_type="csv")
@@ -287,5 +298,19 @@ def test_project_scaffold_logic(tmp_path: Path):
     assert ".editorconfig" in created_files
     assert ".env.example" in created_files
 
-    assert (scaffold_dir / ".gitignore").exists()
-    assert (scaffold_dir / "LICENSE").exists()
+    # Validação do Efeito Real: ler conteúdo dos arquivos gravados em disco
+    gitignore_file = scaffold_dir / ".gitignore"
+    assert gitignore_file.is_file()
+    assert "__pycache__/" in gitignore_file.read_text(encoding="utf-8")
+
+    license_file = scaffold_dir / "LICENSE"
+    assert license_file.is_file()
+    license_content = license_file.read_text(encoding="utf-8")
+    assert "MIT License" in license_content
+    assert "Dev" in license_content
+
+    readme_file = scaffold_dir / "README.md"
+    assert readme_file.is_file()
+    readme_content = readme_file.read_text(encoding="utf-8")
+    assert "# NovoApp" in readme_content
+    assert "Um app de teste" in readme_content

@@ -71,10 +71,11 @@ def test_encode_logic_pure():
     hashes = compute_text_hashes("teste de hash")
     assert "MD5" in hashes
     assert "SHA-256" in hashes
-    assert len(hashes["SHA-256"]) == 64
+    import hashlib
+    assert hashes["SHA-256"] == hashlib.sha256(b"teste de hash").hexdigest()
 
     ts_res = convert_epoch_to_dates("1700000000")
-    assert "2023" in ts_res.utc_str
+    assert ts_res.utc_str == "14/11/2023 22:13:20 UTC"
 
 
 def test_files_logic_pure():

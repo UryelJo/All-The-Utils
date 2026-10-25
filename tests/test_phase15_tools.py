@@ -1,20 +1,24 @@
 """
 Testes unitários para as novas ferramentas da Fase 15 (Auditoria e Lacunas do Sistema).
+Asserções determinísticas, isolamento de rede HIBP e validações de integridade.
 """
+import hashlib
+import io
 from pathlib import Path
+import urllib.request
 import pytest
 
 # Sistema
 from wintoolbox.tools.system.winget.logic import (
     build_install_command, build_upgrade_all_command, get_curated_apps,
-    is_winget_installed, parse_winget_upgrade_output
+    is_winget_installed, parse_winget_upgrade_output, CURATED_APPS
 )
 from wintoolbox.tools.system.disk_health.logic import format_bytes, get_disks_health_info
 from wintoolbox.tools.system.crash_analyzer.logic import (
     explain_bugcheck_code, list_minidump_files
 )
 from wintoolbox.tools.system.restore_points.logic import list_restore_points
-from wintoolbox.tools.system.privacy.logic import get_all_privacy_statuses
+from wintoolbox.tools.system.privacy.logic import get_all_privacy_statuses, PRIVACY_ITEMS
 from wintoolbox.tools.system.context_menu.logic import is_classic_context_menu_enabled
 from wintoolbox.tools.system.license_info.logic import get_windows_activation_status
 
@@ -41,7 +45,7 @@ from wintoolbox.tools.security.signature_check.logic import check_authenticode_s
 class TestSystemPhase15:
     def test_winget_logic(self):
         apps = get_curated_apps()
-        assert len(apps) >= 10
+        assert len(apps) == len(CURATED_APPS)
         cmd_install = build_install_command("7zip.7zip")
         assert "7zip.7zip" in cmd_install
         cmd_up_all = build_upgrade_all_command()
@@ -49,7 +53,7 @@ class TestSystemPhase15:
 
     def test_disk_health_formatting(self):
         assert format_bytes(1024 ** 3) == "1.0 GB"
-        assert "TB" in format_bytes(2 * (1024 ** 4))
+        assert format_bytes(2 * (1024 ** 4)) == "2.00 TB"
 
     def test_crash_analyzer_bugcheck(self):
         desc = explain_bugcheck_code(0x0000001A)
@@ -59,36 +63,40 @@ class TestSystemPhase15:
 
     def test_privacy_status_list(self):
         statuses = get_all_privacy_statuses()
-        assert len(statuses) >= 4
+        assert len(statuses) == len(PRIVACY_ITEMS)
         ids = [s["id"] for s in statuses]
         assert "telemetry" in ids
         assert "copilot" in ids
+        assert "recall_ai" in ids
 
     def test_activation_status(self):
         res = get_windows_activation_status()
         assert "edition" in res
         assert "is_activated" in res
+        assert isinstance(res["is_activated"], bool)
 
 
 class TestNetworkPhase15:
     def test_connections_list(self):
         conns = list_active_connections()
         assert isinstance(conns, list)
-        if conns:
-            c = conns[0]
+        for c in conns:
             assert "proto" in c
             assert "local_address" in c
             assert "status" in c
 
     def test_latency_jitter_calc(self):
         samples = [10.0, 15.0, 12.0, 20.0]
+        # diffs: |15-10|=5, |12-15|=3, |20-12|=8 -> (5+3+8)/3 = 5.33
         jitter = calculate_jitter(samples)
-        assert jitter > 0
+        assert jitter == 5.33
 
         stats = calculate_stats(samples, total_sent=4)
         assert stats["current"] == 20.0
         assert stats["min"] == 10.0
         assert stats["max"] == 20.0
+        assert stats["avg"] == 14.2
+        assert stats["jitter"] == 5.33
         assert stats["packet_loss_pct"] == 0.0
 
 
@@ -105,7 +113,6 @@ class TestFilesAndTextPhase15:
     def test_unblock_file(self, tmp_path):
         f = tmp_path / "teste.txt"
         f.write_text("conteudo")
-        # Arquivo novo em tmp não tem Zone.Identifier
         assert is_file_blocked(f) is False
         ok, msg = unblock_file(f)
         assert ok is True
@@ -120,7 +127,7 @@ class TestFilesAndTextPhase15:
         assert len(items) == 2
         assert "arq1.txt" in manifest_text
 
-        # Grava e valida
+        # Grava e valida manifest
         m_file = folder / "manifest.sha256"
         m_file.write_text(manifest_text, encoding="utf-8")
         results = verify_manifest_file(m_file)
@@ -148,15 +155,70 @@ class TestFilesAndTextPhase15:
 
 class TestSecurityPhase15:
     def test_calculate_file_sha256(self, tmp_path):
+        payload = b"antigravity test data"
         f = tmp_path / "sample.bin"
-        f.write_bytes(b"antigravity test data")
-        sha = calculate_file_sha256(f)
-        assert len(sha) == 64
+        f.write_bytes(payload)
 
-    def test_signature_check_native_windows_exe(self):
-        # cmd.exe sempre tem assinatura oficial da Microsoft
-        cmd_path = Path("C:/Windows/System32/cmd.exe")
-        if cmd_path.exists():
-            sig = check_authenticode_signature(cmd_path)
-            assert sig["is_valid"] is True
-            assert "Microsoft" in sig["signer"]
+        expected_hash = hashlib.sha256(payload).hexdigest()
+        sha = calculate_file_sha256(f)
+        assert sha == expected_hash
+
+    def test_signature_check_unsigned_file(self, tmp_path):
+        # Arquivo novo em tmp_path nunca tem assinatura Authenticode
+        dummy_exe = tmp_path / "app_fake.exe"
+        dummy_exe.write_bytes(b"MZ dummy executable header")
+        sig = check_authenticode_signature(dummy_exe)
+        assert sig["is_valid"] is False
+        assert sig["signer"] == "Não especificado"
+
+    def test_pwned_passwords_isolated_network(self, monkeypatch: pytest.MonkeyPatch):
+        """Validação de Have I Been Pwned com mock de rede isolado (sem chamadas externas)."""
+        # 1. Senha vazia
+        is_pwned, count, msg = check_password_pwned("")
+        assert is_pwned is False
+        assert count == 0
+        assert "vazia" in msg
+
+        # 2. Senha comprometida
+        pwd = "SenhaSuperSecreta123!"
+        sha1 = hashlib.sha1(pwd.encode("utf-8")).hexdigest().upper()
+        prefix = sha1[:5]
+        suffix = sha1[5:]
+
+        class FakeResponse:
+            def __init__(self, data_str: str):
+                self._data = data_str.encode("utf-8")
+            def read(self):
+                return self._data
+            def __enter__(self):
+                return self
+            def __exit__(self, exc_type, exc_val, exc_tb):
+                pass
+
+        # Mock retornando o sufixo com 42 vazamentos
+        fake_body = f"00000000000000000000000000000000000:1\r\n{suffix}:42\r\nFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF:3"
+        monkeypatch.setattr(urllib.request, "urlopen", lambda req, timeout=10: FakeResponse(fake_body))
+
+        is_pwned, count, msg = check_password_pwned(pwd)
+        assert is_pwned is True
+        assert count == 42
+        assert "42" in msg
+
+        # 3. Senha limpa (sufixo não está na resposta)
+        fake_body_clean = "AAAAA000000000000000000000000000000:5\r\nBBBBB000000000000000000000000000000:2"
+        monkeypatch.setattr(urllib.request, "urlopen", lambda req, timeout=10: FakeResponse(fake_body_clean))
+
+        is_pwned_clean, count_clean, msg_clean = check_password_pwned(pwd)
+        assert is_pwned_clean is False
+        assert count_clean == 0
+        assert "não foi encontrada" in msg_clean
+
+        # 4. Falha de rede (ex: timeout de conexão)
+        def fake_timeout(req, timeout=10):
+            raise TimeoutError("Conexão expirou")
+
+        monkeypatch.setattr(urllib.request, "urlopen", fake_timeout)
+        is_pwned_err, count_err, msg_err = check_password_pwned(pwd)
+        assert is_pwned_err is False
+        assert count_err == 0
+        assert "Falha na conexão" in msg_err

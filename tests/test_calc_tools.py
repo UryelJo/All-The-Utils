@@ -1,5 +1,6 @@
 """
 Testes unitários para as ferramentas de cálculo (Fase 11).
+Asserções rigorosas e determinísticas: matemática financeira exata, fusos e feriados.
 """
 import datetime
 import pytest
@@ -15,7 +16,7 @@ from wintoolbox.tools.calc.finance.logic import (
 )
 from wintoolbox.tools.calc.subnet_calculator.logic import calculate_subnet
 from wintoolbox.tools.calc.world_clock.logic import (
-    convert_time_between_zones, get_all_world_clocks, get_available_timezones
+    convert_time_between_zones, get_all_world_clocks, get_available_timezones, POPULAR_TIMEZONES
 )
 
 
@@ -63,7 +64,6 @@ class TestDateCalculator:
         assert "Confraternização Universal" in holiday_names
         assert "Independência do Brasil" in holiday_names
         assert "Natal" in holiday_names
-        # Feriado nacional recente da Consciência Negra
         assert "Dia Nacional de Zumbi e da Consciência Negra" in holiday_names
 
     def test_add_business_days(self):
@@ -71,6 +71,14 @@ class TestDateCalculator:
         start = datetime.date(2026, 5, 8)
         end = add_business_days(start, 1)
         assert end == datetime.date(2026, 5, 11)
+
+    def test_leap_year_edge_case(self):
+        # Ano bissexto: 2024 teve 29 de fevereiro
+        d_leap = diff_dates(datetime.date(2024, 2, 28), datetime.date(2024, 3, 1))
+        assert d_leap["total_days"] == 2
+        # Ano não-bissexto: 2026
+        d_non_leap = diff_dates(datetime.date(2026, 2, 28), datetime.date(2026, 3, 1))
+        assert d_non_leap["total_days"] == 1
 
 
 class TestFinanceCalculator:
@@ -82,25 +90,29 @@ class TestFinanceCalculator:
             total_months=12
         )
         assert res["total_invested"] == 2200.0
-        assert res["final_balance"] > 2200.0
-        assert res["total_interest"] > 0
-        assert len(res["history"]) >= 1
+        assert res["total_interest"] == 184.65
+        assert res["final_balance"] == 2384.65
+        assert len(res["history"]) == 1
+        assert res["history"][0]["year"] == 1
 
     def test_loan_price(self):
         res = calculate_financing(loan_amount=10000.0, annual_interest_rate=12.0, total_months=12, system="PRICE")
-        assert res["first_payment"] > 0
-        assert res["total_paid"] > 10000.0
-        assert len(res["schedule"]) >= 1
-        # Na última parcela o saldo devedor deve estar próximo de zero
-        assert res["schedule"][-1]["balance"] == pytest.approx(0.0, abs=1.0)
+        assert res["first_payment"] == 888.49
+        assert res["last_payment"] == 888.49
+        assert res["total_paid"] == 10661.85
+        assert res["total_interest"] == 661.85
+        assert len(res["schedule"]) == 6
+        assert res["schedule"][-1]["balance"] == 0.0
 
     def test_loan_sac(self):
         res = calculate_financing(loan_amount=12000.0, annual_interest_rate=12.0, total_months=12, system="SAC")
-        assert len(res["schedule"]) >= 1
-        # No SAC a amortização é constante: 12000 / 12 = 1000
-        assert res["schedule"][0]["amortization"] == pytest.approx(1000.0)
-        # Primeira parcela é maior que a última
-        assert res["first_payment"] > res["last_payment"]
+        assert res["first_payment"] == 1120.0
+        assert res["last_payment"] == 1010.0
+        assert res["total_paid"] == 12780.0
+        assert res["total_interest"] == 780.0
+        assert len(res["schedule"]) == 6
+        assert res["schedule"][0]["amortization"] == 1000.0
+        assert res["schedule"][-1]["balance"] == 0.0
 
     def test_margin_and_markup(self):
         res = calculate_margin_and_markup(cost_price=100.0, sell_price=125.0)
@@ -134,15 +146,18 @@ class TestSubnetCalculator:
 class TestWorldClock:
     def test_get_world_times(self):
         times = get_all_world_clocks()
-        assert len(times) >= 5
+        assert len(times) == len(POPULAR_TIMEZONES)
         cities = [t["city"] for t in times]
-        assert any("São Paulo" in c for c in cities)
-        assert any("Nova York" in c for c in cities)
-        assert any("Tóquio" in c for c in cities)
+        assert "Brasília / São Paulo" in cities
+        assert "Nova York (EST/EDT)" in cities
+        assert "Tóquio (JST)" in cities
 
     def test_convert_time_between_zones(self):
+        # 15 de Junho: Londres está em Horário de Verão Britânico (BST = UTC+1).
+        # Tóquio não tem horário de verão (JST = UTC+9).
+        # Diferença: +8 horas. 12:00:00 -> 20:00:00.
         dt = datetime.datetime(2026, 6, 15, 12, 0, 0)
         res = convert_time_between_zones(dt, "Europe/London", "Asia/Tokyo")
-        assert "target_str" in res
-        assert "Asia/Tokyo" in res["target_dt"] or "target_abbr" in res
+        assert res["target_str"] == "15/06/2026 20:00:00"
         assert res["target_offset"] == "UTC+09:00"
+        assert res["target_abbr"] == "JST"

@@ -1,10 +1,12 @@
 """
 Testes automatizados para a Fase 8: Ferramentas Adicionais de Imagem e Desktop.
-Valida o registro e as lógicas puras das 7 ferramentas.
+Validação rigorosa de decodificação de QR Code, dimensões exatas de colagem,
+pixels de anotação e remoção de fundo com canal alfa.
 """
 from pathlib import Path
 import pytest
 from PIL import Image, ImageDraw
+import zxingcpp
 
 from wintoolbox.core.registry import get_all_tools, get_tool
 from wintoolbox.tools.images.gif_tools.logic import (
@@ -12,7 +14,7 @@ from wintoolbox.tools.images.gif_tools.logic import (
 )
 from wintoolbox.tools.images.collage.logic import create_image_collage
 from wintoolbox.tools.images.color_picker.logic import rgb_to_formats
-from wintoolbox.tools.images.qrcode.logic import generate_qrcode
+from wintoolbox.tools.images.qrcode.logic import generate_qrcode, decode_qrcode_from_image
 from wintoolbox.tools.images.screenshot.logic import (
     apply_annotations_to_image, save_screenshot
 )
@@ -34,7 +36,6 @@ def sample_test_images(tmp_path: Path) -> list[Path]:
 
 
 def test_phase_8_tools_registered():
-    """Valida se todas as 7 ferramentas da Fase 8 estão devidamente registradas."""
     expected_ids = [
         "images.gif_tools",
         "images.collage",
@@ -53,21 +54,26 @@ def test_phase_8_tools_registered():
 
 
 def test_gif_create_and_extract(sample_test_images: list[Path], tmp_path: Path):
-    """Valida compilação de GIF animado e extração de quadros."""
     gif_out = tmp_path / "resultado.gif"
     res = create_animated_gif(sample_test_images, gif_out, frame_duration_ms=100)
     assert res.is_file()
-    assert res.stat().st_size > 0
+
+    # Validação do GIF compilado: formato e contagem de quadros
+    with Image.open(res) as gif_im:
+        assert gif_im.format == "GIF"
+        assert getattr(gif_im, "n_frames", 1) == 3
 
     extract_dir = tmp_path / "extracted_frames"
     frames = extract_gif_frames(res, extract_dir, output_format="PNG")
-    assert len(frames) == len(sample_test_images)
+    assert len(frames) == 3
     for f in frames:
         assert f.is_file()
+        with Image.open(f) as frame_im:
+            assert frame_im.format == "PNG"
+            assert frame_im.size == (100, 100)
 
 
 def test_image_collage(sample_test_images: list[Path], tmp_path: Path):
-    """Valida geração de colagem em grade."""
     collage_out = tmp_path / "colagem.png"
     res = create_image_collage(
         sample_test_images,
@@ -79,34 +85,40 @@ def test_image_collage(sample_test_images: list[Path], tmp_path: Path):
     )
     assert res.is_file()
 
+    # Cálculo determinístico: 3 imagens em 2 colunas -> 2 linhas e 2 colunas
+    # width = (2 * 100) + (3 * 10) = 230
+    # height = (2 * 100) + (3 * 10) = 230
     with Image.open(res) as img:
-        assert img.width > 200
-        assert img.height > 200
+        assert img.size == (230, 230)
+        assert img.format == "PNG"
 
 
 def test_color_picker_formats():
-    """Valida conversão precisa para HEX, RGB, HSL e CMYK."""
     formats = rgb_to_formats(255, 0, 0)
     assert formats["hex"] == "#FF0000"
     assert formats["rgb"] == "rgb(255, 0, 0)"
-    assert "hsl(0, 100%, 50%)" in formats["hsl"]
-    assert "cmyk" in formats
+    assert formats["hsl"] == "hsl(0, 100%, 50%)"
+    assert formats["cmyk"] == "cmyk(0%, 100%, 100%, 0%)"
 
     white = rgb_to_formats(255, 255, 255)
     assert white["hex"] == "#FFFFFF"
+    assert white["rgb"] == "rgb(255, 255, 255)"
 
 
-def test_qrcode_generator(tmp_path: Path):
-    """Valida geração de imagem de QR Code."""
+def test_qrcode_generator_and_real_decoding(tmp_path: Path):
+    """Gera QR code e decodifica com zxingcpp para comprovar o payload exato."""
     qr_out = tmp_path / "meu_qr.png"
-    img = generate_qrcode("https://github.com", output_path=qr_out)
+    expected_url = "https://github.com/UryelJo/WinToolbox"
+    generate_qrcode(expected_url, output_path=qr_out)
     assert qr_out.is_file()
-    assert img.width >= 50
-    assert img.height >= 50
+
+    # Validação do Efeito Real: decodificar via leitor de código de barras
+    decoded_text = decode_qrcode_from_image(qr_out)
+    assert decoded_text == expected_url
 
 
 def test_screenshot_annotations(tmp_path: Path):
-    """Valida anotações sobre captura de tela."""
+    # Fundo cinza uniforme (200, 200, 200)
     base = Image.new("RGB", (300, 200), (200, 200, 200))
     rects = [(10, 10, 100, 100, "#FF0000", 3)]
     texts = [(20, 20, "Texto Teste", "#0000FF", 16)]
@@ -116,9 +128,15 @@ def test_screenshot_annotations(tmp_path: Path):
     saved = save_screenshot(annotated, out_p)
     assert saved.is_file()
 
+    with Image.open(saved) as im:
+        assert im.size == (300, 200)
+        # O pixel da borda do retângulo (10, 10) deve ter sido pintado de vermelho (255, 0, 0)
+        assert im.getpixel((10, 10)) == (255, 0, 0)
+        # Um pixel fora da anotação deve permanecer cinza original (200, 200, 200)
+        assert im.getpixel((5, 5)) == (200, 200, 200)
+
 
 def test_ocr_logic(tmp_path: Path):
-    """Valida execução de OCR em imagem com texto legível."""
     ocr_img_p = tmp_path / "ocr_sample.png"
     img = Image.new("RGB", (400, 100), (255, 255, 255))
     draw = ImageDraw.Draw(img)
@@ -127,14 +145,14 @@ def test_ocr_logic(tmp_path: Path):
 
     text_found = perform_ocr_on_image(ocr_img_p)
     assert isinstance(text_found, str)
-    assert len(text_found) > 0
+    # Deve conter fragmentos reconhecíveis do texto inserido
+    assert any(term in text_found.upper() for term in ("TESTE", "OCR", "123"))
 
 
 def test_remove_bg_logic(tmp_path: Path):
-    """Valida remoção de fundo com canal alpha transparente."""
     src_p = tmp_path / "fundo_verde.png"
     img = Image.new("RGB", (100, 100), (0, 255, 0))
-    # Desenha um círculo vermelho no centro
+    # Desenha um círculo vermelho sólido no centro
     draw = ImageDraw.Draw(img)
     draw.ellipse([30, 30, 70, 70], fill=(255, 0, 0))
     img.save(src_p)
@@ -151,9 +169,11 @@ def test_remove_bg_logic(tmp_path: Path):
 
     with Image.open(res) as result_img:
         assert result_img.mode == "RGBA"
-        # O canto (0, 0) que era verde deve estar transparente (alpha = 0)
+        # O canto (0, 0) que era verde deve estar totalmente transparente (alpha = 0)
         alpha_corner = result_img.getpixel((0, 0))[3]
         assert alpha_corner == 0
-        # O centro (50, 50) que era vermelho deve estar opaco (alpha = 255)
-        alpha_center = result_img.getpixel((50, 50))[3]
-        assert alpha_center > 200
+
+        # O centro (50, 50) que era vermelho deve estar totalmente opaco (alpha = 255)
+        pixel_center = result_img.getpixel((50, 50))
+        assert pixel_center[0] == 255  # Vermelho
+        assert pixel_center[3] == 255  # Opaco

@@ -1,11 +1,12 @@
 """
 Testes unitários das 7 ferramentas da Fase 6 (Arquivos Avançados e Organização Inteligente).
-Testa lógicas puras de organização, pesquisa, sincronização, criptografia, timestamp, watcher e backup.
+Testa lógicas puras com validação de efeito real, integridade byte a byte e Black-Box testing.
 """
+import hashlib
 from pathlib import Path
 import time
-import pytest
 import zipfile
+import pytest
 
 from wintoolbox.tools.files.auto_organize.logic import (
     plan_organization,
@@ -28,17 +29,17 @@ from wintoolbox.tools.files.backup.logic import run_incremental_backup
 
 
 def test_auto_organize_logic(tmp_path: Path):
-    # Cria arquivos simulados
     f_img = tmp_path / "foto.png"
     f_doc = tmp_path / "manual.pdf"
     f_code = tmp_path / "script.py"
-    f_img.write_text("fake image", encoding="utf-8")
-    f_doc.write_text("fake doc", encoding="utf-8")
-    f_code.write_text("fake code", encoding="utf-8")
+    f_img.write_text("fake image payload", encoding="utf-8")
+    f_doc.write_text("fake doc payload", encoding="utf-8")
+    f_code.write_text("fake code payload", encoding="utf-8")
 
     assert get_category_for_extension(".png") == "Imagens"
     assert get_category_for_extension(".pdf") == "Documentos"
     assert get_category_for_extension(".py") == "Código"
+    assert get_category_for_extension(".extensao_desconhecida") == "Outros"
 
     # Simulação por categoria
     actions = plan_organization(tmp_path, mode="category")
@@ -48,8 +49,14 @@ def test_auto_organize_logic(tmp_path: Path):
     succ, fail = execute_organization(actions, move_files=False)
     assert succ == 3
     assert fail == 0
-    assert (tmp_path / "Imagens" / "foto.png").exists()
-    assert (tmp_path / "Documentos" / "manual.pdf").exists()
+
+    # Validação do efeito real: ler arquivos copiados
+    img_copied = tmp_path / "Imagens" / "foto.png"
+    doc_copied = tmp_path / "Documentos" / "manual.pdf"
+    assert img_copied.is_file()
+    assert img_copied.read_text(encoding="utf-8") == "fake image payload"
+    assert doc_copied.is_file()
+    assert doc_copied.read_text(encoding="utf-8") == "fake doc payload"
 
 
 def test_search_files_logic(tmp_path: Path):
@@ -68,6 +75,10 @@ def test_search_files_logic(tmp_path: Path):
     assert len(res_text) == 1
     assert "CHAVE_SECRETA" in (res_text[0].matched_snippet or "")
 
+    # Busca com query inexistente
+    res_empty = search_files(tmp_path, content_query="TEXTO_TOTALMENTE_INEXISTENTE")
+    assert len(res_empty) == 0
+
 
 def test_sync_directories_logic(tmp_path: Path):
     dir_a = tmp_path / "origem"
@@ -76,7 +87,7 @@ def test_sync_directories_logic(tmp_path: Path):
     dir_b.mkdir()
 
     (dir_a / "comum.txt").write_text("v1", encoding="utf-8")
-    (dir_a / "novo_em_a.txt").write_text("novo", encoding="utf-8")
+    (dir_a / "novo_em_a.txt").write_text("novo conteudo", encoding="utf-8")
     (dir_b / "comum.txt").write_text("v1", encoding="utf-8")
     (dir_b / "orfao_em_b.txt").write_text("orfao", encoding="utf-8")
 
@@ -86,10 +97,12 @@ def test_sync_directories_logic(tmp_path: Path):
     assert actions.get("novo_em_a.txt") == "copy_to_dst"
     assert actions.get("orfao_em_b.txt") == "delete_dst"
 
-    # Execução do sync
+    # Execução do sync com verificação determinística
     succ, fail = execute_sync(diffs)
-    assert succ >= 2
-    assert (dir_b / "novo_em_a.txt").exists()
+    assert succ == 2
+    assert fail == 0
+    assert (dir_b / "novo_em_a.txt").is_file()
+    assert (dir_b / "novo_em_a.txt").read_text(encoding="utf-8") == "novo conteudo"
     assert not (dir_b / "orfao_em_b.txt").exists()
 
 
@@ -103,16 +116,16 @@ def test_encrypt_decrypt_aes(tmp_path: Path):
 
     # Criptografa
     encrypt_file(plain_file, enc_file, password="SenhaSuperSegura123!")
-    assert enc_file.exists()
+    assert enc_file.is_file()
     assert is_wintoolbox_encrypted(enc_file) is True
 
     # Falha esperada com senha incorreta
     with pytest.raises(ValueError):
         decrypt_file(enc_file, dec_file, password="SenhaInvalidaErrada!")
 
-    # Descriptografa com sucesso
+    # Descriptografa com sucesso e valida texto
     decrypt_file(enc_file, dec_file, password="SenhaSuperSegura123!")
-    assert dec_file.exists()
+    assert dec_file.is_file()
     assert dec_file.read_text(encoding="utf-8") == original_content
 
 
@@ -149,33 +162,60 @@ def test_folder_watcher_logic(tmp_path: Path):
     snap2 = take_directory_snapshot(tmp_path)
     diffs = compute_snapshot_diff(snap1, snap2)
 
-    ev_types = [d.event_type for d in diffs]
-    assert "Criado" in ev_types
+    diff_map = {d.path.name: d.event_type for d in diffs}
+    assert diff_map.get("arquivo2.txt") == "Criado"
+    assert diff_map.get("arquivo1.txt") == "Modificado"
 
 
-def test_backup_logic(tmp_path: Path):
+def test_backup_logic_and_zip_inspection(tmp_path: Path):
     src = tmp_path / "dados"
     dst = tmp_path / "destinos"
     src.mkdir()
     dst.mkdir()
 
-    (src / "arquivo_a.txt").write_text("conteudo a", encoding="utf-8")
+    payload_a = "conteudo a para teste de integridade"
+    payload_b = "conteudo b na subpasta com dados unicos"
+    (src / "arquivo_a.txt").write_text(payload_a, encoding="utf-8")
     (src / "subpasta").mkdir()
-    (src / "subpasta" / "arquivo_b.txt").write_text("conteudo b", encoding="utf-8")
+    (src / "subpasta" / "arquivo_b.txt").write_text(payload_b, encoding="utf-8")
+
+    hash_a = hashlib.sha256(payload_a.encode("utf-8")).hexdigest()
+    hash_b = hashlib.sha256(payload_b.encode("utf-8")).hexdigest()
 
     # 1. Backup para pasta espelhada incremental
     rep_folder = run_incremental_backup(src, dst, backup_mode="folder")
     assert rep_folder.files_copied == 2
-    assert (dst / "dados" / "arquivo_a.txt").exists()
-    assert (dst / "dados" / "subpasta" / "arquivo_b.txt").exists()
+    
+    # Efeito real: validar conteúdo dos arquivos na pasta de destino
+    dest_a = dst / "dados" / "arquivo_a.txt"
+    dest_b = dst / "dados" / "subpasta" / "arquivo_b.txt"
+    assert dest_a.is_file()
+    assert dest_b.is_file()
+    assert dest_a.read_text(encoding="utf-8") == payload_a
+    assert dest_b.read_text(encoding="utf-8") == payload_b
 
-    # Segundo backup imediato: nada alterado, deve pular
+    # Segundo backup imediato: nada alterado, deve pular ambos
     rep_second = run_incremental_backup(src, dst, backup_mode="folder")
     assert rep_second.files_copied == 0
     assert rep_second.files_skipped == 2
 
-    # 2. Backup para arquivo ZIP
+    # 2. Backup para arquivo ZIP com Validação Black-Box
     rep_zip = run_incremental_backup(src, dst, backup_mode="zip")
     assert rep_zip.files_copied == 2
-    assert rep_zip.target_path.exists()
-    assert zipfile.is_zipfile(rep_zip.target_path)
+    assert rep_zip.target_path.is_file()
+
+    # Abre o ZIP resultante com zipfile.ZipFile e valida cada membro interno
+    with zipfile.ZipFile(rep_zip.target_path, "r") as zf:
+        namelist = zf.namelist()
+        assert len(namelist) == 2
+        
+        # Encontra os membros no ZIP
+        member_a = [n for n in namelist if n.endswith("arquivo_a.txt")][0]
+        member_b = [n for n in namelist if n.endswith("arquivo_b.txt")][0]
+
+        data_a = zf.read(member_a)
+        data_b = zf.read(member_b)
+
+        # Valida hash SHA-256 interno do arquivo compactado
+        assert hashlib.sha256(data_a).hexdigest() == hash_a
+        assert hashlib.sha256(data_b).hexdigest() == hash_b

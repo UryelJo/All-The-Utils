@@ -59,7 +59,8 @@ def test_clipboard_history_logic(tmp_path: Path):
     # Adiciona itens
     id1 = add_clipboard_item("Texto 1", db_path=db_file)
     id2 = add_clipboard_item("Texto 2", db_path=db_file)
-    assert id1 is not None and id2 is not None
+    assert isinstance(id1, int) and isinstance(id2, int)
+    assert id1 > 0 and id2 > 0
 
     # Deduplicação consecutiva
     id2_again = add_clipboard_item("Texto 2", db_path=db_file)
@@ -93,7 +94,8 @@ def test_todo_logic(tmp_path: Path):
 
     t1 = add_todo("Comprar café", category="Compras", priority="Alta", db_path=db_file)
     t2 = add_todo("Reunião semanal", category="Trabalho", priority="Média", due_date="25/10/2026", db_path=db_file)
-    assert t1 and t2
+    assert isinstance(t1, int) and isinstance(t2, int)
+    assert t1 > 0 and t2 > 0
 
     # Categorias
     cats = get_todo_categories(db_path=db_file)
@@ -163,12 +165,12 @@ def test_reminders_logic(tmp_path: Path):
     # Lembrete no futuro
     future_time = datetime.now() + timedelta(hours=2)
     r1 = add_reminder("Consulta médica", future_time, message="Levar exames", db_path=db_file)
-    assert r1
+    assert isinstance(r1, int) and r1 > 0
 
     # Lembrete vencido no passado
     past_time = datetime.now() - timedelta(minutes=5)
     r2 = add_reminder("Beber água", past_time, repeat_mode="daily", db_path=db_file)
-    assert r2
+    assert isinstance(r2, int) and r2 > 0
 
     all_rem = list_reminders(db_path=db_file)
     assert len(all_rem) == 2
@@ -196,7 +198,7 @@ def test_quick_notes_logic(tmp_path: Path):
     db_file = tmp_path / "notes.db"
 
     n1 = create_note("Ideias do Projeto", "Primeiro parágrafo de texto.", category="Projetos", db_path=db_file)
-    assert n1
+    assert isinstance(n1, int) and n1 > 0
 
     # Contagem de palavras
     w, c = count_words_and_chars("Este é um teste com sete palavras.")
@@ -229,7 +231,7 @@ def test_time_tracker_logic(tmp_path: Path):
 
     # Iniciar atividade
     t_id = start_time_entry("Codificando testes", project="WinToolbox", db_path=db_file)
-    assert t_id
+    assert isinstance(t_id, int) and t_id > 0
 
     active = get_active_time_entry(db_path=db_file)
     assert active is not None
@@ -242,19 +244,19 @@ def test_time_tracker_logic(tmp_path: Path):
 
     # Adicionar manual
     m_id = add_manual_time_entry("Revisão de design", "WinToolbox", duration_minutes=45, db_path=db_file)
-    assert m_id
+    assert isinstance(m_id, int) and m_id > 0
 
     # Listar e resumo
     entries = list_time_entries(db_path=db_file)
-    assert len(entries) >= 2
+    assert len(entries) == 2
 
     summary = get_project_time_summary(db_path=db_file)
     assert "WinToolbox" in summary
-    assert summary["WinToolbox"] >= 45 * 60
+    assert summary["WinToolbox"] == pytest.approx(45 * 60, abs=60)
 
     # Formatar duração
     dur_str = format_duration(3665)
-    assert "01h 01m 05s" in dur_str
+    assert dur_str == "01h 01m 05s"
 
     # Exportar CSV
     csv_str = export_time_entries_csv(entries)

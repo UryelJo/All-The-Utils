@@ -29,10 +29,11 @@ def test_registry_phase_2_tools():
         "files.lock_checker",
         "archive.manager",
     ]
+    from wintoolbox.core.registry import Tool
     for tid in tool_ids:
         tool = get_tool(tid)
-        assert tool is not None, f"Ferramenta {tid} não foi registrada no sistema."
-        assert tool.name
+        assert isinstance(tool, Tool), f"Ferramenta {tid} não foi registrada no sistema."
+        assert len(tool.name) > 0
         assert tool.category in ["Arquivos e Pastas", "Compactação"]
 
 
@@ -152,25 +153,30 @@ def test_archive_compress_inspect_extract(tmp_path: Path):
     extract_dir = tmp_path / "destino_extraido"
     extract_dir.mkdir()
     extracted_count = extract_archive(zip_out, extract_dir)
-    assert extracted_count >= 2
+    assert extracted_count == 2
 
-    # Verifica integridade
-    assert (extract_dir / "nota.txt").exists()
+    # Verifica integridade com leitura real de conteúdo
+    assert (extract_dir / "nota.txt").is_file()
     assert (extract_dir / "nota.txt").read_text(encoding="utf-8") == "Texto simples dentro do pacote zip"
+    assert (extract_dir / "subpasta" / "dados.csv").is_file()
+    assert (extract_dir / "subpasta" / "dados.csv").read_text(encoding="utf-8") == "id;nome\n1;WinToolbox"
 
 
 def test_archive_compress_tar_gz(tmp_path: Path):
-    """Testa compactação e extração no formato TAR.GZ."""
+    """Testa compactação e extração no formato TAR.GZ com validação de conteúdo."""
     source_file = tmp_path / "arquivo_tar.txt"
     source_file.write_text("Conteudo para tar gz comprimido", encoding="utf-8")
 
     tar_out = tmp_path / "pacote.tar.gz"
     compress_items([source_file], tar_out, fmt="TAR.GZ")
-    assert tar_out.exists()
-    assert tar_out.stat().st_size > 0
+    assert tar_out.is_file()
 
     extract_tar_dir = tmp_path / "extraido_tar"
     extract_tar_dir.mkdir()
     extracted_count = extract_archive(tar_out, extract_tar_dir)
-    assert extracted_count >= 1
-    assert (extract_tar_dir / "arquivo_tar.txt").exists()
+    assert extracted_count == 1
+    
+    # Validação do Efeito Real: ler o arquivo extraído
+    extracted_tar_file = extract_tar_dir / "arquivo_tar.txt"
+    assert extracted_tar_file.is_file()
+    assert extracted_tar_file.read_text(encoding="utf-8") == "Conteudo para tar gz comprimido"

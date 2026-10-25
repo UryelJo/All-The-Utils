@@ -1,12 +1,14 @@
 """
 Testes unitários para ferramentas de automação e produtividade (Fase 12).
+Validação determinística, isolamento de dados com tmp_path e captura de eventos win32.
 """
-import os
 from pathlib import Path
 import pytest
 
 from wintoolbox.tools.automation.autoclicker.logic import (
-    get_cursor_position, perform_mouse_click
+    get_cursor_position, perform_mouse_click,
+    MOUSEEVENTF_LEFTDOWN, MOUSEEVENTF_LEFTUP,
+    MOUSEEVENTF_RIGHTDOWN, MOUSEEVENTF_RIGHTUP
 )
 from wintoolbox.tools.automation.window_manager.logic import (
     list_open_windows, snap_window, set_window_always_on_top, set_window_transparency
@@ -22,42 +24,57 @@ from wintoolbox.tools.automation.folder_rules.logic import (
 )
 
 
+@pytest.fixture(autouse=True)
+def isolate_automation_storage(tmp_path: Path, monkeypatch: pytest.MonkeyPatch):
+    """Garante que a persistência de scripts e workspaces fique isolada em tmp_path."""
+    monkeypatch.setattr("wintoolbox.core.settings.get_app_dir", lambda: tmp_path)
+    monkeypatch.setattr("wintoolbox.core.settings.get_settings_dir", lambda: tmp_path)
+    return tmp_path
+
+
 class TestAutoClicker:
     def test_cursor_position(self):
         x, y = get_cursor_position()
         assert isinstance(x, int)
         assert isinstance(y, int)
-        assert x >= 0 and y >= 0
 
-    def test_mouse_click_execution(self):
-        # Apenas valida que não lança exceção em ambiente de teste
-        try:
-            perform_mouse_click(button="left", click_type="single")
-        except Exception as e:
-            pytest.fail(f"perform_mouse_click falhou inesperadamente: {e}")
+    def test_mouse_click_execution_intercepted(self, monkeypatch: pytest.MonkeyPatch):
+        """Valida envio das flags Win32 corretas sem disparar cliques físicos na tela."""
+        recorded_events = []
+
+        def fake_mouse_event(flags, dx, dy, data, extra_info):
+            recorded_events.append(flags)
+
+        import ctypes
+        monkeypatch.setattr(ctypes.windll.user32, "mouse_event", fake_mouse_event)
+
+        # Clique esquerdo simples
+        perform_mouse_click(button="left", click_type="single")
+        assert recorded_events == [MOUSEEVENTF_LEFTDOWN, MOUSEEVENTF_LEFTUP]
+
+        # Clique direito simples
+        recorded_events.clear()
+        perform_mouse_click(button="right", click_type="single")
+        assert recorded_events == [MOUSEEVENTF_RIGHTDOWN, MOUSEEVENTF_RIGHTUP]
 
 
 class TestWindowManager:
     def test_list_windows(self):
         windows = list_open_windows()
         assert isinstance(windows, list)
-        # No Windows sempre há pelo menos algumas janelas ativas
-        if windows:
-            first = windows[0]
-            assert "hwnd" in first
-            assert "title" in first
-            assert isinstance(first["title"], str)
+        for w in windows:
+            assert "hwnd" in w
+            assert "title" in w
+            assert "is_topmost" in w
+            assert isinstance(w["hwnd"], int)
+            assert isinstance(w["title"], str)
+            assert isinstance(w["is_topmost"], bool)
 
     def test_window_operations_with_invalid_hwnd(self):
-        # Passar um HWND inválido (0) não deve quebrar a aplicação com crash
-        res_top = set_window_always_on_top(0, True)
-        assert res_top is False
-
-        res_alpha = set_window_transparency(0, 80)
-        assert res_alpha is False
-
-        res_snap = snap_window(0, "left")
-        assert res_snap is False
+        # Passar um HWND inválido (0) deve retornar False de forma segura
+        assert set_window_always_on_top(0, True) is False
+        assert set_window_transparency(0, 80) is False
+        assert snap_window(0, "left") is False
 
 
 class TestScriptRunner:
@@ -74,38 +91,40 @@ class TestScriptRunner:
         assert "cmd.exe" in cmd_bat[0]
         assert "run.bat" in str(cmd_bat)
 
-    def test_script_entry_logic(self):
-        original = load_saved_scripts()
-        try:
-            sample = [{"id": 999, "name": "Teste", "path": "C:\\test\\run.bat", "args": "", "work_dir": "C:\\test"}]
-            save_scripts_list(sample)
-            loaded = load_saved_scripts()
-            assert len(loaded) >= 1
-            assert any(s["name"] == "Teste" for s in loaded)
-        finally:
-            save_scripts_list(original)
+    def test_script_entry_logic_isolated(self):
+        assert len(load_saved_scripts()) == 0
+
+        sample = [{"id": 999, "name": "Teste Script", "path": "C:\\test\\run.bat", "args": "", "work_dir": "C:\\test"}]
+        save_scripts_list(sample)
+
+        loaded = load_saved_scripts()
+        assert len(loaded) == 1
+        assert loaded[0]["name"] == "Teste Script"
+        assert loaded[0]["id"] == 999
 
 
 class TestWorkspaceLauncher:
-    def test_load_and_save_workspaces(self):
-        original = load_workspaces()
-        try:
-            sample = [
-                {
-                    "id": "ws-test",
-                    "name": "Test Env",
-                    "description": "Desc",
-                    "items": [
-                        {"type": "url", "target": "https://example.com"}
-                    ]
-                }
-            ]
-            save_workspaces(sample)
-            loaded = load_workspaces()
-            assert len(loaded) == 1
-            assert loaded[0]["id"] == "ws-test"
-        finally:
-            save_workspaces(original)
+    def test_load_and_save_workspaces_isolated(self):
+        # Quando não há arquivo salvo em disco, retorna os 2 workspaces padrão do sistema
+        defaults = load_workspaces()
+        assert len(defaults) == 2
+        assert defaults[0]["id"] == "dev_web"
+        assert defaults[1]["id"] == "estudos"
+
+        sample = [
+            {
+                "id": "ws-test",
+                "name": "Test Env",
+                "description": "Desc",
+                "items": [
+                    {"type": "url", "target": "https://example.com"}
+                ]
+            }
+        ]
+        save_workspaces(sample)
+        loaded = load_workspaces()
+        assert len(loaded) == 1
+        assert loaded[0]["id"] == "ws-test"
 
     def test_launch_single_empty(self):
         success, msg = launch_single_item("url", "")
@@ -153,7 +172,7 @@ class TestFolderRules:
         dest.mkdir()
 
         f1 = source / "backup.log"
-        f1.write_text("log data")
+        f1.write_text("log data confidencial", encoding="utf-8")
 
         rules = [
             {
@@ -170,11 +189,14 @@ class TestFolderRules:
         actions_dry = evaluate_folder_rules(source, rules, dry_run=True)
         assert len(actions_dry) == 1
         assert "Simulação" in actions_dry[0]["message"]
-        assert f1.exists()
+        assert f1.is_file()
 
-        # Execução real
+        # Execução real com Validação do Efeito Real (leitura no destino)
         actions_real = evaluate_folder_rules(source, rules, dry_run=False)
         assert len(actions_real) == 1
         assert actions_real[0]["success"] is True
         assert not f1.exists()
-        assert (dest / "backup.log").exists()
+
+        moved_dest = dest / "backup.log"
+        assert moved_dest.is_file()
+        assert moved_dest.read_text(encoding="utf-8") == "log data confidencial"
