@@ -13,6 +13,9 @@ from PySide6.QtWidgets import (
 from wintoolbox.core.registry import Tool, register
 from wintoolbox.core.tasks import TaskRunner
 from .logic import SyncDifference, compare_directories, execute_sync
+from wintoolbox.ui.widgets.sortable_table import (
+    SmartTableWidgetItem, enable_sorting_on_table, batch_table_update
+)
 
 
 @register
@@ -132,6 +135,7 @@ class FolderSyncView(QWidget):
         self.table.horizontalHeader().setSectionResizeMode(3, QHeaderView.ResizeToContents)
         self.table.horizontalHeader().setSectionResizeMode(4, QHeaderView.ResizeToContents)
         self.table.verticalHeader().setVisible(False)
+        enable_sorting_on_table(self.table)
         layout.addWidget(self.table)
 
         scroll.setWidget(content)
@@ -174,31 +178,32 @@ class FolderSyncView(QWidget):
         def on_done(diffs: List[SyncDifference]):
             self.btn_compare.setEnabled(True)
             self.planned_diffs = diffs
-            self.table.setRowCount(len(diffs))
+            with batch_table_update(self.table):
+                self.table.setRowCount(len(diffs))
 
-            for row, d in enumerate(diffs):
-                self.table.setItem(row, 0, QTableWidgetItem(str(d.rel_path)))
+                for row, d in enumerate(diffs):
+                    self.table.setItem(row, 0, SmartTableWidgetItem(str(d.rel_path), sort_value=str(d.rel_path).lower(), user_data=d))
 
-                # Formata ação
-                act_str = d.action_type
-                if act_str == "copy_to_dst":
-                    act_str = "Copiar A ➔ B"
-                elif act_str == "copy_to_src":
-                    act_str = "Copiar B ➔ A"
-                elif act_str == "delete_dst":
-                    act_str = "Excluir de B"
+                    # Formata ação
+                    act_str = d.action_type
+                    if act_str == "copy_to_dst":
+                        act_str = "Copiar A ➔ B"
+                    elif act_str == "copy_to_src":
+                        act_str = "Copiar B ➔ A"
+                    elif act_str == "delete_dst":
+                        act_str = "Excluir de B"
 
-                item_act = QTableWidgetItem(act_str)
-                if "Excluir" in act_str:
-                    item_act.setForeground(Qt.red)
-                elif "Copiar" in act_str:
-                    item_act.setForeground(Qt.blue)
-                self.table.setItem(row, 1, item_act)
+                    item_act = SmartTableWidgetItem(act_str)
+                    if "Excluir" in act_str:
+                        item_act.setForeground(Qt.red)
+                    elif "Copiar" in act_str:
+                        item_act.setForeground(Qt.blue)
+                    self.table.setItem(row, 1, item_act)
 
-                self.table.setItem(row, 2, QTableWidgetItem(d.reason))
-                sz_str = f"{d.size_bytes / 1024:.1f} KB" if d.size_bytes else "-"
-                self.table.setItem(row, 3, QTableWidgetItem(sz_str))
-                self.table.setItem(row, 4, QTableWidgetItem(d.status))
+                    self.table.setItem(row, 2, SmartTableWidgetItem(d.reason))
+                    sz_str = f"{d.size_bytes / 1024:.1f} KB" if d.size_bytes else "-"
+                    self.table.setItem(row, 3, SmartTableWidgetItem(sz_str, sort_value=(d.size_bytes if d.size_bytes else 0)))
+                    self.table.setItem(row, 4, SmartTableWidgetItem(d.status))
 
             count = len(diffs)
             if count > 0:

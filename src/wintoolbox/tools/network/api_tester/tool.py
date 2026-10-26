@@ -17,6 +17,9 @@ from PySide6.QtWidgets import (
 
 from wintoolbox.core.registry import Tool, register
 from wintoolbox.core.tasks import TaskRunner
+from wintoolbox.ui.widgets.sortable_table import (
+    SmartTableWidgetItem, batch_table_update, enable_sorting_on_table
+)
 from .logic import (
     ApiResponse,
     execute_http_request,
@@ -132,6 +135,7 @@ class ApiTesterView(QWidget):
         # Headers de Resposta
         self.table_resp_headers = QTableWidget(0, 2)
         self.table_resp_headers.setHorizontalHeaderLabels(["Cabeçalho", "Valor"])
+        enable_sorting_on_table(self.table_resp_headers)
         self.table_resp_headers.horizontalHeader().setSectionResizeMode(0, QHeaderView.ResizeToContents)
         self.table_resp_headers.horizontalHeader().setSectionResizeMode(1, QHeaderView.Stretch)
         self.table_resp_headers.verticalHeader().setVisible(False)
@@ -185,10 +189,11 @@ class ApiTesterView(QWidget):
 
             # Preenche tabela de headers
             headers = res.headers
-            self.table_resp_headers.setRowCount(len(headers))
-            for row, (hk, hv) in enumerate(headers.items()):
-                self.table_resp_headers.setItem(row, 0, QTableWidgetItem(hk))
-                self.table_resp_headers.setItem(row, 1, QTableWidgetItem(hv))
+            with batch_table_update(self.table_resp_headers):
+                self.table_resp_headers.setRowCount(len(headers))
+                for row, (hk, hv) in enumerate(headers.items()):
+                    self.table_resp_headers.setItem(row, 0, SmartTableWidgetItem(hk))
+                    self.table_resp_headers.setItem(row, 1, SmartTableWidgetItem(hv))
 
         self.runner.start_task(worker, on_finished=on_done)
 

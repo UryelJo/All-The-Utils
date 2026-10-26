@@ -18,6 +18,9 @@ from wintoolbox.tools.media.subtitles.logic import (
 )
 from wintoolbox.ui.widgets.toast import show_toast
 from wintoolbox.ui.widgets.tool_header import ToolHeader
+from wintoolbox.ui.widgets.sortable_table import (
+    SmartTableWidgetItem, enable_sorting_on_table, batch_table_update
+)
 
 _log = get_logger("media.subtitles.ui")
 
@@ -122,6 +125,7 @@ class SubtitlesView(QWidget):
         self.table.horizontalHeader().setSectionResizeMode(1, QHeaderView.ResizeToContents)
         self.table.horizontalHeader().setSectionResizeMode(2, QHeaderView.ResizeToContents)
         self.table.horizontalHeader().setSectionResizeMode(3, QHeaderView.Stretch)
+        enable_sorting_on_table(self.table)
         layout.addWidget(self.table, stretch=1)
 
         # Barra inferior de exportação
@@ -167,13 +171,14 @@ class SubtitlesView(QWidget):
             show_toast(self, f"Erro ao ler arquivo: {exc}", kind="error")
 
     def _render_table(self) -> None:
-        self.table.setRowCount(len(self._items))
-        for row, it in enumerate(self._items):
-            self.table.setItem(row, 0, QTableWidgetItem(str(it["index"])))
-            self.table.setItem(row, 1, QTableWidgetItem(ms_to_srt_time(it["start_ms"])))
-            self.table.setItem(row, 2, QTableWidgetItem(ms_to_srt_time(it["end_ms"])))
-            txt_item = QTableWidgetItem(it["text"].replace("\n", " | "))
-            self.table.setItem(row, 3, txt_item)
+        with batch_table_update(self.table):
+            self.table.setRowCount(len(self._items))
+            for row, it in enumerate(self._items):
+                self.table.setItem(row, 0, SmartTableWidgetItem(str(it["index"]), sort_value=it["index"], user_data=it))
+                self.table.setItem(row, 1, SmartTableWidgetItem(ms_to_srt_time(it["start_ms"]), sort_value=it["start_ms"]))
+                self.table.setItem(row, 2, SmartTableWidgetItem(ms_to_srt_time(it["end_ms"]), sort_value=it["end_ms"]))
+                txt_item = SmartTableWidgetItem(it["text"].replace("\n", " | "))
+                self.table.setItem(row, 3, txt_item)
         self.lbl_count.setText(f"Total: {len(self._items)} entrada(s) de legenda.")
 
     def _apply_shift(self, offset_ms: int) -> None:
@@ -194,8 +199,16 @@ class SubtitlesView(QWidget):
 
         # Atualiza textos da tabela de volta para os itens caso o usuário tenha editado
         for row in range(self.table.rowCount()):
-            text_val = self.table.item(row, 3).text().replace(" | ", "\n")
-            self._items[row]["text"] = text_val
+            idx_item = self.table.item(row, 0)
+            if idx_item:
+                sub_dict = idx_item.data(Qt.UserRole)
+                if sub_dict is not None:
+                    text_item = self.table.item(row, 3)
+                    if text_item:
+                        sub_dict["text"] = text_item.text().replace(" | ", "\n")
+
+        # Garante ordem cronológica antes de exportar
+        self._items.sort(key=lambda x: x["start_ms"])
 
         if fmt == "srt":
             out_content = generate_srt(self._items, strip_tags=strip_tags)

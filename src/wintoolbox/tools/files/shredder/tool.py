@@ -16,6 +16,9 @@ from PySide6.QtWidgets import (
 from wintoolbox.core.registry import Tool, register
 from wintoolbox.core.tasks import TaskRunner
 from .logic import format_file_size, shred_multiple_files, shred_single_file
+from wintoolbox.ui.widgets.sortable_table import (
+    SmartTableWidgetItem, enable_sorting_on_table, batch_table_update
+)
 
 @register
 class ShredderTool(Tool):
@@ -109,6 +112,7 @@ class ShredderView(QWidget):
         self.table.horizontalHeader().setSectionResizeMode(2, QHeaderView.Stretch)
         self.table.verticalHeader().setVisible(False)
         self.table.setFixedHeight(240)
+        enable_sorting_on_table(self.table)
         layout.addWidget(self.table)
 
         # Barra de Ação
@@ -150,12 +154,13 @@ class ShredderView(QWidget):
         self._update_table()
 
     def _update_table(self):
-        self.table.setRowCount(len(self.files_to_shred))
-        for row, p in enumerate(self.files_to_shred):
-            sz = p.stat().st_size if p.exists() else 0
-            self.table.setItem(row, 0, QTableWidgetItem(p.name))
-            self.table.setItem(row, 1, QTableWidgetItem(self._format_size(sz)))
-            self.table.setItem(row, 2, QTableWidgetItem(str(p.parent)))
+        with batch_table_update(self.table):
+            self.table.setRowCount(len(self.files_to_shred))
+            for row, p in enumerate(self.files_to_shred):
+                sz = p.stat().st_size if p.exists() else 0
+                self.table.setItem(row, 0, SmartTableWidgetItem(p.name, sort_value=p.name.lower(), user_data=p))
+                self.table.setItem(row, 1, SmartTableWidgetItem(self._format_size(sz), sort_value=sz))
+                self.table.setItem(row, 2, SmartTableWidgetItem(str(p.parent)))
 
         self.btn_shred.setEnabled(len(self.files_to_shred) > 0)
         self.lbl_status.setText(f"{len(self.files_to_shred)} arquivo(s) prontos para trituração.")

@@ -19,6 +19,9 @@ from wintoolbox.tools.productivity.time_tracker.logic import (
     format_duration, get_active_time_entry, get_project_time_summary,
     list_time_entries, start_time_entry, stop_time_entry
 )
+from wintoolbox.ui.widgets.sortable_table import (
+    SmartTableWidgetItem, batch_table_update, enable_sorting_on_table
+)
 from wintoolbox.ui.widgets.toast import show_toast
 from wintoolbox.ui.widgets.tool_header import ToolHeader
 
@@ -137,6 +140,7 @@ class TimeTrackerView(QWidget):
         self.table = QTableWidget()
         self.table.setColumnCount(5)
         self.table.setHorizontalHeaderLabels(["Atividade", "Projeto", "Início", "Duração", "Ação"])
+        enable_sorting_on_table(self.table)
         self.table.horizontalHeader().setSectionResizeMode(0, QHeaderView.ResizeMode.Stretch)
         self.table.horizontalHeader().setSectionResizeMode(1, QHeaderView.ResizeMode.ResizeToContents)
         self.table.horizontalHeader().setSectionResizeMode(2, QHeaderView.ResizeMode.ResizeToContents)
@@ -200,27 +204,30 @@ class TimeTrackerView(QWidget):
         proj_filter = self.combo_filter_proj.currentData() or ""
         entries = list_time_entries(project=proj_filter)
 
-        self.table.setRowCount(len(entries))
-        for row, e in enumerate(entries):
-            # Atividade
-            self.table.setItem(row, 0, QTableWidgetItem(e["activity"]))
-            # Projeto
-            self.table.setItem(row, 1, QTableWidgetItem(e["project"]))
-            # Início
-            try:
-                st = datetime.fromisoformat(e["start_time"]).strftime("%d/%m %H:%M")
-            except Exception:
-                st = e["start_time"]
-            self.table.setItem(row, 2, QTableWidgetItem(st))
-            # Duração
-            dur_str = format_duration(e["duration_seconds"])
-            self.table.setItem(row, 3, QTableWidgetItem(dur_str))
+        with batch_table_update(self.table):
+            self.table.setRowCount(len(entries))
+            for row, e in enumerate(entries):
+                # Atividade
+                self.table.setItem(row, 0, SmartTableWidgetItem(e["activity"], user_data=e["id"]))
+                # Projeto
+                self.table.setItem(row, 1, SmartTableWidgetItem(e["project"]))
+                # Início
+                try:
+                    st = datetime.fromisoformat(e["start_time"]).strftime("%d/%m %H:%M")
+                except Exception:
+                    st = e["start_time"]
+                self.table.setItem(row, 2, SmartTableWidgetItem(st, sort_value=e["start_time"]))
+                # Duração
+                dur_str = format_duration(e["duration_seconds"])
+                self.table.setItem(row, 3, SmartTableWidgetItem(dur_str, sort_value=e["duration_seconds"]))
 
-            # Botão excluir
-            btn_del = QPushButton("Excluir")
-            btn_del.setStyleSheet("font-size: 10px; padding: 2px;")
-            btn_del.clicked.connect(lambda checked=False, eid=e["id"]: self._delete_entry(eid))
-            self.table.setCellWidget(row, 4, btn_del)
+                # Ação (Placeholder para integridade)
+                self.table.setItem(row, 4, SmartTableWidgetItem(""))
+                # Botão excluir
+                btn_del = QPushButton("Excluir")
+                btn_del.setStyleSheet("font-size: 10px; padding: 2px;")
+                btn_del.clicked.connect(lambda checked=False, eid=e["id"]: self._delete_entry(eid))
+                self.table.setCellWidget(row, 4, btn_del)
 
         # Atualiza Resumo de Projetos
         summary = get_project_time_summary()

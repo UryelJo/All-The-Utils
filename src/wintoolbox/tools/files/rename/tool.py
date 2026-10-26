@@ -18,6 +18,9 @@ from PySide6.QtWidgets import (
 from wintoolbox.core.registry import Tool, register
 from wintoolbox.core.tasks import TaskRunner
 from .logic import RenameItem, compute_new_name, execute_batch_rename
+from wintoolbox.ui.widgets.sortable_table import (
+    SmartTableWidgetItem, enable_sorting_on_table, batch_table_update
+)
 
 @register
 class BatchRenameTool(Tool):
@@ -164,6 +167,7 @@ class BatchRenameView(QWidget):
         self.table.horizontalHeader().setSectionResizeMode(3, QHeaderView.Stretch)
         self.table.verticalHeader().setVisible(False)
         self.table.setFixedHeight(260)
+        enable_sorting_on_table(self.table)
         layout.addWidget(self.table)
 
         # Barra de Ação de Execução
@@ -223,30 +227,31 @@ class BatchRenameView(QWidget):
         digits = self.spin_digits.value()
         case_opt = self.cmb_case.currentText()
 
-        self.table.setRowCount(len(self.items))
-        self.lbl_count.setText(f"{len(self.items)} arquivo(s) na lista")
-        self.btn_apply.setEnabled(len(self.items) > 0)
+        with batch_table_update(self.table):
+            self.table.setRowCount(len(self.items))
+            self.lbl_count.setText(f"{len(self.items)} arquivo(s) na lista")
+            self.btn_apply.setEnabled(len(self.items) > 0)
 
-        for i, item in enumerate(self.items):
-            item.new_name = compute_new_name(
-                original_name=item.original_path.name,
-                index=i,
-                find_str=find_str,
-                replace_str=replace_str,
-                prefix=prefix,
-                suffix=suffix,
-                is_regex=is_regex,
-                add_number=add_number,
-                start_num=start_num,
-                digits=digits,
-                case_opt=case_opt
-            )
+            for i, item in enumerate(self.items):
+                item.new_name = compute_new_name(
+                    original_name=item.original_path.name,
+                    index=i,
+                    find_str=find_str,
+                    replace_str=replace_str,
+                    prefix=prefix,
+                    suffix=suffix,
+                    is_regex=is_regex,
+                    add_number=add_number,
+                    start_num=start_num,
+                    digits=digits,
+                    case_opt=case_opt
+                )
 
-            # Preenche tabela
-            self.table.setItem(i, 0, QTableWidgetItem(item.original_path.name))
-            self.table.setItem(i, 1, QTableWidgetItem(item.new_name))
-            self.table.setItem(i, 2, QTableWidgetItem(item.status))
-            self.table.setItem(i, 3, QTableWidgetItem(str(item.original_path.parent)))
+                # Preenche tabela
+                self.table.setItem(i, 0, SmartTableWidgetItem(item.original_path.name, sort_value=item.original_path.name.lower(), user_data=item))
+                self.table.setItem(i, 1, SmartTableWidgetItem(item.new_name, sort_value=item.new_name.lower()))
+                self.table.setItem(i, 2, SmartTableWidgetItem(item.status))
+                self.table.setItem(i, 3, SmartTableWidgetItem(str(item.original_path.parent)))
 
     def _apply_rename(self):
         if not self.items:

@@ -15,6 +15,9 @@ from wintoolbox.core.tasks import TaskRunner
 from wintoolbox.tools.system.restore_points.logic import (
     create_restore_point, launch_restore_wizard, list_restore_points
 )
+from wintoolbox.ui.widgets.sortable_table import (
+    SmartTableWidgetItem, enable_sorting_on_table, batch_table_update
+)
 from wintoolbox.ui.widgets.toast import show_toast
 from wintoolbox.ui.widgets.tool_header import ToolHeader
 
@@ -85,6 +88,7 @@ class RestorePointsView(QWidget):
         self.table.horizontalHeader().setSectionResizeMode(1, QHeaderView.Stretch)
         self.table.horizontalHeader().setSectionResizeMode(2, QHeaderView.ResizeToContents)
         self.table.horizontalHeader().setSectionResizeMode(3, QHeaderView.ResizeToContents)
+        enable_sorting_on_table(self.table)
         layout.addWidget(self.table, stretch=1)
 
         self._load_points_async()
@@ -98,12 +102,14 @@ class RestorePointsView(QWidget):
 
         def _on_done(points: List[Dict[str, Any]]):
             self.btn_refresh.setEnabled(True)
-            self.table.setRowCount(len(points))
-            for row, p in enumerate(points):
-                self.table.setItem(row, 0, QTableWidgetItem(p["creation_time"]))
-                self.table.setItem(row, 1, QTableWidgetItem(p["description"]))
-                self.table.setItem(row, 2, QTableWidgetItem(p["type"]))
-                self.table.setItem(row, 3, QTableWidgetItem(str(p["sequence_number"])))
+            with batch_table_update(self.table):
+                self.table.setRowCount(len(points))
+                for row, p in enumerate(points):
+                    self.table.setItem(row, 0, SmartTableWidgetItem(p["creation_time"], user_data=p))
+                    self.table.setItem(row, 1, SmartTableWidgetItem(p["description"]))
+                    self.table.setItem(row, 2, SmartTableWidgetItem(p["type"]))
+                    seq = p.get("sequence_number", 0)
+                    self.table.setItem(row, 3, SmartTableWidgetItem(str(seq), sort_value=int(seq) if str(seq).isdigit() else seq))
 
             if points:
                 self.lbl_status.setText(f"{len(points)} ponto(s) de restauração encontrado(s).")

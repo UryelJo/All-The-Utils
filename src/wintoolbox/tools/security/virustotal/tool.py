@@ -18,6 +18,9 @@ from wintoolbox.tools.security.virustotal.logic import (
 )
 from wintoolbox.ui.widgets.toast import show_toast
 from wintoolbox.ui.widgets.tool_header import ToolHeader
+from wintoolbox.ui.widgets.sortable_table import (
+    SmartTableWidgetItem, enable_sorting_on_table, batch_table_update
+)
 
 _log = get_logger("security.virustotal.ui")
 
@@ -99,6 +102,7 @@ class VirusTotalView(QWidget):
         self.table_detections.horizontalHeader().setSectionResizeMode(0, QHeaderView.ResizeToContents)
         self.table_detections.horizontalHeader().setSectionResizeMode(1, QHeaderView.ResizeToContents)
         self.table_detections.horizontalHeader().setSectionResizeMode(2, QHeaderView.Stretch)
+        enable_sorting_on_table(self.table_detections)
         layout.addWidget(self.table_detections, stretch=1)
 
     def _browse_file(self) -> None:
@@ -160,11 +164,12 @@ class VirusTotalView(QWidget):
 
             # Preenche tabela de detecções
             dets = res.get("detections", [])
-            self.table_detections.setRowCount(len(dets))
-            for row, d in enumerate(dets):
-                self.table_detections.setItem(row, 0, QTableWidgetItem(d["engine"]))
-                self.table_detections.setItem(row, 1, QTableWidgetItem(d["category"]))
-                self.table_detections.setItem(row, 2, QTableWidgetItem(d["result"]))
+            with batch_table_update(self.table_detections):
+                self.table_detections.setRowCount(len(dets))
+                for row, d in enumerate(dets):
+                    self.table_detections.setItem(row, 0, SmartTableWidgetItem(d["engine"], user_data=d))
+                    self.table_detections.setItem(row, 1, SmartTableWidgetItem(d["category"]))
+                    self.table_detections.setItem(row, 2, SmartTableWidgetItem(d["result"]))
 
         def _on_error(err):
             self.btn_query.setEnabled(True)

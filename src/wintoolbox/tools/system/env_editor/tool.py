@@ -18,6 +18,9 @@ from wintoolbox.tools.system.env_editor.logic import (
     delete_environment_variable, get_environment_variables, get_path_entries,
     save_path_entries, set_environment_variable
 )
+from wintoolbox.ui.widgets.sortable_table import (
+    SmartTableWidgetItem, enable_sorting_on_table, batch_table_update
+)
 
 
 @register
@@ -85,6 +88,7 @@ class EnvEditorView(QWidget):
         self.table_vars.setSelectionBehavior(QTableWidget.SelectRows)
         self.table_vars.setSelectionMode(QTableWidget.SingleSelection)
         self.table_vars.setAlternatingRowColors(True)
+        enable_sorting_on_table(self.table_vars)
         layout.addWidget(self.table_vars)
 
         btn_bar = QHBoxLayout()
@@ -165,10 +169,11 @@ class EnvEditorView(QWidget):
 
         # 1. Carrega Variáveis
         vars_dict = get_environment_variables(scope)
-        self.table_vars.setRowCount(len(vars_dict))
-        for row, (k, v) in enumerate(sorted(vars_dict.items())):
-            self.table_vars.setItem(row, 0, QTableWidgetItem(k))
-            self.table_vars.setItem(row, 1, QTableWidgetItem(v))
+        with batch_table_update(self.table_vars):
+            self.table_vars.setRowCount(len(vars_dict))
+            for row, (k, v) in enumerate(sorted(vars_dict.items())):
+                self.table_vars.setItem(row, 0, SmartTableWidgetItem(k, user_data=k))
+                self.table_vars.setItem(row, 1, SmartTableWidgetItem(v))
 
         # 2. Carrega PATH
         self.list_path.clear()

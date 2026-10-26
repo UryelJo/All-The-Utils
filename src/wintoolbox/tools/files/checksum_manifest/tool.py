@@ -18,6 +18,9 @@ from wintoolbox.tools.files.checksum_manifest.logic import (
 )
 from wintoolbox.ui.widgets.toast import show_toast
 from wintoolbox.ui.widgets.tool_header import ToolHeader
+from wintoolbox.ui.widgets.sortable_table import (
+    SmartTableWidgetItem, enable_sorting_on_table, batch_table_update
+)
 
 _log = get_logger("files.checksum_manifest.ui")
 
@@ -90,6 +93,7 @@ class ChecksumManifestView(QWidget):
         self.table_gen.setHorizontalHeaderLabels(["Arquivo Relativo", "Hash Criptográfico"])
         self.table_gen.horizontalHeader().setSectionResizeMode(0, QHeaderView.Stretch)
         self.table_gen.horizontalHeader().setSectionResizeMode(1, QHeaderView.ResizeToContents)
+        enable_sorting_on_table(self.table_gen)
         lay.addWidget(self.table_gen, stretch=1)
 
         self.lbl_gen_status = QLabel("Pronto para gerar manifesto.")
@@ -125,6 +129,7 @@ class ChecksumManifestView(QWidget):
         self.table_verify.horizontalHeader().setSectionResizeMode(1, QHeaderView.ResizeToContents)
         self.table_verify.horizontalHeader().setSectionResizeMode(2, QHeaderView.ResizeToContents)
         self.table_verify.horizontalHeader().setSectionResizeMode(3, QHeaderView.ResizeToContents)
+        enable_sorting_on_table(self.table_verify)
         lay.addWidget(self.table_verify, stretch=1)
 
         self.lbl_verify_status = QLabel("Selecione um manifesto e clique em Verificar.")
@@ -163,10 +168,11 @@ class ChecksumManifestView(QWidget):
             self.btn_generate.setEnabled(True)
             self._last_manifest_text = text
 
-            self.table_gen.setRowCount(len(items))
-            for row, it in enumerate(items):
-                self.table_gen.setItem(row, 0, QTableWidgetItem(it["file"]))
-                self.table_gen.setItem(row, 1, QTableWidgetItem(it["hash"]))
+            with batch_table_update(self.table_gen):
+                self.table_gen.setRowCount(len(items))
+                for row, it in enumerate(items):
+                    self.table_gen.setItem(row, 0, SmartTableWidgetItem(it["file"]))
+                    self.table_gen.setItem(row, 1, SmartTableWidgetItem(it["hash"]))
 
             # Salva o arquivo de manifesto na própria pasta
             ext = ".sha256" if algo == "sha256" else ".md5"
@@ -198,24 +204,25 @@ class ChecksumManifestView(QWidget):
 
         def _on_done(results: List[Dict[str, Any]]):
             self.btn_verify.setEnabled(True)
-            self.table_verify.setRowCount(len(results))
-            ok_count = 0
-            err_count = 0
+            with batch_table_update(self.table_verify):
+                self.table_verify.setRowCount(len(results))
+                ok_count = 0
+                err_count = 0
 
-            for row, r in enumerate(results):
-                self.table_verify.setItem(row, 0, QTableWidgetItem(r["file"]))
+                for row, r in enumerate(results):
+                    self.table_verify.setItem(row, 0, SmartTableWidgetItem(r["file"]))
 
-                st_item = QTableWidgetItem(r["status"])
-                if r["status"] == "OK":
-                    st_item.setForeground(Qt.green)
-                    ok_count += 1
-                else:
-                    st_item.setForeground(Qt.red)
-                    err_count += 1
-                self.table_verify.setItem(row, 1, st_item)
+                    st_item = SmartTableWidgetItem(r["status"])
+                    if r["status"] == "OK":
+                        st_item.setForeground(Qt.green)
+                        ok_count += 1
+                    else:
+                        st_item.setForeground(Qt.red)
+                        err_count += 1
+                    self.table_verify.setItem(row, 1, st_item)
 
-                self.table_verify.setItem(row, 2, QTableWidgetItem(r["expected"]))
-                self.table_verify.setItem(row, 3, QTableWidgetItem(r["actual"]))
+                    self.table_verify.setItem(row, 2, SmartTableWidgetItem(r["expected"]))
+                    self.table_verify.setItem(row, 3, SmartTableWidgetItem(r["actual"]))
 
             self.lbl_verify_status.setText(f"Concluído: {ok_count} OK, {err_count} com falhas/ausentes.")
             if err_count == 0:

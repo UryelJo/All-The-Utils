@@ -23,6 +23,9 @@ from .logic import (
     calc_dir_size,
     format_disk_size,
 )
+from wintoolbox.ui.widgets.sortable_table import (
+    SmartTableWidgetItem, enable_sorting_on_table, batch_table_update
+)
 
 @register
 class DiskUsageTool(Tool):
@@ -117,6 +120,7 @@ class DiskUsageView(QWidget):
         self.table_items.verticalHeader().setVisible(False)
         self.table_items.setFixedHeight(280)
         self.table_items.cellDoubleClicked.connect(self._on_item_double_clicked)
+        enable_sorting_on_table(self.table_items)
         l_top.addWidget(self.table_items)
 
         row_top_act = QHBoxLayout()
@@ -140,6 +144,7 @@ class DiskUsageView(QWidget):
         self.table_ext.horizontalHeader().setSectionResizeMode(2, QHeaderView.Stretch)
         self.table_ext.verticalHeader().setVisible(False)
         self.table_ext.setFixedHeight(280)
+        enable_sorting_on_table(self.table_ext)
         l_ext.addWidget(self.table_ext)
 
         tabs.addTab(tab_ext, "Consumo por Extensão de Arquivo")
@@ -175,23 +180,26 @@ class DiskUsageView(QWidget):
             self.top_items = items
 
             # Preenche tabela 1
-            self.table_items.setRowCount(len(items))
-            for row, it in enumerate(items):
-                name_item = QTableWidgetItem(f"[DIR] {it.name}" if it.is_dir else it.name)
-                if it.is_dir:
-                    name_item.setStyleSheet("font-weight: 600;")
-                self.table_items.setItem(row, 0, name_item)
-                self.table_items.setItem(row, 1, QTableWidgetItem(f"Pasta ({it.count} itens)" if it.is_dir else "Arquivo"))
-                self.table_items.setItem(row, 2, QTableWidgetItem(self._format_size(it.size)))
-                self.table_items.setItem(row, 3, QTableWidgetItem(it.path))
+            with batch_table_update(self.table_items):
+                self.table_items.setRowCount(len(items))
+                for row, it in enumerate(items):
+                    display_name = f"[DIR] {it.name}" if it.is_dir else it.name
+                    name_item = SmartTableWidgetItem(display_name, sort_value=it.name.lower(), user_data=it)
+                    if it.is_dir:
+                        name_item.setStyleSheet("font-weight: 600;")
+                    self.table_items.setItem(row, 0, name_item)
+                    self.table_items.setItem(row, 1, SmartTableWidgetItem(f"Pasta ({it.count} itens)" if it.is_dir else "Arquivo", sort_value=it.count if it.is_dir else 0))
+                    self.table_items.setItem(row, 2, SmartTableWidgetItem(self._format_size(it.size), sort_value=it.size))
+                    self.table_items.setItem(row, 3, SmartTableWidgetItem(it.path))
 
             # Preenche tabela 2
-            self.table_ext.setRowCount(len(sorted_exts))
-            for row, (ext, sz) in enumerate(sorted_exts):
-                count = ext_counts.get(ext, 0)
-                self.table_ext.setItem(row, 0, QTableWidgetItem(ext))
-                self.table_ext.setItem(row, 1, QTableWidgetItem(f"{count:,}"))
-                self.table_ext.setItem(row, 2, QTableWidgetItem(self._format_size(sz)))
+            with batch_table_update(self.table_ext):
+                self.table_ext.setRowCount(len(sorted_exts))
+                for row, (ext, sz) in enumerate(sorted_exts):
+                    count = ext_counts.get(ext, 0)
+                    self.table_ext.setItem(row, 0, SmartTableWidgetItem(ext))
+                    self.table_ext.setItem(row, 1, SmartTableWidgetItem(f"{count:,}", sort_value=count))
+                    self.table_ext.setItem(row, 2, SmartTableWidgetItem(self._format_size(sz), sort_value=sz))
 
             mb_total = round(total_bytes / (1024 * 1024), 2)
             gb_total = round(total_bytes / (1024 * 1024 * 1024), 2)
@@ -208,15 +216,22 @@ class DiskUsageView(QWidget):
         return format_disk_size(size_bytes)
 
     def _on_item_double_clicked(self, row: int, col: int):
-        if 0 <= row < len(self.top_items):
-            it = self.top_items[row]
-            if it.is_dir:
-                self.txt_path.setText(it.path)
-                self._start_analysis()
+        item_widget = self.table_items.item(row, 0)
+        if not item_widget:
+            return
+        it: Optional[DiskItem] = item_widget.data(Qt.UserRole)
+        if it and it.is_dir:
+            self.txt_path.setText(it.path)
+            self._start_analysis()
 
     def _open_selected_in_explorer(self):
         row = self.table_items.currentRow()
-        if 0 <= row < len(self.top_items):
-            p = self.top_items[row].path
-            target = p if os.path.isdir(p) else os.path.dirname(p)
+        if row < 0:
+            return
+        item_widget = self.table_items.item(row, 0)
+        if not item_widget:
+            return
+        it: Optional[DiskItem] = item_widget.data(Qt.UserRole)
+        if it:
+            target = it.path if os.path.isdir(it.path) else os.path.dirname(it.path)
             QDesktopServices.openUrl(QUrl.fromLocalFile(target))

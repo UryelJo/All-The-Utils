@@ -15,6 +15,9 @@ from PySide6.QtWidgets import (
 
 from wintoolbox.core.batch import DiscoveredFile, SourceItem, discover_files
 from wintoolbox.ui.icons import get_glyph, get_icon_font
+from wintoolbox.ui.widgets.sortable_table import (
+    SmartTableWidgetItem, enable_sorting_on_table, batch_table_update
+)
 from wintoolbox.ui.widgets.toggle_switch import ToggleSwitch
 
 
@@ -107,6 +110,7 @@ class BatchInputWidget(QFrame):
         self.table.verticalHeader().setVisible(False)
         self.table.setSelectionBehavior(QTableWidget.SelectRows)
         self.table.setAlternatingRowColors(True)
+        enable_sorting_on_table(self.table)
         self.view_stack.addWidget(self.table)
 
         layout.addWidget(self.view_stack)
@@ -191,6 +195,13 @@ class BatchInputWidget(QFrame):
         self._refresh_table()
         self._update_discovered()
 
+    def remove_source(self, item: SourceItem) -> None:
+        """Remove uma origem específica da lista pelo objeto com segurança."""
+        if item in self.sources:
+            self.sources.remove(item)
+            self._refresh_table()
+            self._update_discovered()
+
     def remove_source_at(self, index: int) -> None:
         """Remove uma origem específica da tabela pelo índice."""
         if 0 <= index < len(self.sources):
@@ -206,28 +217,29 @@ class BatchInputWidget(QFrame):
 
     def _refresh_table(self) -> None:
         self.view_stack.setCurrentIndex(1 if self.sources else 0)
-        self.table.setRowCount(len(self.sources))
-        for row, src in enumerate(self.sources):
-            item_path = QTableWidgetItem(str(src.path))
-            item_path.setFlags(item_path.flags() ^ Qt.ItemIsEditable)
-            self.table.setItem(row, 0, item_path)
+        with batch_table_update(self.table):
+            self.table.setRowCount(len(self.sources))
+            for row, src in enumerate(self.sources):
+                item_path = SmartTableWidgetItem(str(src.path), user_data=src)
+                item_path.setFlags(item_path.flags() ^ Qt.ItemIsEditable)
+                self.table.setItem(row, 0, item_path)
 
-            tipo_str = "Pasta" if src.is_dir else "Arquivo"
-            item_tipo = QTableWidgetItem(tipo_str)
-            item_tipo.setFlags(item_tipo.flags() ^ Qt.ItemIsEditable)
-            self.table.setItem(row, 1, item_tipo)
+                tipo_str = "Pasta" if src.is_dir else "Arquivo"
+                item_tipo = SmartTableWidgetItem(tipo_str)
+                item_tipo.setFlags(item_tipo.flags() ^ Qt.ItemIsEditable)
+                self.table.setItem(row, 1, item_tipo)
 
-            sub_str = "Sim" if src.is_dir and src.recursive else ("Não" if src.is_dir else "-")
-            item_sub = QTableWidgetItem(sub_str)
-            item_sub.setFlags(item_sub.flags() ^ Qt.ItemIsEditable)
-            self.table.setItem(row, 2, item_sub)
+                sub_str = "Sim" if src.is_dir and src.recursive else ("Não" if src.is_dir else "-")
+                item_sub = SmartTableWidgetItem(sub_str)
+                item_sub.setFlags(item_sub.flags() ^ Qt.ItemIsEditable)
+                self.table.setItem(row, 2, item_sub)
 
-            btn_del = QPushButton("Remover")
-            btn_del.setProperty("class", "ghost")
-            btn_del.setStyleSheet("font-size: 11px; padding: 2px 6px;")
-            btn_del.setToolTip("Remover este item da lista")
-            btn_del.clicked.connect(lambda _, r=row: self.remove_source_at(r))
-            self.table.setCellWidget(row, 3, btn_del)
+                btn_del = QPushButton("Remover")
+                btn_del.setProperty("class", "ghost")
+                btn_del.setStyleSheet("font-size: 11px; padding: 2px 6px;")
+                btn_del.setToolTip("Remover este item da lista")
+                btn_del.clicked.connect(lambda _, s=src: self.remove_source(s))
+                self.table.setCellWidget(row, 3, btn_del)
 
     def _update_discovered(self) -> None:
         self._discovered_cache = discover_files(self.sources, self.allowed_extensions)

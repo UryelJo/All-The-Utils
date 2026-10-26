@@ -18,6 +18,9 @@ from wintoolbox.tools.network.utilities.logic import (
     send_wake_on_lan,
     shorten_url,
 )
+from wintoolbox.ui.widgets.sortable_table import (
+    SmartTableWidgetItem, batch_table_update, enable_sorting_on_table
+)
 
 
 @register
@@ -171,6 +174,7 @@ class UtilitiesView(QWidget):
 
         self.table_url = QTableWidget(0, 2)
         self.table_url.setHorizontalHeaderLabels(["Status HTTP", "URL na Cadeia de Redirecionamento"])
+        enable_sorting_on_table(self.table_url)
         self.table_url.horizontalHeader().setSectionResizeMode(0, QHeaderView.ResizeToContents)
         self.table_url.horizontalHeader().setSectionResizeMode(1, QHeaderView.Stretch)
         self.table_url.verticalHeader().setVisible(False)
@@ -263,10 +267,11 @@ class UtilitiesView(QWidget):
             return expand_url_chain(url)
 
         def on_done(chain):
-            self.table_url.setRowCount(len(chain))
-            for row, item in enumerate(chain):
-                self.table_url.setItem(row, 0, QTableWidgetItem(item["status"]))
-                self.table_url.setItem(row, 1, QTableWidgetItem(item["url"]))
+            with batch_table_update(self.table_url):
+                self.table_url.setRowCount(len(chain))
+                for row, item in enumerate(chain):
+                    self.table_url.setItem(row, 0, SmartTableWidgetItem(item["status"]))
+                    self.table_url.setItem(row, 1, SmartTableWidgetItem(item["url"]))
 
         self.runner.start_task(worker, on_finished=on_done)
 

@@ -20,6 +20,9 @@ from wintoolbox.tools.automation.script_runner.logic import (
 from wintoolbox.ui.widgets.log_panel import LogPanelWidget
 from wintoolbox.ui.widgets.toast import show_toast
 from wintoolbox.ui.widgets.tool_header import ToolHeader
+from wintoolbox.ui.widgets.sortable_table import (
+    SmartTableWidgetItem, enable_sorting_on_table, batch_table_update
+)
 
 _log = get_logger("automation.script_runner.ui")
 
@@ -114,6 +117,7 @@ class ScriptRunnerView(QWidget):
         self.table.horizontalHeader().setSectionResizeMode(2, QHeaderView.ResizeMode.ResizeToContents)
         self.table.horizontalHeader().setSectionResizeMode(3, QHeaderView.ResizeMode.Fixed)
         self.table.setColumnWidth(3, 140)
+        enable_sorting_on_table(self.table)
         cat_layout.addWidget(self.table)
 
         root.addWidget(cat_box, stretch=1)
@@ -147,32 +151,34 @@ class ScriptRunnerView(QWidget):
 
     def _refresh_saved_scripts(self) -> None:
         self._saved_scripts = load_saved_scripts()
-        self.table.setRowCount(len(self._saved_scripts))
+        with batch_table_update(self.table):
+            self.table.setRowCount(len(self._saved_scripts))
 
-        for row, s in enumerate(self._saved_scripts):
-            self.table.setItem(row, 0, QTableWidgetItem(s["name"]))
-            path_item = QTableWidgetItem(s["path"])
-            path_item.setFont(QFont("Cascadia Mono", 9))
-            self.table.setItem(row, 1, path_item)
-            self.table.setItem(row, 2, QTableWidgetItem(s.get("args", "")))
+            for row, s in enumerate(self._saved_scripts):
+                self.table.setItem(row, 0, SmartTableWidgetItem(s["name"], user_data=s))
+                path_item = SmartTableWidgetItem(s["path"])
+                path_item.setFont(QFont("Cascadia Mono", 9))
+                self.table.setItem(row, 1, path_item)
+                self.table.setItem(row, 2, SmartTableWidgetItem(s.get("args", "")))
+                self.table.setItem(row, 3, SmartTableWidgetItem(""))
 
-            # Painel de botões da linha
-            cell_widget = QWidget()
-            btn_layout = QHBoxLayout(cell_widget)
-            btn_layout.setContentsMargins(2, 2, 2, 2)
-            btn_layout.setSpacing(4)
+                # Painel de botões da linha
+                cell_widget = QWidget()
+                btn_layout = QHBoxLayout(cell_widget)
+                btn_layout.setContentsMargins(2, 2, 2, 2)
+                btn_layout.setSpacing(4)
 
-            btn_exec = QPushButton("Rodar")
-            btn_exec.setStyleSheet("font-size: 10px; padding: 2px 8px;")
-            btn_exec.clicked.connect(lambda checked=False, p=s["path"], a=s.get("args", ""): self._execute_script(p, a))
-            btn_layout.addWidget(btn_exec)
+                btn_exec = QPushButton("Rodar")
+                btn_exec.setStyleSheet("font-size: 10px; padding: 2px 8px;")
+                btn_exec.clicked.connect(lambda checked=False, p=s["path"], a=s.get("args", ""): self._execute_script(p, a))
+                btn_layout.addWidget(btn_exec)
 
-            btn_del = QPushButton("Remover")
-            btn_del.setStyleSheet("font-size: 10px; padding: 2px 6px;")
-            btn_del.clicked.connect(lambda checked=False, p=s["path"]: self._remove_script(p))
-            btn_layout.addWidget(btn_del)
+                btn_del = QPushButton("Remover")
+                btn_del.setStyleSheet("font-size: 10px; padding: 2px 6px;")
+                btn_del.clicked.connect(lambda checked=False, p=s["path"]: self._remove_script(p))
+                btn_layout.addWidget(btn_del)
 
-            self.table.setCellWidget(row, 3, cell_widget)
+                self.table.setCellWidget(row, 3, cell_widget)
 
     def _remove_script(self, script_path: str) -> None:
         delete_script_entry(script_path)

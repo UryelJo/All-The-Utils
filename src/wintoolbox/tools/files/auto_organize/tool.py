@@ -13,6 +13,9 @@ from PySide6.QtWidgets import (
 
 from wintoolbox.core.registry import Tool, register
 from wintoolbox.core.tasks import TaskRunner
+from wintoolbox.ui.widgets.sortable_table import (
+    SmartTableWidgetItem, batch_table_update, enable_sorting_on_table
+)
 from .logic import OrganizeAction, execute_organization, plan_organization
 
 
@@ -132,6 +135,7 @@ class AutoOrganizeView(QWidget):
         # Tabela de Prévia
         self.table = QTableWidget(0, 4)
         self.table.setHorizontalHeaderLabels(["Arquivo Original", "Destino Planejado", "Regra Aplicada", "Status"])
+        enable_sorting_on_table(self.table)
         self.table.horizontalHeader().setSectionResizeMode(0, QHeaderView.ResizeToContents)
         self.table.horizontalHeader().setSectionResizeMode(1, QHeaderView.Stretch)
         self.table.horizontalHeader().setSectionResizeMode(2, QHeaderView.ResizeToContents)
@@ -169,13 +173,13 @@ class AutoOrganizeView(QWidget):
         def on_done(actions: List[OrganizeAction]):
             self.btn_simulate.setEnabled(True)
             self.planned_actions = actions
-            self.table.setRowCount(len(actions))
-
-            for row, act in enumerate(actions):
-                self.table.setItem(row, 0, QTableWidgetItem(act.source_path.name))
-                self.table.setItem(row, 1, QTableWidgetItem(str(act.dest_path)))
-                self.table.setItem(row, 2, QTableWidgetItem(act.category_label))
-                self.table.setItem(row, 3, QTableWidgetItem(act.status))
+            with batch_table_update(self.table):
+                self.table.setRowCount(len(actions))
+                for row, act in enumerate(actions):
+                    self.table.setItem(row, 0, SmartTableWidgetItem(act.source_path.name, user_data=act))
+                    self.table.setItem(row, 1, SmartTableWidgetItem(str(act.dest_path)))
+                    self.table.setItem(row, 2, SmartTableWidgetItem(act.category_label))
+                    self.table.setItem(row, 3, SmartTableWidgetItem(act.status))
 
             count = len(actions)
             if count > 0:
@@ -226,14 +230,18 @@ class AutoOrganizeView(QWidget):
             self.prog_bar.setVisible(False)
             succ, fail = res
 
-            # Atualiza status na tabela
-            for row, act in enumerate(self.planned_actions):
-                item = QTableWidgetItem(act.status if not act.error else f"Erro: {act.error}")
-                if act.error:
-                    item.setForeground(Qt.red)
-                else:
-                    item.setForeground(Qt.darkGreen)
-                self.table.setItem(row, 3, item)
+            # Atualiza status na tabela preservando ordenação
+            for row in range(self.table.rowCount()):
+                item_0 = self.table.item(row, 0)
+                act = item_0.data(Qt.UserRole) if item_0 else None
+                if act:
+                    status_text = act.status if not act.error else f"Erro: {act.error}"
+                    item = SmartTableWidgetItem(status_text)
+                    if act.error:
+                        item.setForeground(Qt.red)
+                    else:
+                        item.setForeground(Qt.darkGreen)
+                    self.table.setItem(row, 3, item)
 
             self.lbl_status.setText(f"Concluído! {succ} arquivo(s) processados com sucesso. Falhas: {fail}.")
             QMessageBox.information(

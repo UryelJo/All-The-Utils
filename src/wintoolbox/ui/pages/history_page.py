@@ -13,6 +13,9 @@ from PySide6.QtWidgets import (
 from wintoolbox.core.history import clear_history, get_recent_jobs
 from wintoolbox.core.registry import get_tool
 from wintoolbox.ui.icons import normalize_text
+from wintoolbox.ui.widgets.sortable_table import (
+    SmartTableWidgetItem, enable_sorting_on_table, batch_table_update
+)
 from wintoolbox.ui.widgets.toast import show_toast
 
 
@@ -87,6 +90,7 @@ class HistoryPage(QWidget):
         self.table.verticalHeader().setVisible(False)
         self.table.setSelectionBehavior(QTableWidget.SelectRows)
         self.table.setAlternatingRowColors(True)
+        enable_sorting_on_table(self.table)
         root_layout.addWidget(self.table, stretch=1)
 
     def _create_stat_card(self, parent_layout: QHBoxLayout, label_title: str, initial_val: str) -> QLabel:
@@ -133,24 +137,26 @@ class HistoryPage(QWidget):
                 if q in hay:
                     filtered.append((j, t_name))
 
-        self.table.setRowCount(len(filtered))
-        for row, (j, t_name) in enumerate(filtered):
-            self.table.setItem(row, 0, QTableWidgetItem(j["timestamp"]))
-            self.table.setItem(row, 1, QTableWidgetItem(t_name))
-            self.table.setItem(row, 2, QTableWidgetItem(j["status"]))
+        with batch_table_update(self.table):
+            self.table.setRowCount(len(filtered))
+            for row, (j, t_name) in enumerate(filtered):
+                self.table.setItem(row, 0, SmartTableWidgetItem(j["timestamp"], sort_value=j["timestamp"], user_data=j))
+                self.table.setItem(row, 1, SmartTableWidgetItem(t_name))
+                self.table.setItem(row, 2, SmartTableWidgetItem(j["status"]))
 
-            itens_str = f"{j['items_success']}/{j['items_total']}"
-            if j["items_failed"] > 0:
-                itens_str += f" ({j['items_failed']} erros)"
-            self.table.setItem(row, 3, QTableWidgetItem(itens_str))
-            self.table.setItem(row, 4, QTableWidgetItem(f"{j['duration_sec']:.1f}s"))
-            self.table.setItem(row, 5, QTableWidgetItem(j.get("message", "") or ""))
+                itens_str = f"{j['items_success']}/{j['items_total']}"
+                if j["items_failed"] > 0:
+                    itens_str += f" ({j['items_failed']} erros)"
+                self.table.setItem(row, 3, SmartTableWidgetItem(itens_str, sort_value=int(j.get("items_total", 0))))
+                dur = float(j.get("duration_sec", 0))
+                self.table.setItem(row, 4, SmartTableWidgetItem(f"{dur:.1f}s", sort_value=dur))
+                self.table.setItem(row, 5, SmartTableWidgetItem(j.get("message", "") or ""))
 
-            tid = j["tool_id"]
-            btn_open = QPushButton("Abrir")
-            btn_open.setStyleSheet("padding: 2px 10px; font-size: 11px; min-height: 20px;")
-            btn_open.clicked.connect(lambda _, tool_id=tid: self.tool_requested.emit(tool_id))
-            self.table.setCellWidget(row, 6, btn_open)
+                tid = j["tool_id"]
+                btn_open = QPushButton("Abrir")
+                btn_open.setStyleSheet("padding: 2px 10px; font-size: 11px; min-height: 20px;")
+                btn_open.clicked.connect(lambda _, tool_id=tid: self.tool_requested.emit(tool_id))
+                self.table.setCellWidget(row, 6, btn_open)
 
     def _on_clear(self) -> None:
         clear_history()

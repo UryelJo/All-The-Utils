@@ -17,6 +17,9 @@ from wintoolbox.core.tasks import run_task
 from wintoolbox.tools.system.driver_backup.logic import (
     export_drivers_to_folder, list_third_party_drivers
 )
+from wintoolbox.ui.widgets.sortable_table import (
+    SmartTableWidgetItem, enable_sorting_on_table, batch_table_update
+)
 
 
 @register
@@ -74,6 +77,7 @@ class DriverBackupView(QWidget):
         self.table.setSelectionBehavior(QTableWidget.SelectRows)
         self.table.setSelectionMode(QTableWidget.SingleSelection)
         self.table.setAlternatingRowColors(True)
+        enable_sorting_on_table(self.table)
         layout.addWidget(self.table)
 
         # Barra de Destino e Exportação
@@ -103,14 +107,14 @@ class DriverBackupView(QWidget):
 
     def _refresh_drivers(self):
         self._drivers = list_third_party_drivers()
-        self.table.setRowCount(len(self._drivers))
-
-        for row, d in enumerate(self._drivers):
-            self.table.setItem(row, 0, QTableWidgetItem(d.get("published_name", "")))
-            self.table.setItem(row, 1, QTableWidgetItem(d.get("provider", "")))
-            self.table.setItem(row, 2, QTableWidgetItem(d.get("class_name", "")))
-            self.table.setItem(row, 3, QTableWidgetItem(d.get("version", "")))
-            self.table.setItem(row, 4, QTableWidgetItem(d.get("date", "")))
+        with batch_table_update(self.table):
+            self.table.setRowCount(len(self._drivers))
+            for row, d in enumerate(self._drivers):
+                self.table.setItem(row, 0, SmartTableWidgetItem(d.get("published_name", ""), user_data=d))
+                self.table.setItem(row, 1, SmartTableWidgetItem(d.get("provider", "")))
+                self.table.setItem(row, 2, SmartTableWidgetItem(d.get("class_name", "")))
+                self.table.setItem(row, 3, SmartTableWidgetItem(d.get("version", "")))
+                self.table.setItem(row, 4, SmartTableWidgetItem(d.get("date", "")))
 
         self.lbl_count.setText(f"{len(self._drivers)} pacotes de drivers de terceiros")
 

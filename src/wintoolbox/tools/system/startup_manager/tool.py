@@ -16,6 +16,9 @@ from wintoolbox.core.registry import Tool, register
 from wintoolbox.tools.system.startup_manager.logic import (
     add_registry_startup_item, list_startup_items, remove_startup_item
 )
+from wintoolbox.ui.widgets.sortable_table import (
+    SmartTableWidgetItem, enable_sorting_on_table, batch_table_update
+)
 
 
 @register
@@ -74,6 +77,7 @@ class StartupManagerView(QWidget):
         self.table.setSelectionBehavior(QTableWidget.SelectRows)
         self.table.setSelectionMode(QTableWidget.SingleSelection)
         self.table.setAlternatingRowColors(True)
+        enable_sorting_on_table(self.table)
         layout.addWidget(self.table)
 
         # Barra Inferior
@@ -94,25 +98,42 @@ class StartupManagerView(QWidget):
 
         layout.addLayout(bottom_bar)
 
+    def _get_selected_item(self) -> Optional[dict]:
+        row = self.table.currentRow()
+        if row >= 0:
+            it = self.table.item(row, 0)
+            if it:
+                d = it.data(Qt.UserRole)
+                if isinstance(d, dict):
+                    return d
+        selected = self.table.selectedItems()
+        if selected:
+            row = selected[0].row()
+            it = self.table.item(row, 0)
+            if it:
+                d = it.data(Qt.UserRole)
+                if isinstance(d, dict):
+                    return d
+            if 0 <= row < len(self._raw_items):
+                return self._raw_items[row]
+        return None
+
     def _refresh_list(self):
         self._raw_items = list_startup_items()
-        self.table.setRowCount(len(self._raw_items))
-
-        for row, item in enumerate(self._raw_items):
-            self.table.setItem(row, 0, QTableWidgetItem(item["name"]))
-            self.table.setItem(row, 1, QTableWidgetItem(item["command"]))
-            self.table.setItem(row, 2, QTableWidgetItem(item["location"]))
+        with batch_table_update(self.table):
+            self.table.setRowCount(len(self._raw_items))
+            for row, item in enumerate(self._raw_items):
+                self.table.setItem(row, 0, SmartTableWidgetItem(item["name"], user_data=item))
+                self.table.setItem(row, 1, SmartTableWidgetItem(item["command"]))
+                self.table.setItem(row, 2, SmartTableWidgetItem(item["location"]))
 
         self.lbl_count.setText(f"{len(self._raw_items)} programas na inicialização")
 
     def _on_remove_item(self):
-        selected = self.table.selectedItems()
-        if not selected:
+        item = self._get_selected_item()
+        if not item:
             QMessageBox.information(self, "Aviso", "Selecione um item na lista para remover.")
             return
-
-        row = selected[0].row()
-        item = self._raw_items[row]
 
         confirm = QMessageBox.question(
             self,
@@ -198,13 +219,11 @@ class StartupManagerView(QWidget):
         dialog.exec()
 
     def _on_open_file_location(self):
-        selected = self.table.selectedItems()
-        if not selected:
+        item = self._get_selected_item()
+        if not item:
             QMessageBox.information(self, "Aviso", "Selecione um item na lista.")
             return
 
-        row = selected[0].row()
-        item = self._raw_items[row]
         cmd = item["command"].strip('"').split('"')[0]
 
         # Extrai caminho se for executável com argumentos

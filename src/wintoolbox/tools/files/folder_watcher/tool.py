@@ -19,6 +19,9 @@ from .logic import (
     format_events_as_csv,
     take_directory_snapshot,
 )
+from wintoolbox.ui.widgets.sortable_table import (
+    SmartTableWidgetItem, enable_sorting_on_table, batch_table_update
+)
 
 
 @register
@@ -116,6 +119,7 @@ class FolderWatcherView(QWidget):
         self.table.horizontalHeader().setSectionResizeMode(3, QHeaderView.Stretch)
         self.table.horizontalHeader().setSectionResizeMode(4, QHeaderView.ResizeToContents)
         self.table.verticalHeader().setVisible(False)
+        enable_sorting_on_table(self.table)
         layout.addWidget(self.table)
 
         # Botões de Ação
@@ -190,24 +194,25 @@ class FolderWatcherView(QWidget):
             self.last_snapshot = new_snap
 
             if new_events:
-                for ev in new_events:
-                    self.events_history.insert(0, ev)
-                    row = 0
-                    self.table.insertRow(row)
-                    self.table.setItem(row, 0, QTableWidgetItem(ev.timestamp))
+                with batch_table_update(self.table):
+                    for ev in new_events:
+                        self.events_history.insert(0, ev)
+                        row = 0
+                        self.table.insertRow(row)
+                        self.table.setItem(row, 0, SmartTableWidgetItem(ev.timestamp))
 
-                    ev_item = QTableWidgetItem(ev.event_type)
-                    if ev.event_type == "Criado":
-                        ev_item.setForeground(Qt.darkGreen)
-                    elif ev.event_type == "Modificado":
-                        ev_item.setForeground(Qt.blue)
-                    elif ev.event_type == "Excluído":
-                        ev_item.setForeground(Qt.red)
-                    self.table.setItem(row, 1, ev_item)
+                        ev_item = SmartTableWidgetItem(ev.event_type)
+                        if ev.event_type == "Criado":
+                            ev_item.setForeground(Qt.darkGreen)
+                        elif ev.event_type == "Modificado":
+                            ev_item.setForeground(Qt.blue)
+                        elif ev.event_type == "Excluído":
+                            ev_item.setForeground(Qt.red)
+                        self.table.setItem(row, 1, ev_item)
 
-                    self.table.setItem(row, 2, QTableWidgetItem(ev.path.name))
-                    self.table.setItem(row, 3, QTableWidgetItem(str(ev.path)))
-                    self.table.setItem(row, 4, QTableWidgetItem(ev.details))
+                        self.table.setItem(row, 2, SmartTableWidgetItem(ev.path.name, sort_value=ev.path.name.lower()))
+                        self.table.setItem(row, 3, SmartTableWidgetItem(str(ev.path)))
+                        self.table.setItem(row, 4, SmartTableWidgetItem(ev.details))
 
                 self.lbl_status.setText(f"Status: Ativo | Último evento detectado às {new_events[0].timestamp} ({len(self.events_history)} total).")
 

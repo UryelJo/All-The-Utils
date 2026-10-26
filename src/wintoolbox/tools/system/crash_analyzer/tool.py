@@ -18,6 +18,9 @@ from wintoolbox.tools.system.crash_analyzer.logic import (
     BUGCHECK_DESCRIPTIONS, explain_bugcheck_code, list_minidump_files,
     query_system_crash_events
 )
+from wintoolbox.ui.widgets.sortable_table import (
+    SmartTableWidgetItem, enable_sorting_on_table, batch_table_update
+)
 from wintoolbox.ui.widgets.toast import show_toast
 from wintoolbox.ui.widgets.tool_header import ToolHeader
 
@@ -83,6 +86,7 @@ class CrashAnalyzerView(QWidget):
         self.table_events.horizontalHeader().setSectionResizeMode(2, QHeaderView.ResizeToContents)
         self.table_events.horizontalHeader().setSectionResizeMode(3, QHeaderView.Stretch)
         self.table_events.itemSelectionChanged.connect(self._on_event_selected)
+        enable_sorting_on_table(self.table_events)
         lay.addWidget(self.table_events, stretch=2)
 
         lay.addWidget(QLabel("Mensagem Detalhada do Log do Windows:"))
@@ -111,6 +115,7 @@ class CrashAnalyzerView(QWidget):
         self.table_dumps.horizontalHeader().setSectionResizeMode(0, QHeaderView.Stretch)
         self.table_dumps.horizontalHeader().setSectionResizeMode(1, QHeaderView.ResizeToContents)
         self.table_dumps.horizontalHeader().setSectionResizeMode(2, QHeaderView.ResizeToContents)
+        enable_sorting_on_table(self.table_dumps)
         lay.addWidget(self.table_dumps)
 
         self.tabs.addTab(tab, "Arquivos Minidump (.dmp)")
@@ -133,6 +138,7 @@ class CrashAnalyzerView(QWidget):
         self.table_dict.setHorizontalHeaderLabels(["Código Hexadecimal", "Causa Provável e Significado"])
         self.table_dict.horizontalHeader().setSectionResizeMode(0, QHeaderView.ResizeToContents)
         self.table_dict.horizontalHeader().setSectionResizeMode(1, QHeaderView.Stretch)
+        enable_sorting_on_table(self.table_dict)
         lay.addWidget(self.table_dict)
 
         # Preenche dicionário padrão
@@ -146,12 +152,13 @@ class CrashAnalyzerView(QWidget):
         for code, desc in BUGCHECK_DESCRIPTIONS.items():
             hex_str = f"0x{code:08X}"
             if not q or q in hex_str.lower() or q in desc.lower():
-                items.append((hex_str, desc))
+                items.append((hex_str, desc, code))
 
-        self.table_dict.setRowCount(len(items))
-        for row, (h, d) in enumerate(items):
-            self.table_dict.setItem(row, 0, QTableWidgetItem(h))
-            self.table_dict.setItem(row, 1, QTableWidgetItem(d))
+        with batch_table_update(self.table_dict):
+            self.table_dict.setRowCount(len(items))
+            for row, (h, d, code) in enumerate(items):
+                self.table_dict.setItem(row, 0, SmartTableWidgetItem(h, sort_value=code))
+                self.table_dict.setItem(row, 1, SmartTableWidgetItem(d))
 
     def _filter_dictionary(self, text: str) -> None:
         self._populate_dictionary(text)
@@ -178,19 +185,23 @@ class CrashAnalyzerView(QWidget):
             self._events_cache = evs
 
             # Preenche eventos
-            self.table_events.setRowCount(len(evs))
-            for row, e in enumerate(evs):
-                self.table_events.setItem(row, 0, QTableWidgetItem(e["time"]))
-                self.table_events.setItem(row, 1, QTableWidgetItem(str(e["id"])))
-                self.table_events.setItem(row, 2, QTableWidgetItem(e["category"]))
-                self.table_events.setItem(row, 3, QTableWidgetItem(e["explanation"]))
+            with batch_table_update(self.table_events):
+                self.table_events.setRowCount(len(evs))
+                for row, e in enumerate(evs):
+                    self.table_events.setItem(row, 0, SmartTableWidgetItem(e["time"], user_data=e))
+                    eid = e.get("id", 0)
+                    self.table_events.setItem(row, 1, SmartTableWidgetItem(str(eid), sort_value=int(eid) if str(eid).isdigit() else eid))
+                    self.table_events.setItem(row, 2, SmartTableWidgetItem(e["category"]))
+                    self.table_events.setItem(row, 3, SmartTableWidgetItem(e["explanation"]))
 
             # Preenche dumps
-            self.table_dumps.setRowCount(len(dumps))
-            for row, d in enumerate(dumps):
-                self.table_dumps.setItem(row, 0, QTableWidgetItem(d["name"]))
-                self.table_dumps.setItem(row, 1, QTableWidgetItem(d["size_str"]))
-                self.table_dumps.setItem(row, 2, QTableWidgetItem(d["modified"]))
+            with batch_table_update(self.table_dumps):
+                self.table_dumps.setRowCount(len(dumps))
+                for row, d in enumerate(dumps):
+                    self.table_dumps.setItem(row, 0, SmartTableWidgetItem(d["name"], user_data=d))
+                    sz_bytes = d.get("size_bytes", 0)
+                    self.table_dumps.setItem(row, 1, SmartTableWidgetItem(d["size_str"], sort_value=sz_bytes))
+                    self.table_dumps.setItem(row, 2, SmartTableWidgetItem(d["modified"]))
 
             self.lbl_status.setText(f"{len(evs)} evento(s) de falha e {len(dumps)} arquivo(s) de dump encontrados.")
 
@@ -203,5 +214,12 @@ class CrashAnalyzerView(QWidget):
 
     def _on_event_selected(self) -> None:
         row = self.table_events.currentRow()
+        if row >= 0:
+            it = self.table_events.item(row, 0)
+            if it:
+                e = it.data(Qt.UserRole)
+                if isinstance(e, dict):
+                    self.txt_detail.setText(e.get("raw_message", ""))
+                    return
         if row >= 0 and hasattr(self, "_events_cache") and row < len(self._events_cache):
             self.txt_detail.setText(self._events_cache[row]["raw_message"])

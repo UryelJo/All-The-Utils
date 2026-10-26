@@ -15,6 +15,9 @@ from wintoolbox.core.tasks import TaskRunner
 from wintoolbox.tools.network.latency_monitor.logic import (
     calculate_stats, ping_host
 )
+from wintoolbox.ui.widgets.sortable_table import (
+    SmartTableWidgetItem, enable_sorting_on_table, batch_table_update
+)
 from wintoolbox.ui.widgets.toast import show_toast
 from wintoolbox.ui.widgets.tool_header import ToolHeader
 
@@ -131,6 +134,7 @@ class LatencyMonitorView(QWidget):
         self.table_history.setColumnWidth(0, 80)
         self.table_history.setColumnWidth(1, 160)
         self.table_history.setColumnWidth(2, 200)
+        enable_sorting_on_table(self.table_history)
         layout.addWidget(self.table_history, stretch=1)
 
     def _on_target_changed(self, idx: int) -> None:
@@ -187,16 +191,16 @@ class LatencyMonitorView(QWidget):
             self.val_loss.setText(f"{stats['packet_loss_pct']}%")
 
             # Atualiza tabela
-            row = self.table_history.rowCount()
-            self.table_history.insertRow(0)
-            self.table_history.setItem(0, 0, QTableWidgetItem(f"#{self._total_sent}"))
-            self.table_history.setItem(0, 1, QTableWidgetItem(f"{ms:.1f} ms" if success else "Falha"))
+            with batch_table_update(self.table_history):
+                self.table_history.insertRow(0)
+                self.table_history.setItem(0, 0, SmartTableWidgetItem(f"#{self._total_sent}", sort_value=self._total_sent))
+                self.table_history.setItem(0, 1, SmartTableWidgetItem(f"{ms:.1f} ms" if success else "Falha", sort_value=ms if success else 999999.0))
 
-            st_item = QTableWidgetItem("Sucesso" if success else "Tempo Esgotado")
-            st_item.setForeground(Qt.green if success else Qt.red)
-            self.table_history.setItem(0, 2, st_item)
+                st_item = SmartTableWidgetItem("Sucesso" if success else "Tempo Esgotado")
+                st_item.setForeground(Qt.green if success else Qt.red)
+                self.table_history.setItem(0, 2, st_item)
 
-            if self.table_history.rowCount() > 100:
-                self.table_history.removeRow(100)
+                if self.table_history.rowCount() > 100:
+                    self.table_history.removeRow(100)
 
         TaskRunner.run(_worker, on_success=_on_done)

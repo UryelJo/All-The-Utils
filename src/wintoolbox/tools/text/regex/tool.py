@@ -13,6 +13,9 @@ from PySide6.QtWidgets import (
 
 from wintoolbox.core.registry import Tool, register
 from .logic import evaluate_regex
+from wintoolbox.ui.widgets.sortable_table import (
+    SmartTableWidgetItem, enable_sorting_on_table, batch_table_update
+)
 
 @register
 class RegexTesterTool(Tool):
@@ -120,6 +123,7 @@ class RegexTesterView(QWidget):
         self.table_matches.horizontalHeader().setSectionResizeMode(3, QHeaderView.Stretch)
         self.table_matches.verticalHeader().setVisible(False)
         self.table_matches.setFixedHeight(180)
+        enable_sorting_on_table(self.table_matches)
         l_matches.addWidget(self.table_matches)
 
         tabs.addTab(tab_matches, "Correspondências Encontradas")
@@ -207,14 +211,15 @@ class RegexTesterView(QWidget):
         self.lbl_match_count.setText(f"Correspondências encontradas: {len(res.matches)}")
         self.lbl_match_count.setStyleSheet("font-weight: 600; color: #7ee787;")
 
-        self.table_matches.setRowCount(len(res.matches))
-        for i, m in enumerate(res.matches):
-            self.table_matches.setItem(i, 0, QTableWidgetItem(str(m.index)))
-            self.table_matches.setItem(i, 1, QTableWidgetItem(m.text))
-            self.table_matches.setItem(i, 2, QTableWidgetItem(f"{m.start} - {m.end}"))
+        with batch_table_update(self.table_matches):
+            self.table_matches.setRowCount(len(res.matches))
+            for i, m in enumerate(res.matches):
+                self.table_matches.setItem(i, 0, SmartTableWidgetItem(str(m.index), sort_value=m.index, user_data=m))
+                self.table_matches.setItem(i, 1, SmartTableWidgetItem(m.text))
+                self.table_matches.setItem(i, 2, SmartTableWidgetItem(f"{m.start} - {m.end}", sort_value=m.start))
 
-            groups_str = ", ".join(f"g{idx+1}='{g}'" for idx, g in enumerate(m.groups)) if m.groups else "-"
-            self.table_matches.setItem(i, 3, QTableWidgetItem(groups_str))
+                groups_str = ", ".join(f"g{idx+1}='{g}'" for idx, g in enumerate(m.groups)) if m.groups else "-"
+                self.table_matches.setItem(i, 3, SmartTableWidgetItem(groups_str))
 
         self.txt_sub_result.setPlainText(res.substituted_text)
 

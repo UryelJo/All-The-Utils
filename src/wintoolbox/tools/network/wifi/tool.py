@@ -16,6 +16,9 @@ from PySide6.QtWidgets import (
 )
 
 from wintoolbox.core.registry import Tool, register
+from wintoolbox.ui.widgets.sortable_table import (
+    SmartTableWidgetItem, enable_sorting_on_table, batch_table_update
+)
 from .logic import WifiProfileItem, generate_wifi_qr_image, get_saved_wifi_profiles
 
 def generate_wifi_qr_pixmap(ssid: str, password: str, auth_type: str = "WPA") -> QPixmap:
@@ -99,6 +102,7 @@ class WifiView(QWidget):
         self.table_wifi.verticalHeader().setVisible(False)
         self.table_wifi.setSelectionBehavior(QTableWidget.SelectRows)
         self.table_wifi.setFixedHeight(260)
+        enable_sorting_on_table(self.table_wifi)
         l_list.addWidget(self.table_wifi)
 
         tabs.addTab(tab_list, "Senhas Wi-Fi Salvas")
@@ -157,25 +161,37 @@ class WifiView(QWidget):
         scroll.setWidget(content)
         root_layout.addWidget(scroll)
 
+    def _get_selected_profile(self) -> Optional[WifiProfileItem]:
+        row = self.table_wifi.currentRow()
+        if row >= 0:
+            it = self.table_wifi.item(row, 0)
+            if it:
+                d = it.data(Qt.UserRole)
+                if isinstance(d, WifiProfileItem):
+                    return d
+        if 0 <= row < len(self._profiles):
+            return self._profiles[row]
+        return None
+
     def _load_profiles(self):
         self._profiles = get_saved_wifi_profiles()
-        self.table_wifi.setRowCount(len(self._profiles))
-        for row, p in enumerate(self._profiles):
-            self.table_wifi.setItem(row, 0, QTableWidgetItem(p.ssid))
-            self.table_wifi.setItem(row, 1, QTableWidgetItem(p.auth))
-            self.table_wifi.setItem(row, 2, QTableWidgetItem(p.password))
+        with batch_table_update(self.table_wifi):
+            self.table_wifi.setRowCount(len(self._profiles))
+            for row, p in enumerate(self._profiles):
+                self.table_wifi.setItem(row, 0, SmartTableWidgetItem(p.ssid, user_data=p))
+                self.table_wifi.setItem(row, 1, SmartTableWidgetItem(p.auth))
+                self.table_wifi.setItem(row, 2, SmartTableWidgetItem(p.password))
 
     def _copy_selected_password(self):
-        row = self.table_wifi.currentRow()
-        if 0 <= row < len(self._profiles):
-            pwd = self._profiles[row].password
+        p = self._get_selected_profile()
+        if p:
+            pwd = p.password
             QApplication.clipboard().setText(pwd)
-            QMessageBox.information(self, "Copiado", f"Senha da rede '{self._profiles[row].ssid}' copiada para a área de transferência!")
+            QMessageBox.information(self, "Copiado", f"Senha da rede '{p.ssid}' copiada para a área de transferência!")
 
     def _send_to_qr_tab(self):
-        row = self.table_wifi.currentRow()
-        if 0 <= row < len(self._profiles):
-            p = self._profiles[row]
+        p = self._get_selected_profile()
+        if p:
             self.txt_qr_ssid.setText(p.ssid)
             is_open = p.password == "(Sem senha / Aberta)"
             self.txt_qr_pass.setText("" if is_open else p.password)

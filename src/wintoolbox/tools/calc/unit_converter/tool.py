@@ -18,6 +18,9 @@ from wintoolbox.tools.calc.unit_converter.logic import (
 )
 from wintoolbox.ui.widgets.toast import show_toast
 from wintoolbox.ui.widgets.tool_header import ToolHeader
+from wintoolbox.ui.widgets.sortable_table import (
+    SmartTableWidgetItem, enable_sorting_on_table, batch_table_update
+)
 
 _log = get_logger("calc.unit_converter.ui")
 
@@ -117,6 +120,7 @@ class UnitConverterView(QWidget):
         self.table.horizontalHeader().setSectionResizeMode(1, QHeaderView.ResizeMode.Stretch)
         self.table.horizontalHeader().setSectionResizeMode(2, QHeaderView.ResizeMode.Fixed)
         self.table.setColumnWidth(2, 70)
+        enable_sorting_on_table(self.table)
         table_layout.addWidget(self.table)
 
         root.addWidget(table_box, stretch=1)
@@ -182,22 +186,23 @@ class UnitConverterView(QWidget):
 
             # Atualiza Tabela de Equivalências
             all_convs = get_all_conversions_in_category(val, cat, u_from)
-            self.table.setRowCount(len(all_convs))
-            for row, (uname, uval) in enumerate(all_convs):
-                if abs(uval) >= 1e6 or (0 < abs(uval) < 1e-4):
-                    formatted_val = f"{uval:.6e}"
-                else:
-                    formatted_val = f"{uval:.6f}".rstrip("0").rstrip(".")
+            with batch_table_update(self.table):
+                self.table.setRowCount(len(all_convs))
+                for row, (uname, uval) in enumerate(all_convs):
+                    if abs(uval) >= 1e6 or (0 < abs(uval) < 1e-4):
+                        formatted_val = f"{uval:.6e}"
+                    else:
+                        formatted_val = f"{uval:.6f}".rstrip("0").rstrip(".")
 
-                self.table.setItem(row, 0, QTableWidgetItem(uname))
-                val_item = QTableWidgetItem(formatted_val)
-                val_item.setFont(QFont("Cascadia Mono", 9))
-                self.table.setItem(row, 1, val_item)
+                    self.table.setItem(row, 0, SmartTableWidgetItem(uname, user_data=uname))
+                    val_item = SmartTableWidgetItem(formatted_val, sort_value=uval)
+                    val_item.setFont(QFont("Cascadia Mono", 9))
+                    self.table.setItem(row, 1, val_item)
 
-                btn_c = QPushButton("Copiar")
-                btn_c.setStyleSheet("font-size: 10px; padding: 2px;")
-                btn_c.clicked.connect(lambda checked=False, text=formatted_val: self._copy_specific_val(text))
-                self.table.setCellWidget(row, 2, btn_c)
+                    btn_c = QPushButton("Copiar")
+                    btn_c.setStyleSheet("font-size: 10px; padding: 2px;")
+                    btn_c.clicked.connect(lambda checked=False, text=formatted_val: self._copy_specific_val(text))
+                    self.table.setCellWidget(row, 2, btn_c)
 
         except Exception as exc:
             self.edit_result.setText(f"Erro: {exc}")

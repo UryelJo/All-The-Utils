@@ -15,6 +15,9 @@ from wintoolbox.core.tasks import TaskRunner
 from wintoolbox.tools.network.firewall.logic import (
     block_application_firewall, delete_firewall_rule, list_firewall_rules
 )
+from wintoolbox.ui.widgets.sortable_table import (
+    SmartTableWidgetItem, enable_sorting_on_table, batch_table_update
+)
 from wintoolbox.ui.widgets.toast import show_toast
 from wintoolbox.ui.widgets.tool_header import ToolHeader
 
@@ -143,6 +146,7 @@ class FirewallView(QWidget):
         self.table.horizontalHeader().setSectionResizeMode(3, QHeaderView.ResizeToContents)
         self.table.setSelectionBehavior(QTableWidget.SelectRows)
         self.table.setSelectionMode(QTableWidget.SingleSelection)
+        enable_sorting_on_table(self.table)
         lay.addWidget(self.table, stretch=1)
 
         self.lbl_rules_status = QLabel("Clique em Atualizar para consultar.")
@@ -206,19 +210,20 @@ class FirewallView(QWidget):
         q = query.lower().strip()
         filtered = [r for r in self._rules_cache if not q or q in r["name"].lower() or q in r["id"].lower()]
 
-        self.table.setRowCount(len(filtered))
-        for row, r in enumerate(filtered):
-            self.table.setItem(row, 0, QTableWidgetItem(r["name"]))
+        with batch_table_update(self.table):
+            self.table.setRowCount(len(filtered))
+            for row, r in enumerate(filtered):
+                self.table.setItem(row, 0, SmartTableWidgetItem(r["name"], user_data=r))
 
-            act_item = QTableWidgetItem(r["action"])
-            if r["action"] == "Bloquear":
-                act_item.setForeground(Qt.red)
-            else:
-                act_item.setForeground(Qt.green)
-            self.table.setItem(row, 1, act_item)
+                act_item = SmartTableWidgetItem(r["action"])
+                if r["action"] == "Bloquear":
+                    act_item.setForeground(Qt.red)
+                else:
+                    act_item.setForeground(Qt.green)
+                self.table.setItem(row, 1, act_item)
 
-            self.table.setItem(row, 2, QTableWidgetItem(r["direction"]))
-            self.table.setItem(row, 3, QTableWidgetItem(r["profile"]))
+                self.table.setItem(row, 2, SmartTableWidgetItem(r["direction"]))
+                self.table.setItem(row, 3, SmartTableWidgetItem(r["profile"]))
 
     def _delete_rule(self) -> None:
         row = self.table.currentRow()

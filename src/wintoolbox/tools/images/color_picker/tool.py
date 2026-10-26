@@ -13,6 +13,9 @@ from PySide6.QtWidgets import (
 
 from wintoolbox.core.registry import Tool, register
 from wintoolbox.ui.widgets.data_table import bind_timer_to_visibility
+from wintoolbox.ui.widgets.sortable_table import (
+    SmartTableWidgetItem, enable_sorting_on_table, batch_table_update
+)
 from wintoolbox.tools.images.color_picker.logic import (
     get_pixel_color_at_screen, rgb_to_formats
 )
@@ -142,6 +145,7 @@ class ColorPickerView(QWidget):
         self.table_hist.setSelectionMode(QTableWidget.SingleSelection)
         self.table_hist.setAlternatingRowColors(True)
         self.table_hist.cellDoubleClicked.connect(self._on_table_double_clicked)
+        enable_sorting_on_table(self.table_hist)
         hist_layout.addWidget(self.table_hist)
 
         layout.addWidget(grp_hist)
@@ -184,17 +188,18 @@ class ColorPickerView(QWidget):
         self._refresh_history_table()
 
     def _refresh_history_table(self):
-        self.table_hist.setRowCount(len(self._history))
-        for row, item in enumerate(self._history):
-            # Amostra visual
-            swatch_item = QTableWidgetItem("      ")
-            swatch_item.setBackground(QColor(item["hex"]))
-            self.table_hist.setItem(row, 0, swatch_item)
+        with batch_table_update(self.table_hist):
+            self.table_hist.setRowCount(len(self._history))
+            for row, item in enumerate(self._history):
+                # Amostra visual
+                swatch_item = SmartTableWidgetItem("      ", sort_value=item["hex"])
+                swatch_item.setBackground(QColor(item["hex"]))
+                self.table_hist.setItem(row, 0, swatch_item)
 
-            self.table_hist.setItem(row, 1, QTableWidgetItem(item["hex"]))
-            self.table_hist.setItem(row, 2, QTableWidgetItem(item["rgb"]))
-            self.table_hist.setItem(row, 3, QTableWidgetItem(item["hsl"]))
-            self.table_hist.setItem(row, 4, QTableWidgetItem(item["cmyk"]))
+                self.table_hist.setItem(row, 1, SmartTableWidgetItem(item["hex"]))
+                self.table_hist.setItem(row, 2, SmartTableWidgetItem(item["rgb"]))
+                self.table_hist.setItem(row, 3, SmartTableWidgetItem(item["hsl"]))
+                self.table_hist.setItem(row, 4, SmartTableWidgetItem(item["cmyk"]))
 
     def _on_table_double_clicked(self, row: int, col: int):
         item = self.table_hist.item(row, col)

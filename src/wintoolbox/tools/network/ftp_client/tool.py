@@ -14,6 +14,9 @@ from PySide6.QtWidgets import (
 from wintoolbox.core.registry import Tool, register
 from wintoolbox.core.tasks import TaskRunner
 from wintoolbox.tools.network.ftp_client.logic import FtpOrSftpClient, RemoteItem
+from wintoolbox.ui.widgets.sortable_table import (
+    SmartTableWidgetItem, enable_sorting_on_table, batch_table_update
+)
 
 @register
 class FtpClientTool(Tool):
@@ -146,6 +149,7 @@ class FtpClientView(QWidget):
         self.table.setSelectionMode(QTableWidget.SingleSelection)
         self.table.setFixedHeight(300)
         self.table.cellDoubleClicked.connect(self._on_table_double_click)
+        enable_sorting_on_table(self.table)
         layout.addWidget(self.table)
 
         # Progresso e Status
@@ -248,22 +252,36 @@ class FtpClientView(QWidget):
         self.txt_path.setText("/")
         self.lbl_status.setText("Desconectado.")
 
+    def _get_selected_item(self) -> Optional[RemoteItem]:
+        row = self.table.currentRow()
+        if row < 0:
+            return None
+        item_widget = self.table.item(row, 0)
+        if not item_widget:
+            return None
+        return item_widget.data(Qt.UserRole)
+
     def _populate_table(self, items: List[RemoteItem]):
         self.cached_items = items
-        self.table.setRowCount(len(items))
-        for row, item in enumerate(items):
-            type_str = "Pasta" if item.is_dir else "Arquivo"
-            size_str = "-" if item.is_dir else self._format_size(item.size)
+        with batch_table_update(self.table):
+            self.table.setRowCount(len(items))
+            for row, item in enumerate(items):
+                type_str = "Pasta" if item.is_dir else "Arquivo"
+                size_str = "-" if item.is_dir else self._format_size(item.size)
 
-            item_name = QTableWidgetItem(item.name)
-            if item.is_dir:
-                item_name.setText(f"[DIR] {item.name}")
-                item_name.setStyleSheet("font-weight: 600;")
+                display_name = f"[DIR] {item.name}" if item.is_dir else item.name
+                item_name = SmartTableWidgetItem(display_name, sort_value=item.name.lower(), user_data=item)
+                if item.is_dir:
+                    item_name.setStyleSheet("font-weight: 600;")
 
-            self.table.setItem(row, 0, item_name)
-            self.table.setItem(row, 1, QTableWidgetItem(type_str))
-            self.table.setItem(row, 2, QTableWidgetItem(size_str))
-            self.table.setItem(row, 3, QTableWidgetItem(item.modified))
+                item_type = SmartTableWidgetItem(type_str)
+                item_size = SmartTableWidgetItem(size_str, sort_value=(-1 if item.is_dir else item.size))
+                item_date = SmartTableWidgetItem(item.modified)
+
+                self.table.setItem(row, 0, item_name)
+                self.table.setItem(row, 1, item_type)
+                self.table.setItem(row, 2, item_size)
+                self.table.setItem(row, 3, item_date)
 
     def _format_size(self, size_bytes: int) -> str:
         if size_bytes < 1024:
@@ -273,10 +291,11 @@ class FtpClientView(QWidget):
         return f"{round(size_bytes / (1024 * 1024), 2)} MB"
 
     def _on_table_double_click(self, row: int, col: int):
-        if row < 0 or row >= len(self.cached_items):
+        item_widget = self.table.item(row, 0)
+        if not item_widget:
             return
-        item = self.cached_items[row]
-        if item.is_dir:
+        item: Optional[RemoteItem] = item_widget.data(Qt.UserRole)
+        if item and item.is_dir:
             self._change_dir(item.name)
 
     def _go_up(self):
@@ -320,12 +339,11 @@ class FtpClientView(QWidget):
         self.runner.start_task(worker, on_finished=on_done, on_error=on_error)
 
     def _download_selected(self):
-        row = self.table.currentRow()
-        if row < 0 or row >= len(self.cached_items):
+        item = self._get_selected_item()
+        if not item:
             QMessageBox.warning(self, "Aviso", "Selecione um arquivo para baixar.")
             return
 
-        item = self.cached_items[row]
         if item.is_dir:
             QMessageBox.warning(self, "Aviso", "Selecione um arquivo, não uma pasta.")
             return
@@ -398,11 +416,9 @@ class FtpClientView(QWidget):
         self.runner.start_task(worker, on_progress=on_task_progress, on_finished=on_done, on_error=on_error)
 
     def _delete_selected(self):
-        row = self.table.currentRow()
-        if row < 0 or row >= len(self.cached_items):
+        item = self._get_selected_item()
+        if not item:
             return
-
-        item = self.cached_items[row]
         kind = "a pasta" if item.is_dir else "o arquivo"
         reply = QMessageBox.question(
             self,

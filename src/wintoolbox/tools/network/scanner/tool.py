@@ -14,6 +14,9 @@ from PySide6.QtWidgets import (
 
 from wintoolbox.core.registry import Tool, register
 from wintoolbox.core.tasks import TaskRunner
+from wintoolbox.ui.widgets.sortable_table import (
+    SmartTableWidgetItem, enable_sorting_on_table, batch_table_update
+)
 from .logic import (
     COMMON_PORTS,
     ArpDeviceItem,
@@ -95,6 +98,7 @@ class ScannerView(QWidget):
         self.table_ports.horizontalHeader().setSectionResizeMode(2, QHeaderView.Stretch)
         self.table_ports.verticalHeader().setVisible(False)
         self.table_ports.setFixedHeight(240)
+        enable_sorting_on_table(self.table_ports)
         l_ports.addWidget(self.table_ports)
 
         self.lbl_ports_status = QLabel("Pronto para escanear.")
@@ -124,6 +128,7 @@ class ScannerView(QWidget):
         self.table_arp.horizontalHeader().setSectionResizeMode(3, QHeaderView.Stretch)
         self.table_arp.verticalHeader().setVisible(False)
         self.table_arp.setFixedHeight(240)
+        enable_sorting_on_table(self.table_arp)
         l_arp.addWidget(self.table_arp)
 
         self.lbl_arp_status = QLabel("Clique no botão para listar dispositivos conectados à mesma rede.")
@@ -155,11 +160,12 @@ class ScannerView(QWidget):
 
         def on_done(open_ports: List[OpenPortItem]):
             self.btn_scan_ports.setEnabled(True)
-            self.table_ports.setRowCount(len(open_ports))
-            for row, p in enumerate(open_ports):
-                self.table_ports.setItem(row, 0, QTableWidgetItem(str(p.port)))
-                self.table_ports.setItem(row, 1, QTableWidgetItem(p.service))
-                self.table_ports.setItem(row, 2, QTableWidgetItem(p.status))
+            with batch_table_update(self.table_ports):
+                self.table_ports.setRowCount(len(open_ports))
+                for row, p in enumerate(open_ports):
+                    self.table_ports.setItem(row, 0, SmartTableWidgetItem(str(p.port), sort_value=p.port, user_data=p))
+                    self.table_ports.setItem(row, 1, SmartTableWidgetItem(p.service))
+                    self.table_ports.setItem(row, 2, SmartTableWidgetItem(p.status))
             self.lbl_ports_status.setText(f"Varredura finalizada. {len(open_ports)} porta(s) aberta(s) encontrada(s).")
 
         self.runner.start_task(worker, on_finished=on_done)
@@ -172,12 +178,13 @@ class ScannerView(QWidget):
 
         def on_done(devices: List[ArpDeviceItem]):
             self.btn_scan_arp.setEnabled(True)
-            self.table_arp.setRowCount(len(devices))
-            for row, d in enumerate(devices):
-                self.table_arp.setItem(row, 0, QTableWidgetItem(d.ip))
-                self.table_arp.setItem(row, 1, QTableWidgetItem(d.mac))
-                self.table_arp.setItem(row, 2, QTableWidgetItem(d.tipo))
-                self.table_arp.setItem(row, 3, QTableWidgetItem(d.hostname))
+            with batch_table_update(self.table_arp):
+                self.table_arp.setRowCount(len(devices))
+                for row, d in enumerate(devices):
+                    self.table_arp.setItem(row, 0, SmartTableWidgetItem(d.ip, user_data=d))
+                    self.table_arp.setItem(row, 1, SmartTableWidgetItem(d.mac))
+                    self.table_arp.setItem(row, 2, SmartTableWidgetItem(d.tipo))
+                    self.table_arp.setItem(row, 3, SmartTableWidgetItem(d.hostname))
             self.lbl_arp_status.setText(f"Descoberta concluída: {len(devices)} dispositivo(s) localizado(s).")
 
         self.runner.start_task(worker, on_finished=on_done)

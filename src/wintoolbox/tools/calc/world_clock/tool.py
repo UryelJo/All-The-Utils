@@ -18,6 +18,9 @@ from wintoolbox.tools.calc.world_clock.logic import (
 )
 from wintoolbox.ui.widgets.toast import show_toast
 from wintoolbox.ui.widgets.tool_header import ToolHeader
+from wintoolbox.ui.widgets.sortable_table import (
+    SmartTableWidgetItem, enable_sorting_on_table, batch_table_update
+)
 
 _log = get_logger("calc.world_clock.ui")
 
@@ -77,32 +80,34 @@ class WorldClockView(QWidget):
         self.table_clocks.horizontalHeader().setSectionResizeMode(2, QHeaderView.ResizeMode.Stretch)
         self.table_clocks.horizontalHeader().setSectionResizeMode(3, QHeaderView.ResizeMode.ResizeToContents)
         self.table_clocks.horizontalHeader().setSectionResizeMode(4, QHeaderView.ResizeMode.ResizeToContents)
+        enable_sorting_on_table(self.table_clocks)
 
         layout.addWidget(self.table_clocks, stretch=1)
         return tab
 
     def _refresh_clocks(self) -> None:
         clocks = get_all_world_clocks()
-        if self.table_clocks.rowCount() != len(clocks):
-            self.table_clocks.setRowCount(len(clocks))
+        with batch_table_update(self.table_clocks):
+            if self.table_clocks.rowCount() != len(clocks):
+                self.table_clocks.setRowCount(len(clocks))
 
-        for row, c in enumerate(clocks):
-            # Cidade
-            self.table_clocks.setItem(row, 0, QTableWidgetItem(c["city"]))
-            # Região
-            self.table_clocks.setItem(row, 1, QTableWidgetItem(c["region"]))
+            for row, c in enumerate(clocks):
+                # Cidade
+                self.table_clocks.setItem(row, 0, SmartTableWidgetItem(c["city"], user_data=c))
+                # Região
+                self.table_clocks.setItem(row, 1, SmartTableWidgetItem(c["region"]))
 
-            # Horário (em destaque)
-            time_item = QTableWidgetItem(c["time_str"])
-            time_item.setFont(QFont("Cascadia Mono", 11, QFont.Weight.Bold))
-            if "Brasília" in c["city"]:
-                time_item.setForeground(QColor("#10B981"))
-            self.table_clocks.setItem(row, 2, time_item)
+                # Horário (em destaque)
+                time_item = SmartTableWidgetItem(c["time_str"])
+                time_item.setFont(QFont("Cascadia Mono", 11, QFont.Weight.Bold))
+                if "Brasília" in c["city"]:
+                    time_item.setForeground(QColor("#10B981"))
+                self.table_clocks.setItem(row, 2, time_item)
 
-            # Data
-            self.table_clocks.setItem(row, 3, QTableWidgetItem(c["date_str"]))
-            # Offset
-            self.table_clocks.setItem(row, 4, QTableWidgetItem(f"{c['offset_str']} ({c['tz_abbr']})"))
+                # Data
+                self.table_clocks.setItem(row, 3, SmartTableWidgetItem(c["date_str"]))
+                # Offset
+                self.table_clocks.setItem(row, 4, SmartTableWidgetItem(f"{c['offset_str']} ({c['tz_abbr']})"))
 
     # 2. Aba Conversor
     def _build_converter_tab(self) -> QWidget:

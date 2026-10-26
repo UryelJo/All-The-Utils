@@ -14,6 +14,9 @@ from wintoolbox.core.tasks import TaskRunner
 from wintoolbox.tools.network.connections.logic import (
     list_active_connections, terminate_connection_process
 )
+from wintoolbox.ui.widgets.sortable_table import (
+    SmartTableWidgetItem, enable_sorting_on_table, batch_table_update
+)
 from wintoolbox.ui.widgets.toast import show_toast
 from wintoolbox.ui.widgets.tool_header import ToolHeader
 
@@ -82,6 +85,7 @@ class ConnectionsView(QWidget):
         self.table.horizontalHeader().setSectionResizeMode(5, QHeaderView.ResizeToContents)
         self.table.setSelectionBehavior(QTableWidget.SelectRows)
         self.table.setSelectionMode(QTableWidget.SingleSelection)
+        enable_sorting_on_table(self.table)
         layout.addWidget(self.table, stretch=1)
 
         self._load_async()
@@ -114,24 +118,25 @@ class ConnectionsView(QWidget):
                     or q in c["status"].lower() or q in c["proto"].lower()):
                 filtered.append(c)
 
-        self.table.setRowCount(len(filtered))
         established_count = 0
+        with batch_table_update(self.table):
+            self.table.setRowCount(len(filtered))
+            for row, c in enumerate(filtered):
+                self.table.setItem(row, 0, SmartTableWidgetItem(c["proto"], user_data=c))
+                self.table.setItem(row, 1, SmartTableWidgetItem(c["process_name"]))
+                pid_val = c.get("pid", 0)
+                self.table.setItem(row, 2, SmartTableWidgetItem(str(pid_val), sort_value=int(pid_val) if str(pid_val).isdigit() else pid_val))
+                self.table.setItem(row, 3, SmartTableWidgetItem(c["local_address"]))
+                self.table.setItem(row, 4, SmartTableWidgetItem(c["remote_address"]))
 
-        for row, c in enumerate(filtered):
-            self.table.setItem(row, 0, QTableWidgetItem(c["proto"]))
-            self.table.setItem(row, 1, QTableWidgetItem(c["process_name"]))
-            self.table.setItem(row, 2, QTableWidgetItem(str(c["pid"])))
-            self.table.setItem(row, 3, QTableWidgetItem(c["local_address"]))
-            self.table.setItem(row, 4, QTableWidgetItem(c["remote_address"]))
+                status_item = SmartTableWidgetItem(c["status"])
+                if c["status"] == "ESTABLISHED":
+                    established_count += 1
+                    status_item.setForeground(Qt.green)
+                elif c["status"] == "LISTENING":
+                    status_item.setForeground(Qt.cyan)
 
-            status_item = QTableWidgetItem(c["status"])
-            if c["status"] == "ESTABLISHED":
-                established_count += 1
-                status_item.setForeground(Qt.green)
-            elif c["status"] == "LISTENING":
-                status_item.setForeground(Qt.cyan)
-
-            self.table.setItem(row, 5, status_item)
+                self.table.setItem(row, 5, status_item)
 
         self.lbl_stats.setText(f"{len(filtered)} exibidas ({established_count} estabelecidas)")
 

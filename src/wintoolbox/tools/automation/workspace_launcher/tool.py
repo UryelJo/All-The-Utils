@@ -18,6 +18,9 @@ from wintoolbox.tools.automation.workspace_launcher.logic import (
 )
 from wintoolbox.ui.widgets.toast import show_toast
 from wintoolbox.ui.widgets.tool_header import ToolHeader
+from wintoolbox.ui.widgets.sortable_table import (
+    SmartTableWidgetItem, enable_sorting_on_table, batch_table_update
+)
 
 _log = get_logger("automation.workspace_launcher.ui")
 
@@ -111,6 +114,7 @@ class WorkspaceLauncherView(QWidget):
         self.table_items.horizontalHeader().setSectionResizeMode(1, QHeaderView.ResizeMode.Stretch)
         self.table_items.horizontalHeader().setSectionResizeMode(2, QHeaderView.ResizeMode.Fixed)
         self.table_items.setColumnWidth(2, 75)
+        enable_sorting_on_table(self.table_items)
         right_layout.addWidget(self.table_items, stretch=1)
 
         # Formulário para Adicionar Novo Item
@@ -167,19 +171,19 @@ class WorkspaceLauncherView(QWidget):
 
     def _refresh_items_table(self, ws: Dict[str, Any]) -> None:
         items = ws.get("items", [])
-        self.table_items.setRowCount(len(items))
-
         type_names = {"url": "Site / URL", "folder": "Pasta", "app": "Aplicativo"}
 
-        for r, item in enumerate(items):
-            itype = type_names.get(item.get("type"), "Item")
-            self.table_items.setItem(r, 0, QTableWidgetItem(itype))
-            self.table_items.setItem(r, 1, QTableWidgetItem(item.get("target", "")))
+        with batch_table_update(self.table_items):
+            self.table_items.setRowCount(len(items))
+            for r, item in enumerate(items):
+                itype = type_names.get(item.get("type"), "Item")
+                self.table_items.setItem(r, 0, SmartTableWidgetItem(itype, user_data=item))
+                self.table_items.setItem(r, 1, SmartTableWidgetItem(item.get("target", "")))
 
-            btn_del = QPushButton("Remover")
-            btn_del.setStyleSheet("font-size: 10px; padding: 2px;")
-            btn_del.clicked.connect(lambda checked=False, idx=r: self._remove_item(idx))
-            self.table_items.setCellWidget(r, 2, btn_del)
+                btn_del = QPushButton("Remover")
+                btn_del.setStyleSheet("font-size: 10px; padding: 2px;")
+                btn_del.clicked.connect(lambda checked=False, it=item: self._remove_item(it))
+                self.table_items.setCellWidget(r, 2, btn_del)
 
     def _on_type_changed(self) -> None:
         itype = self.combo_item_type.currentData()
@@ -222,13 +226,15 @@ class WorkspaceLauncherView(QWidget):
         self.edit_target.clear()
         show_toast(self, "Item adicionado com sucesso!")
 
-    def _remove_item(self, item_index: int) -> None:
+    def _remove_item(self, item_to_remove: Any) -> None:
         if 0 <= self._current_index < len(self._workspaces):
             ws = self._workspaces[self._current_index]
-            if 0 <= item_index < len(ws["items"]):
-                del ws["items"][item_index]
-                save_workspaces(self._workspaces)
-                self._refresh_items_table(ws)
+            if isinstance(item_to_remove, dict) and item_to_remove in ws["items"]:
+                ws["items"].remove(item_to_remove)
+            elif isinstance(item_to_remove, int) and 0 <= item_to_remove < len(ws["items"]):
+                del ws["items"][item_to_remove]
+            save_workspaces(self._workspaces)
+            self._refresh_items_table(ws)
 
     def _create_new_workspace(self) -> None:
         name, ok = QInputDialog.getText(self, "Novo Ambiente", "Digite o nome do novo ambiente de trabalho:")

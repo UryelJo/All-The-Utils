@@ -14,6 +14,9 @@ from PySide6.QtWidgets import (
 )
 
 from wintoolbox.core.registry import Tool, register
+from wintoolbox.ui.widgets.sortable_table import (
+    SmartTableWidgetItem, batch_table_update, enable_sorting_on_table
+)
 from .logic import (
     NetworkInterfaceInfo,
     TrafficRateInfo,
@@ -119,6 +122,7 @@ class IpInfoView(QWidget):
         self.table_ifaces.setHorizontalHeaderLabels([
             "Adaptador", "Status", "IPv4 Local", "Endereço MAC", "IPv6"
         ])
+        enable_sorting_on_table(self.table_ifaces)
         self.table_ifaces.horizontalHeader().setSectionResizeMode(0, QHeaderView.ResizeToContents)
         self.table_ifaces.horizontalHeader().setSectionResizeMode(1, QHeaderView.ResizeToContents)
         self.table_ifaces.horizontalHeader().setSectionResizeMode(2, QHeaderView.ResizeToContents)
@@ -136,13 +140,14 @@ class IpInfoView(QWidget):
 
     def _refresh_static_data(self):
         ifaces = get_local_interfaces()
-        self.table_ifaces.setRowCount(len(ifaces))
-        for row, item in enumerate(ifaces):
-            self.table_ifaces.setItem(row, 0, QTableWidgetItem(item.name))
-            self.table_ifaces.setItem(row, 1, QTableWidgetItem(item.status))
-            self.table_ifaces.setItem(row, 2, QTableWidgetItem(item.ipv4))
-            self.table_ifaces.setItem(row, 3, QTableWidgetItem(item.mac))
-            self.table_ifaces.setItem(row, 4, QTableWidgetItem(item.ipv6))
+        with batch_table_update(self.table_ifaces):
+            self.table_ifaces.setRowCount(len(ifaces))
+            for row, item in enumerate(ifaces):
+                self.table_ifaces.setItem(row, 0, SmartTableWidgetItem(item.name))
+                self.table_ifaces.setItem(row, 1, SmartTableWidgetItem(item.status))
+                self.table_ifaces.setItem(row, 2, SmartTableWidgetItem(item.ipv4))
+                self.table_ifaces.setItem(row, 3, SmartTableWidgetItem(item.mac))
+                self.table_ifaces.setItem(row, 4, SmartTableWidgetItem(item.ipv6))
 
         self._refresh_public_ip()
 

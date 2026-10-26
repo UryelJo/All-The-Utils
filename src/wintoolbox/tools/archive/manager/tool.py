@@ -23,6 +23,9 @@ from .logic import (
     format_archive_size,
     inspect_archive,
 )
+from wintoolbox.ui.widgets.sortable_table import (
+    SmartTableWidgetItem, enable_sorting_on_table, batch_table_update
+)
 
 @register
 class ArchiveManagerTool(Tool):
@@ -172,6 +175,7 @@ class ArchiveManagerView(QWidget):
         self.table_contents.horizontalHeader().setSectionResizeMode(2, QHeaderView.ResizeToContents)
         self.table_contents.verticalHeader().setVisible(False)
         self.table_contents.setFixedHeight(220)
+        enable_sorting_on_table(self.table_contents)
         l_ext.addWidget(self.table_contents)
 
         tabs.addTab(tab_ext, "Extrair e Inspecionar Pacotes")
@@ -296,12 +300,13 @@ class ArchiveManagerView(QWidget):
     def _load_archive_contents(self, archive_path: Path):
         try:
             items = inspect_archive(archive_path)
-            self.table_contents.setRowCount(len(items))
-            for row, it in enumerate(items):
-                prefix = "[DIR] " if it["is_dir"] else ""
-                self.table_contents.setItem(row, 0, QTableWidgetItem(f"{prefix}{it['name']}"))
-                self.table_contents.setItem(row, 1, QTableWidgetItem(self._format_size(it["size"])))
-                self.table_contents.setItem(row, 2, QTableWidgetItem(self._format_size(it["compressed"])))
+            with batch_table_update(self.table_contents):
+                self.table_contents.setRowCount(len(items))
+                for row, it in enumerate(items):
+                    prefix = "[DIR] " if it["is_dir"] else ""
+                    self.table_contents.setItem(row, 0, SmartTableWidgetItem(f"{prefix}{it['name']}", sort_value=it["name"].lower(), user_data=it))
+                    self.table_contents.setItem(row, 1, SmartTableWidgetItem(self._format_size(it["size"]), sort_value=it["size"]))
+                    self.table_contents.setItem(row, 2, SmartTableWidgetItem(self._format_size(it["compressed"]), sort_value=it["compressed"]))
         except Exception as e:
             QMessageBox.warning(self, "Aviso", f"Não foi possível inspecionar o arquivo:\n{str(e)}")
 

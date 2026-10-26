@@ -18,6 +18,9 @@ from PySide6.QtWidgets import (
 from wintoolbox.core.registry import Tool, register
 from wintoolbox.core.tasks import TaskRunner
 from .logic import find_locking_processes, terminate_process
+from wintoolbox.ui.widgets.sortable_table import (
+    SmartTableWidgetItem, enable_sorting_on_table, batch_table_update
+)
 
 @register
 class LockCheckerTool(Tool):
@@ -102,6 +105,7 @@ class LockCheckerView(QWidget):
         self.table.horizontalHeader().setSectionResizeMode(3, QHeaderView.ResizeToContents)
         self.table.verticalHeader().setVisible(False)
         self.table.setFixedHeight(260)
+        enable_sorting_on_table(self.table)
         layout.addWidget(self.table)
 
         layout.addStretch()
@@ -151,16 +155,18 @@ class LockCheckerView(QWidget):
         self.runner.start_task(worker, on_finished=on_done, on_error=on_error)
 
     def _populate_table(self):
-        self.table.setRowCount(len(self.processes))
-        for row, p in enumerate(self.processes):
-            self.table.setItem(row, 0, QTableWidgetItem(p["pid"]))
-            self.table.setItem(row, 1, QTableWidgetItem(p["name"]))
-            self.table.setItem(row, 2, QTableWidgetItem(p["service"]))
+        with batch_table_update(self.table):
+            self.table.setRowCount(len(self.processes))
+            for row, p in enumerate(self.processes):
+                pid_val = int(p["pid"]) if p["pid"].isdigit() else p["pid"]
+                self.table.setItem(row, 0, SmartTableWidgetItem(p["pid"], sort_value=pid_val))
+                self.table.setItem(row, 1, SmartTableWidgetItem(p["name"]))
+                self.table.setItem(row, 2, SmartTableWidgetItem(p["service"]))
 
-            btn_kill = QPushButton("Encerrar Processo")
-            btn_kill.setProperty("class", "danger")
-            btn_kill.clicked.connect(lambda _, pid=int(p["pid"]), name=p["name"]: self._kill_process(pid, name))
-            self.table.setCellWidget(row, 3, btn_kill)
+                btn_kill = QPushButton("Encerrar Processo")
+                btn_kill.setProperty("class", "danger")
+                btn_kill.clicked.connect(lambda _, pid=int(p["pid"]), name=p["name"]: self._kill_process(pid, name))
+                self.table.setCellWidget(row, 3, btn_kill)
 
     def _kill_process(self, pid: int, name: str):
         reply = QMessageBox.question(

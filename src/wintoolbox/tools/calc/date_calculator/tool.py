@@ -18,6 +18,9 @@ from wintoolbox.tools.calc.date_calculator.logic import (
 )
 from wintoolbox.ui.widgets.toast import show_toast
 from wintoolbox.ui.widgets.tool_header import ToolHeader
+from wintoolbox.ui.widgets.sortable_table import (
+    SmartTableWidgetItem, enable_sorting_on_table, batch_table_update
+)
 
 _log = get_logger("calc.date_calculator.ui")
 
@@ -313,6 +316,7 @@ class DateCalculatorView(QWidget):
         self.table_holidays.horizontalHeader().setSectionResizeMode(3, QHeaderView.ResizeToContents)
         self.table_holidays.verticalHeader().setVisible(False)
         self.table_holidays.setAlternatingRowColors(True)
+        enable_sorting_on_table(self.table_holidays)
         layout.addWidget(self.table_holidays, stretch=1)
 
         self.lbl_holidays_summary = QLabel()
@@ -326,23 +330,23 @@ class DateCalculatorView(QWidget):
         year = self.spin_holidays_year.value()
         hols = get_detailed_holidays_for_year(year)
 
-        self.table_holidays.setRowCount(len(hols))
-        weekend_count = 0
+        with batch_table_update(self.table_holidays):
+            self.table_holidays.setRowCount(len(hols))
+            weekend_count = 0
 
-        for row, h in enumerate(hols):
-            it_date = QTableWidgetItem(h["formatted_date"])
-            it_dow = QTableWidgetItem(h["day_of_week"])
-            it_name = QTableWidgetItem(h["name"])
-            it_type = QTableWidgetItem(h["type"])
+            for row, h in enumerate(hols):
+                it_date = SmartTableWidgetItem(h["formatted_date"], sort_value=h["date"], user_data=h)
+                dow_text = f"{h['day_of_week']} (Fim de semana)" if h["is_weekend"] else h["day_of_week"]
+                if h["is_weekend"]:
+                    weekend_count += 1
+                it_dow = SmartTableWidgetItem(dow_text)
+                it_name = SmartTableWidgetItem(h["name"])
+                it_type = SmartTableWidgetItem(h["type"])
 
-            if h["is_weekend"]:
-                weekend_count += 1
-                it_dow.setText(f"{h['day_of_week']} (Fim de semana)")
-
-            self.table_holidays.setItem(row, 0, it_date)
-            self.table_holidays.setItem(row, 1, it_dow)
-            self.table_holidays.setItem(row, 2, it_name)
-            self.table_holidays.setItem(row, 3, it_type)
+                self.table_holidays.setItem(row, 0, it_date)
+                self.table_holidays.setItem(row, 1, it_dow)
+                self.table_holidays.setItem(row, 2, it_name)
+                self.table_holidays.setItem(row, 3, it_type)
 
         biz_hols = len(hols) - weekend_count
         self.lbl_holidays_summary.setText(

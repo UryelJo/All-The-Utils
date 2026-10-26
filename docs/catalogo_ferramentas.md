@@ -1178,5 +1178,18 @@ Este documento mantém o inventário detalhado de todas as ferramentas disponív
   - **Feriados Nacionais**: Consulta oficial de feriados nacionais por ano via endpoint BrasilAPI.
   - **Tabela FIPE**: Consulta do valor de mercado e histórico de veículos pelo código FIPE oficial.
 
+---
 
+## 18. Segurança e Auditoria Defensiva (`tools/security/`)
 
+### `security.http_headers` — Auditor de Cabeçalhos HTTP de Segurança
+- **Tipo**: `Tool` (Interativo e Auditoria Defensiva)
+- **Identificador**: `security.http_headers`
+- **Recursos**:
+  - Auditoria e autodiagnóstico de cabeçalhos HTTP públicos para sites e aplicações web próprias.
+  - Avaliação detalhada de conformidade OWASP: `Strict-Transport-Security` (HSTS com verificação de max-age, includeSubDomains e preload), `Content-Security-Policy` (CSP com alerta de diretivas permissivas como unsafe-inline/unsafe-eval), `X-Frame-Options` (prevenção de Clickjacking), `X-Content-Type-Options` (nosniff), `Referrer-Policy`, `Permissions-Policy`, e políticas cross-origin (`COOP`, `COEP`, `CORP`).
+  - Detecção de vazamento de informações e versões em cabeçalhos de servidor (`Server`, `X-Powered-By`, `X-AspNet-Version`).
+  - Classificação por notas de **A+** a **F** e pontuação de 0 a 100 pontos no padrão internacional de segurança web.
+  - Tabela com `DataTableView` contendo cores dinâmicas de status e severidade, busca/filtro instantâneo e painel de impacto detalhado.
+  - Exportação completa do relatório de conformidade em formato Markdown (`.md`) ou Texto (`.txt`).
+  - Execução assíncrona segura via `TaskRunner` e aviso ético explícito na interface.

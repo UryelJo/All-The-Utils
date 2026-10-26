@@ -16,6 +16,9 @@ from wintoolbox.tools.system.winget.logic import (
     get_curated_apps, is_winget_installed, list_available_upgrades
 )
 from wintoolbox.ui.widgets.log_panel import LogPanelWidget
+from wintoolbox.ui.widgets.sortable_table import (
+    SmartTableWidgetItem, enable_sorting_on_table, batch_table_update
+)
 from wintoolbox.ui.widgets.toast import show_toast
 from wintoolbox.ui.widgets.tool_header import ToolHeader
 
@@ -98,6 +101,7 @@ class WingetView(QWidget):
         self.table_upgrades.horizontalHeader().setSectionResizeMode(1, QHeaderView.ResizeToContents)
         self.table_upgrades.horizontalHeader().setSectionResizeMode(2, QHeaderView.ResizeToContents)
         self.table_upgrades.horizontalHeader().setSectionResizeMode(3, QHeaderView.ResizeToContents)
+        enable_sorting_on_table(self.table_upgrades)
         lay.addWidget(self.table_upgrades)
 
         self.tabs.addTab(tab, "Atualizações Disponíveis")
@@ -118,19 +122,21 @@ class WingetView(QWidget):
         self.table_catalog.horizontalHeader().setSectionResizeMode(2, QHeaderView.ResizeToContents)
         self.table_catalog.horizontalHeader().setSectionResizeMode(3, QHeaderView.Fixed)
         self.table_catalog.setColumnWidth(3, 110)
+        enable_sorting_on_table(self.table_catalog)
 
         # Preenche catálogo
         apps = get_curated_apps()
-        self.table_catalog.setRowCount(len(apps))
-        for row, a in enumerate(apps):
-            self.table_catalog.setItem(row, 0, QTableWidgetItem(a["name"]))
-            self.table_catalog.setItem(row, 1, QTableWidgetItem(a["category"]))
-            self.table_catalog.setItem(row, 2, QTableWidgetItem(a["id"]))
+        with batch_table_update(self.table_catalog):
+            self.table_catalog.setRowCount(len(apps))
+            for row, a in enumerate(apps):
+                self.table_catalog.setItem(row, 0, SmartTableWidgetItem(a["name"], user_data=a))
+                self.table_catalog.setItem(row, 1, SmartTableWidgetItem(a["category"]))
+                self.table_catalog.setItem(row, 2, SmartTableWidgetItem(a["id"]))
 
-            btn_install = QPushButton("Instalar")
-            app_id = a["id"]
-            btn_install.clicked.connect(lambda _, aid=app_id: self._install_app(aid))
-            self.table_catalog.setCellWidget(row, 3, btn_install)
+                btn_install = QPushButton("Instalar")
+                app_id = a["id"]
+                btn_install.clicked.connect(lambda _, aid=app_id: self._install_app(aid))
+                self.table_catalog.setCellWidget(row, 3, btn_install)
 
         lay.addWidget(self.table_catalog)
         self.tabs.addTab(tab, "Catálogo de Softwares Populares")
@@ -144,12 +150,13 @@ class WingetView(QWidget):
 
         def _on_done(upgrades: List[Dict[str, str]]):
             self.btn_check_upgrades.setEnabled(True)
-            self.table_upgrades.setRowCount(len(upgrades))
-            for row, u in enumerate(upgrades):
-                self.table_upgrades.setItem(row, 0, QTableWidgetItem(u["name"]))
-                self.table_upgrades.setItem(row, 1, QTableWidgetItem(u["id"]))
-                self.table_upgrades.setItem(row, 2, QTableWidgetItem(u["current_version"]))
-                self.table_upgrades.setItem(row, 3, QTableWidgetItem(u["available_version"]))
+            with batch_table_update(self.table_upgrades):
+                self.table_upgrades.setRowCount(len(upgrades))
+                for row, u in enumerate(upgrades):
+                    self.table_upgrades.setItem(row, 0, SmartTableWidgetItem(u["name"], user_data=u))
+                    self.table_upgrades.setItem(row, 1, SmartTableWidgetItem(u["id"]))
+                    self.table_upgrades.setItem(row, 2, SmartTableWidgetItem(u["current_version"]))
+                    self.table_upgrades.setItem(row, 3, SmartTableWidgetItem(u["available_version"]))
 
             if upgrades:
                 self.lbl_upgrades_status.setText(f"{len(upgrades)} atualizações encontradas.")

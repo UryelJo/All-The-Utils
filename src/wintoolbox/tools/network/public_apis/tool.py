@@ -13,6 +13,9 @@ from wintoolbox.tools.network.public_apis.logic import (
     fetch_banks, fetch_brasilapi_holidays, fetch_cep_info, fetch_cnpj_info,
     fetch_currency_quotes, fetch_ddd_info, fetch_fipe_info
 )
+from wintoolbox.ui.widgets.sortable_table import (
+    SmartTableWidgetItem, enable_sorting_on_table, batch_table_update
+)
 from wintoolbox.ui.widgets.toast import show_toast
 from wintoolbox.ui.widgets.tool_header import ToolHeader
 
@@ -96,6 +99,7 @@ class PublicApisView(QWidget):
         self.table_cep.horizontalHeader().setStretchLastSection(True)
         self.table_cep.verticalHeader().setVisible(False)
         self.table_cep.setAlternatingRowColors(True)
+        enable_sorting_on_table(self.table_cep)
         layout.addWidget(self.table_cep, stretch=1)
 
         return tab
@@ -107,10 +111,11 @@ class PublicApisView(QWidget):
             return fetch_cep_info(cep)
 
         def on_done(info):
-            self.table_cep.setRowCount(len(info))
-            for row, (k, v) in enumerate(info.items()):
-                self.table_cep.setItem(row, 0, QTableWidgetItem(k))
-                self.table_cep.setItem(row, 1, QTableWidgetItem(str(v)))
+            with batch_table_update(self.table_cep):
+                self.table_cep.setRowCount(len(info))
+                for row, (k, v) in enumerate(info.items()):
+                    self.table_cep.setItem(row, 0, SmartTableWidgetItem(k))
+                    self.table_cep.setItem(row, 1, SmartTableWidgetItem(str(v)))
 
         def on_err(err):
             QMessageBox.warning(self, "Aviso", f"Não foi possível consultar o CEP:\n{err}")
@@ -148,6 +153,7 @@ class PublicApisView(QWidget):
         self.table_cnpj.horizontalHeader().setStretchLastSection(True)
         self.table_cnpj.verticalHeader().setVisible(False)
         self.table_cnpj.setAlternatingRowColors(True)
+        enable_sorting_on_table(self.table_cnpj)
         layout.addWidget(self.table_cnpj, stretch=1)
 
         return tab
@@ -159,10 +165,11 @@ class PublicApisView(QWidget):
             return fetch_cnpj_info(cnpj)
 
         def on_done(info):
-            self.table_cnpj.setRowCount(len(info))
-            for row, (k, v) in enumerate(info.items()):
-                self.table_cnpj.setItem(row, 0, QTableWidgetItem(k))
-                self.table_cnpj.setItem(row, 1, QTableWidgetItem(str(v)))
+            with batch_table_update(self.table_cnpj):
+                self.table_cnpj.setRowCount(len(info))
+                for row, (k, v) in enumerate(info.items()):
+                    self.table_cnpj.setItem(row, 0, SmartTableWidgetItem(k))
+                    self.table_cnpj.setItem(row, 1, SmartTableWidgetItem(str(v)))
 
         def on_err(err):
             QMessageBox.warning(self, "Aviso", f"Não foi possível consultar o CNPJ:\n{err}")
@@ -205,6 +212,7 @@ class PublicApisView(QWidget):
         self.table_ddd_cities.horizontalHeader().setSectionResizeMode(1, QHeaderView.Stretch)
         self.table_ddd_cities.verticalHeader().setVisible(False)
         self.table_ddd_cities.setAlternatingRowColors(True)
+        enable_sorting_on_table(self.table_ddd_cities)
         layout.addWidget(self.table_ddd_cities, stretch=1)
 
         return tab
@@ -218,10 +226,11 @@ class PublicApisView(QWidget):
         def on_done(info):
             self.lbl_ddd_status.setText(f"Estado (UF): {info['state']} | Total de Municípios: {info['total_cities']}")
             cities = info["cities"]
-            self.table_ddd_cities.setRowCount(len(cities))
-            for i, city in enumerate(cities):
-                self.table_ddd_cities.setItem(i, 0, QTableWidgetItem(str(i + 1)))
-                self.table_ddd_cities.setItem(i, 1, QTableWidgetItem(city))
+            with batch_table_update(self.table_ddd_cities):
+                self.table_ddd_cities.setRowCount(len(cities))
+                for i, city in enumerate(cities):
+                    self.table_ddd_cities.setItem(i, 0, SmartTableWidgetItem(str(i + 1), sort_value=i + 1))
+                    self.table_ddd_cities.setItem(i, 1, SmartTableWidgetItem(city))
 
         def on_err(err):
             QMessageBox.warning(self, "Aviso", f"Não foi possível consultar o DDD:\n{err}")
@@ -271,6 +280,7 @@ class PublicApisView(QWidget):
         self.table_banks.verticalHeader().setVisible(False)
         self.table_banks.setAlternatingRowColors(True)
         self.table_banks.setSelectionBehavior(QTableWidget.SelectRows)
+        enable_sorting_on_table(self.table_banks)
         layout.addWidget(self.table_banks, stretch=1)
 
         self.lbl_banks_count = QLabel("Carregando bancos autorizados pelo Banco Central...")
@@ -305,12 +315,15 @@ class PublicApisView(QWidget):
                 or query in b["ispb"].lower()
             ]
 
-        self.table_banks.setRowCount(len(filtered))
-        for row, b in enumerate(filtered):
-            self.table_banks.setItem(row, 0, QTableWidgetItem(b["code"]))
-            self.table_banks.setItem(row, 1, QTableWidgetItem(b["name"]))
-            self.table_banks.setItem(row, 2, QTableWidgetItem(b["fullName"]))
-            self.table_banks.setItem(row, 3, QTableWidgetItem(b["ispb"]))
+        with batch_table_update(self.table_banks):
+            self.table_banks.setRowCount(len(filtered))
+            for row, b in enumerate(filtered):
+                code_str = b.get("code", "")
+                code_num = int(code_str) if code_str.isdigit() else code_str
+                self.table_banks.setItem(row, 0, SmartTableWidgetItem(code_str, sort_value=code_num, user_data=b))
+                self.table_banks.setItem(row, 1, SmartTableWidgetItem(b["name"]))
+                self.table_banks.setItem(row, 2, SmartTableWidgetItem(b["fullName"]))
+                self.table_banks.setItem(row, 3, SmartTableWidgetItem(b["ispb"]))
 
         self.lbl_banks_count.setText(f"Exibindo {len(filtered)} de {len(self._all_banks_cache)} instituições financeiras.")
 
@@ -362,6 +375,7 @@ class PublicApisView(QWidget):
         self.table_holidays.horizontalHeader().setSectionResizeMode(3, QHeaderView.ResizeToContents)
         self.table_holidays.verticalHeader().setVisible(False)
         self.table_holidays.setAlternatingRowColors(True)
+        enable_sorting_on_table(self.table_holidays)
         layout.addWidget(self.table_holidays, stretch=1)
 
         return tab
@@ -373,13 +387,14 @@ class PublicApisView(QWidget):
             return fetch_brasilapi_holidays(year)
 
         def on_done(holidays):
-            self.table_holidays.setRowCount(len(holidays))
-            for row, h in enumerate(holidays):
-                self.table_holidays.setItem(row, 0, QTableWidgetItem(h["formatted_date"]))
-                dow_text = h["day_of_week"] + (" (Fim de semana)" if h["is_weekend"] else "")
-                self.table_holidays.setItem(row, 1, QTableWidgetItem(dow_text))
-                self.table_holidays.setItem(row, 2, QTableWidgetItem(h["name"]))
-                self.table_holidays.setItem(row, 3, QTableWidgetItem(h["type"]))
+            with batch_table_update(self.table_holidays):
+                self.table_holidays.setRowCount(len(holidays))
+                for row, h in enumerate(holidays):
+                    self.table_holidays.setItem(row, 0, SmartTableWidgetItem(h["formatted_date"], user_data=h))
+                    dow_text = h["day_of_week"] + (" (Fim de semana)" if h["is_weekend"] else "")
+                    self.table_holidays.setItem(row, 1, SmartTableWidgetItem(dow_text))
+                    self.table_holidays.setItem(row, 2, SmartTableWidgetItem(h["name"]))
+                    self.table_holidays.setItem(row, 3, SmartTableWidgetItem(h["type"]))
 
         def on_err(err):
             QMessageBox.warning(self, "Aviso", f"Não foi possível consultar os feriados na BrasilAPI:\n{err}")
@@ -428,6 +443,7 @@ class PublicApisView(QWidget):
         self.table_fipe.horizontalHeader().setSectionResizeMode(5, QHeaderView.ResizeToContents)
         self.table_fipe.verticalHeader().setVisible(False)
         self.table_fipe.setAlternatingRowColors(True)
+        enable_sorting_on_table(self.table_fipe)
         layout.addWidget(self.table_fipe, stretch=1)
 
         self.lbl_fipe_info = QLabel("Insira o código FIPE com 7 dígitos (ex: 001004-9) para ver histórico e preços atuais.")
@@ -447,17 +463,20 @@ class PublicApisView(QWidget):
             return fetch_fipe_info(code)
 
         def on_done(items):
-            self.table_fipe.setRowCount(len(items))
-            for row, item in enumerate(items):
-                brand_model = f"{item.get('marca', '')} {item.get('modelo', '')}".strip()
-                self.table_fipe.setItem(row, 0, QTableWidgetItem(brand_model))
-                self.table_fipe.setItem(row, 1, QTableWidgetItem(str(item.get("anoModelo", "-"))))
-                self.table_fipe.setItem(row, 2, QTableWidgetItem(str(item.get("combustivel", "-"))))
-                val_item = QTableWidgetItem(str(item.get("valor", "-")))
-                val_item.setTextAlignment(Qt.AlignRight | Qt.AlignVCenter)
-                self.table_fipe.setItem(row, 3, val_item)
-                self.table_fipe.setItem(row, 4, QTableWidgetItem(str(item.get("mesReferencia", "-"))))
-                self.table_fipe.setItem(row, 5, QTableWidgetItem(str(item.get("codigoFipe", "-"))))
+            with batch_table_update(self.table_fipe):
+                self.table_fipe.setRowCount(len(items))
+                for row, item in enumerate(items):
+                    brand_model = f"{item.get('marca', '')} {item.get('modelo', '')}".strip()
+                    self.table_fipe.setItem(row, 0, SmartTableWidgetItem(brand_model, user_data=item))
+                    ano = item.get("anoModelo", "-")
+                    self.table_fipe.setItem(row, 1, SmartTableWidgetItem(str(ano), sort_value=int(ano) if str(ano).isdigit() else ano))
+                    self.table_fipe.setItem(row, 2, SmartTableWidgetItem(str(item.get("combustivel", "-"))))
+                    val_str = str(item.get("valor", "-"))
+                    val_item = SmartTableWidgetItem(val_str)
+                    val_item.setTextAlignment(Qt.AlignRight | Qt.AlignVCenter)
+                    self.table_fipe.setItem(row, 3, val_item)
+                    self.table_fipe.setItem(row, 4, SmartTableWidgetItem(str(item.get("mesReferencia", "-"))))
+                    self.table_fipe.setItem(row, 5, SmartTableWidgetItem(str(item.get("codigoFipe", "-"))))
 
             self.lbl_fipe_info.setText(f"Consulta FIPE concluída: {len(items)} ano(s)/versão(ões) retornada(s).")
 
@@ -493,6 +512,7 @@ class PublicApisView(QWidget):
         self.table_quotes.horizontalHeader().setSectionResizeMode(4, QHeaderView.ResizeToContents)
         self.table_quotes.verticalHeader().setVisible(False)
         self.table_quotes.setAlternatingRowColors(True)
+        enable_sorting_on_table(self.table_quotes)
         layout.addWidget(self.table_quotes, stretch=1)
 
         return tab
@@ -503,13 +523,14 @@ class PublicApisView(QWidget):
 
         def on_done(quotes):
             self._quotes_cache = quotes
-            self.table_quotes.setRowCount(len(quotes))
-            for row, (coin_name, data) in enumerate(quotes.items()):
-                self.table_quotes.setItem(row, 0, QTableWidgetItem(coin_name))
-                self.table_quotes.setItem(row, 1, QTableWidgetItem(data["compra"]))
-                self.table_quotes.setItem(row, 2, QTableWidgetItem(data["variacao"]))
-                self.table_quotes.setItem(row, 3, QTableWidgetItem(data["max"]))
-                self.table_quotes.setItem(row, 4, QTableWidgetItem(data["min"]))
+            with batch_table_update(self.table_quotes):
+                self.table_quotes.setRowCount(len(quotes))
+                for row, (coin_name, data) in enumerate(quotes.items()):
+                    self.table_quotes.setItem(row, 0, SmartTableWidgetItem(coin_name, user_data=data))
+                    self.table_quotes.setItem(row, 1, SmartTableWidgetItem(data["compra"]))
+                    self.table_quotes.setItem(row, 2, SmartTableWidgetItem(data["variacao"]))
+                    self.table_quotes.setItem(row, 3, SmartTableWidgetItem(data["max"]))
+                    self.table_quotes.setItem(row, 4, SmartTableWidgetItem(data["min"]))
 
         self.runner.start_task(worker, on_finished=on_done)
 

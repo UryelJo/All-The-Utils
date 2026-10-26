@@ -14,6 +14,9 @@ from PySide6.QtWidgets import (
 from wintoolbox.core.registry import Tool, register
 from wintoolbox.core.tasks import TaskRunner
 from .logic import BackupReport, run_incremental_backup
+from wintoolbox.ui.widgets.sortable_table import (
+    SmartTableWidgetItem, enable_sorting_on_table, batch_table_update
+)
 
 
 @register
@@ -133,6 +136,7 @@ class FolderBackupView(QWidget):
         self.table.horizontalHeader().setSectionResizeMode(3, QHeaderView.ResizeToContents)
         self.table.horizontalHeader().setSectionResizeMode(4, QHeaderView.ResizeToContents)
         self.table.verticalHeader().setVisible(False)
+        enable_sorting_on_table(self.table)
         layout.addWidget(self.table)
 
         r_acts = QHBoxLayout()
@@ -186,14 +190,15 @@ class FolderBackupView(QWidget):
             self.prog_bar.setVisible(False)
             self.history_reports.insert(0, rep)
 
-            row = 0
-            self.table.insertRow(row)
-            self.table.setItem(row, 0, QTableWidgetItem(rep.timestamp))
-            self.table.setItem(row, 1, QTableWidgetItem(rep.source_dir.name))
-            self.table.setItem(row, 2, QTableWidgetItem(str(rep.target_path)))
-            self.table.setItem(row, 3, QTableWidgetItem(f"{rep.files_copied} arquivo(s)"))
             sz_mb = rep.bytes_copied / (1024 * 1024)
-            self.table.setItem(row, 4, QTableWidgetItem(f"{sz_mb:.1f} MB"))
+            with batch_table_update(self.table):
+                row = 0
+                self.table.insertRow(row)
+                self.table.setItem(row, 0, SmartTableWidgetItem(rep.timestamp, user_data=rep))
+                self.table.setItem(row, 1, SmartTableWidgetItem(rep.source_dir.name))
+                self.table.setItem(row, 2, SmartTableWidgetItem(str(rep.target_path)))
+                self.table.setItem(row, 3, SmartTableWidgetItem(f"{rep.files_copied} arquivo(s)", sort_value=rep.files_copied))
+                self.table.setItem(row, 4, SmartTableWidgetItem(f"{sz_mb:.1f} MB", sort_value=rep.bytes_copied))
 
             msg = f"Backup concluído com sucesso! {rep.files_copied} arquivo(s) transferidos ({sz_mb:.1f} MB)."
             if rep.files_skipped > 0:

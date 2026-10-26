@@ -18,6 +18,9 @@ from wintoolbox.tools.automation.folder_rules.logic import (
 )
 from wintoolbox.ui.widgets.toast import show_toast
 from wintoolbox.ui.widgets.tool_header import ToolHeader
+from wintoolbox.ui.widgets.sortable_table import (
+    SmartTableWidgetItem, enable_sorting_on_table, batch_table_update
+)
 
 _log = get_logger("automation.folder_rules.ui")
 
@@ -112,6 +115,7 @@ class FolderRulesView(QWidget):
         self.table_rules.horizontalHeader().setSectionResizeMode(2, QHeaderView.ResizeMode.Stretch)
         self.table_rules.horizontalHeader().setSectionResizeMode(3, QHeaderView.ResizeMode.Fixed)
         self.table_rules.setColumnWidth(3, 75)
+        enable_sorting_on_table(self.table_rules)
         rules_layout.addWidget(self.table_rules)
 
         root.addWidget(rules_box, stretch=1)
@@ -126,6 +130,7 @@ class FolderRulesView(QWidget):
         self.table_audit.horizontalHeader().setSectionResizeMode(1, QHeaderView.ResizeMode.ResizeToContents)
         self.table_audit.horizontalHeader().setSectionResizeMode(2, QHeaderView.ResizeMode.ResizeToContents)
         self.table_audit.horizontalHeader().setSectionResizeMode(3, QHeaderView.ResizeMode.Stretch)
+        enable_sorting_on_table(self.table_audit)
         res_layout.addWidget(self.table_audit)
 
         root.addWidget(res_box, stretch=1)
@@ -137,27 +142,30 @@ class FolderRulesView(QWidget):
 
     def _load_rules(self) -> None:
         self._rules = load_folder_rules()
-        self.table_rules.setRowCount(len(self._rules))
+        with batch_table_update(self.table_rules):
+            self.table_rules.setRowCount(len(self._rules))
 
-        for row, r in enumerate(self._rules):
-            self.table_rules.setItem(row, 0, QTableWidgetItem(r["name"]))
+            for row, r in enumerate(self._rules):
+                self.table_rules.setItem(row, 0, SmartTableWidgetItem(r["name"], user_data=r))
 
-            crit = f"{r.get('condition_type')}: {r.get('condition_value')}"
-            self.table_rules.setItem(row, 1, QTableWidgetItem(crit))
+                crit = f"{r.get('condition_type')}: {r.get('condition_value')}"
+                self.table_rules.setItem(row, 1, SmartTableWidgetItem(crit))
 
-            act = f"{r.get('action_type').upper()} -> {Path(r.get('destination', '')).name}"
-            self.table_rules.setItem(row, 2, QTableWidgetItem(act))
+                act = f"{r.get('action_type').upper()} -> {Path(r.get('destination', '')).name}"
+                self.table_rules.setItem(row, 2, SmartTableWidgetItem(act))
 
-            btn_del = QPushButton("Excluir")
-            btn_del.setStyleSheet("font-size: 10px; padding: 2px;")
-            btn_del.clicked.connect(lambda checked=False, idx=row: self._delete_rule(idx))
-            self.table_rules.setCellWidget(row, 3, btn_del)
+                btn_del = QPushButton("Excluir")
+                btn_del.setStyleSheet("font-size: 10px; padding: 2px;")
+                btn_del.clicked.connect(lambda checked=False, rule=r: self._delete_rule(rule))
+                self.table_rules.setCellWidget(row, 3, btn_del)
 
-    def _delete_rule(self, index: int) -> None:
-        if 0 <= index < len(self._rules):
-            del self._rules[index]
-            save_folder_rules(self._rules)
-            self._load_rules()
+    def _delete_rule(self, rule_to_delete: Any) -> None:
+        if isinstance(rule_to_delete, dict) and rule_to_delete in self._rules:
+            self._rules.remove(rule_to_delete)
+        elif isinstance(rule_to_delete, int) and 0 <= rule_to_delete < len(self._rules):
+            del self._rules[rule_to_delete]
+        save_folder_rules(self._rules)
+        self._load_rules()
 
     def _restore_default_rules(self) -> None:
         from wintoolbox.tools.automation.folder_rules.logic import DEFAULT_RULES
@@ -263,13 +271,14 @@ class FolderRulesView(QWidget):
 
         try:
             results = evaluate_folder_rules(src_dir, self._rules, dry_run=dry_run)
-            self.table_audit.setRowCount(len(results))
+            with batch_table_update(self.table_audit):
+                self.table_audit.setRowCount(len(results))
 
-            for row, res in enumerate(results):
-                self.table_audit.setItem(row, 0, QTableWidgetItem(res["file_name"]))
-                self.table_audit.setItem(row, 1, QTableWidgetItem(res["rule_name"]))
-                self.table_audit.setItem(row, 2, QTableWidgetItem(res["action"].upper()))
-                self.table_audit.setItem(row, 3, QTableWidgetItem(res["message"]))
+                for row, res in enumerate(results):
+                    self.table_audit.setItem(row, 0, SmartTableWidgetItem(res["file_name"]))
+                    self.table_audit.setItem(row, 1, SmartTableWidgetItem(res["rule_name"]))
+                    self.table_audit.setItem(row, 2, SmartTableWidgetItem(res["action"].upper()))
+                    self.table_audit.setItem(row, 3, SmartTableWidgetItem(res["message"]))
 
             mode_str = "Simulação concluída" if dry_run else "Organização concluída"
             show_toast(self, f"{mode_str}: {len(results)} arquivo(s) processados!", duration_ms=3000)

@@ -19,6 +19,9 @@ from wintoolbox.core.tasks import TaskRunner
 from wintoolbox.tools.images.exif.logic import (
     get_exif_capture_date, get_exif_info, strip_metadata
 )
+from wintoolbox.ui.widgets.sortable_table import (
+    SmartTableWidgetItem, enable_sorting_on_table, batch_table_update
+)
 
 @register
 class ImageExifTool(Tool):
@@ -131,6 +134,7 @@ class ImageExifView(QWidget):
         self.table_tags.horizontalHeader().setSectionResizeMode(2, QHeaderView.Stretch)
         self.table_tags.verticalHeader().setVisible(False)
         self.table_tags.setFixedHeight(240)
+        enable_sorting_on_table(self.table_tags)
         layout.addWidget(self.table_tags)
 
         return w
@@ -165,11 +169,13 @@ class ImageExifView(QWidget):
 
         # Preenche tabela
         raw = data["raw_tags"]
-        self.table_tags.setRowCount(len(raw))
-        for r, (tid, tname, tval) in enumerate(raw):
-            self.table_tags.setItem(r, 0, QTableWidgetItem(str(tid)))
-            self.table_tags.setItem(r, 1, QTableWidgetItem(str(tname)))
-            self.table_tags.setItem(r, 2, QTableWidgetItem(str(tval)))
+        with batch_table_update(self.table_tags):
+            self.table_tags.setRowCount(len(raw))
+            for r, (tid, tname, tval) in enumerate(raw):
+                sort_tid = tid if isinstance(tid, (int, float)) else str(tid)
+                self.table_tags.setItem(r, 0, SmartTableWidgetItem(str(tid), sort_value=sort_tid))
+                self.table_tags.setItem(r, 1, SmartTableWidgetItem(str(tname)))
+                self.table_tags.setItem(r, 2, SmartTableWidgetItem(str(tval)))
 
     def _open_maps(self):
         if hasattr(self, "_current_maps_url") and self._current_maps_url:
@@ -204,6 +210,7 @@ class ImageExifView(QWidget):
         self.table_batch.horizontalHeader().setSectionResizeMode(2, QHeaderView.Stretch)
         self.table_batch.verticalHeader().setVisible(False)
         self.table_batch.setFixedHeight(200)
+        enable_sorting_on_table(self.table_batch)
         layout.addWidget(self.table_batch)
 
         self.lbl_batch_count = QLabel("Nenhum arquivo na lista.")
@@ -279,14 +286,15 @@ class ImageExifView(QWidget):
         self._refresh_batch_table()
 
     def _refresh_batch_table(self):
-        self.table_batch.setRowCount(len(self.batch_files))
-        self.lbl_batch_count.setText(f"{len(self.batch_files)} imagem(ns) carregada(s)")
-        self.btn_run_batch.setEnabled(len(self.batch_files) > 0)
+        with batch_table_update(self.table_batch):
+            self.table_batch.setRowCount(len(self.batch_files))
+            self.lbl_batch_count.setText(f"{len(self.batch_files)} imagem(ns) carregada(s)")
+            self.btn_run_batch.setEnabled(len(self.batch_files) > 0)
 
-        for r, p in enumerate(self.batch_files):
-            self.table_batch.setItem(r, 0, QTableWidgetItem(p.name))
-            self.table_batch.setItem(r, 1, QTableWidgetItem("Pendente"))
-            self.table_batch.setItem(r, 2, QTableWidgetItem(str(p.parent)))
+            for r, p in enumerate(self.batch_files):
+                self.table_batch.setItem(r, 0, SmartTableWidgetItem(p.name, sort_value=p.name.lower(), user_data=p))
+                self.table_batch.setItem(r, 1, SmartTableWidgetItem("Pendente"))
+                self.table_batch.setItem(r, 2, SmartTableWidgetItem(str(p.parent)))
 
     def _run_batch_action(self):
         if not self.batch_files:

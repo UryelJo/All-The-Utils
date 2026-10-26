@@ -15,6 +15,9 @@ from PySide6.QtWidgets import (
 
 from wintoolbox.core.registry import Tool, register
 from wintoolbox.core.tasks import TaskRunner
+from wintoolbox.ui.widgets.sortable_table import (
+    SmartTableWidgetItem, enable_sorting_on_table, batch_table_update
+)
 from .logic import SearchResultItem, search_files
 
 
@@ -146,6 +149,7 @@ class FileSearchView(QWidget):
         self.table.setContextMenuPolicy(Qt.CustomContextMenu)
         self.table.customContextMenuRequested.connect(self._show_context_menu)
         self.table.itemDoubleClicked.connect(self._on_item_double_clicked)
+        enable_sorting_on_table(self.table)
         layout.addWidget(self.table)
 
         # Botões de Ação da Tabela
@@ -213,14 +217,15 @@ class FileSearchView(QWidget):
             self.btn_search.setEnabled(True)
             self.btn_cancel.setEnabled(False)
             self.current_results = results
-            self.table.setRowCount(len(results))
 
-            for row, item in enumerate(results):
-                self.table.setItem(row, 0, QTableWidgetItem(item.name))
-                self.table.setItem(row, 1, QTableWidgetItem(str(item.path.parent)))
-                self.table.setItem(row, 2, QTableWidgetItem(item.formatted_size))
-                self.table.setItem(row, 3, QTableWidgetItem(item.formatted_mtime))
-                self.table.setItem(row, 4, QTableWidgetItem(item.matched_snippet or "-"))
+            with batch_table_update(self.table):
+                self.table.setRowCount(len(results))
+                for row, item in enumerate(results):
+                    self.table.setItem(row, 0, SmartTableWidgetItem(item.name, user_data=item))
+                    self.table.setItem(row, 1, SmartTableWidgetItem(str(item.path.parent)))
+                    self.table.setItem(row, 2, SmartTableWidgetItem(item.formatted_size, sort_value=item.size_bytes))
+                    self.table.setItem(row, 3, SmartTableWidgetItem(item.formatted_mtime, sort_value=item.mtime_epoch))
+                    self.table.setItem(row, 4, SmartTableWidgetItem(item.matched_snippet or "-"))
 
             count = len(results)
             self.lbl_status.setText(f"Pesquisa concluída! {count} arquivo(s) encontrado(s).")
@@ -233,6 +238,12 @@ class FileSearchView(QWidget):
 
     def _get_selected_item(self) -> Optional[SearchResultItem]:
         row = self.table.currentRow()
+        if row >= 0:
+            it = self.table.item(row, 0)
+            if it:
+                d = it.data(Qt.UserRole)
+                if isinstance(d, SearchResultItem):
+                    return d
         if 0 <= row < len(self.current_results):
             return self.current_results[row]
         return None

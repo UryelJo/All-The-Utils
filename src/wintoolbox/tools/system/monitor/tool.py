@@ -12,6 +12,9 @@ from PySide6.QtWidgets import (
 from wintoolbox.core.logging_setup import get_logger
 from wintoolbox.core.registry import Tool, register
 from wintoolbox.ui.widgets.data_table import BackgroundLoader
+from wintoolbox.ui.widgets.sortable_table import (
+    SmartTableWidgetItem, enable_sorting_on_table, batch_table_update
+)
 from .logic import DiskMetricItem, SystemMetricsSnapshot, collect_hardware_metrics
 
 _log = get_logger("monitor")
@@ -133,6 +136,7 @@ class HardwareMonitorView(QWidget):
         self.table_disks.horizontalHeader().setSectionResizeMode(4, QHeaderView.Stretch)
         self.table_disks.verticalHeader().setVisible(False)
         self.table_disks.setFixedHeight(140)
+        enable_sorting_on_table(self.table_disks)
         layout_disks.addWidget(self.table_disks)
 
         layout.addWidget(card_disks)
@@ -159,21 +163,22 @@ class HardwareMonitorView(QWidget):
             self.prog_ram.setValue(ram_val)
 
             # Atualiza Discos
-            self.table_disks.setRowCount(len(m.disks))
-            for row, d in enumerate(m.disks):
-                self.table_disks.setItem(row, 0, QTableWidgetItem(f"{d.device} ({d.mountpoint})"))
-                self.table_disks.setItem(row, 1, QTableWidgetItem(d.fstype))
-                self.table_disks.setItem(row, 2, QTableWidgetItem(f"{d.total_gb} GB"))
-                self.table_disks.setItem(row, 3, QTableWidgetItem(f"{d.free_gb} GB livre"))
+            with batch_table_update(self.table_disks):
+                self.table_disks.setRowCount(len(m.disks))
+                for row, d in enumerate(m.disks):
+                    self.table_disks.setItem(row, 0, SmartTableWidgetItem(f"{d.device} ({d.mountpoint})", user_data=d))
+                    self.table_disks.setItem(row, 1, SmartTableWidgetItem(d.fstype))
+                    self.table_disks.setItem(row, 2, SmartTableWidgetItem(f"{d.total_gb} GB", sort_value=d.total_gb))
+                    self.table_disks.setItem(row, 3, SmartTableWidgetItem(f"{d.free_gb} GB livre", sort_value=d.free_gb))
 
-                # Barra de uso na tabela (reaproveitada entre atualizações)
-                bar = self.table_disks.cellWidget(row, 4)
-                if not isinstance(bar, QProgressBar):
-                    bar = QProgressBar()
-                    bar.setRange(0, 100)
-                    self.table_disks.setCellWidget(row, 4, bar)
-                bar.setValue(int(d.percent))
-                bar.setFormat(f"{d.percent}%")
+                    # Barra de uso na tabela (reaproveitada entre atualizações)
+                    bar = self.table_disks.cellWidget(row, 4)
+                    if not isinstance(bar, QProgressBar):
+                        bar = QProgressBar()
+                        bar.setRange(0, 100)
+                        self.table_disks.setCellWidget(row, 4, bar)
+                    bar.setValue(int(d.percent))
+                    bar.setFormat(f"{d.percent}%")
         except Exception:
             _log.exception("Falha ao atualizar métricas do monitor")
 

@@ -16,6 +16,9 @@ from wintoolbox.tools.calc.finance.logic import (
     calculate_compound_interest, calculate_financing, calculate_margin_and_markup
 )
 from wintoolbox.ui.widgets.tool_header import ToolHeader
+from wintoolbox.ui.widgets.sortable_table import (
+    SmartTableWidgetItem, enable_sorting_on_table, batch_table_update
+)
 
 _log = get_logger("calc.finance.ui")
 
@@ -123,6 +126,7 @@ class FinanceView(QWidget):
         self.table_compound.setColumnCount(4)
         self.table_compound.setHorizontalHeaderLabels(["Ano", "Total Investido", "Juros Acumulados", "Saldo Total"])
         self.table_compound.horizontalHeader().setSectionResizeMode(QHeaderView.ResizeMode.Stretch)
+        enable_sorting_on_table(self.table_compound)
         layout.addWidget(self.table_compound, stretch=1)
 
         self._calculate_compound()
@@ -141,12 +145,13 @@ class FinanceView(QWidget):
         self.lbl_comp_final.setText(f"Saldo Final Bruto: R$ {res['final_balance']:,.2f}".replace(",", "X").replace(".", ",").replace("X", "."))
 
         history = res["history"]
-        self.table_compound.setRowCount(len(history))
-        for row, h in enumerate(history):
-            self.table_compound.setItem(row, 0, QTableWidgetItem(f"Ano {h['year']}"))
-            self.table_compound.setItem(row, 1, QTableWidgetItem(f"R$ {h['invested']:,.2f}".replace(",", "X").replace(".", ",").replace("X", ".")))
-            self.table_compound.setItem(row, 2, QTableWidgetItem(f"R$ {h['total_interest']:,.2f}".replace(",", "X").replace(".", ",").replace("X", ".")))
-            self.table_compound.setItem(row, 3, QTableWidgetItem(f"R$ {h['balance']:,.2f}".replace(",", "X").replace(".", ",").replace("X", ".")))
+        with batch_table_update(self.table_compound):
+            self.table_compound.setRowCount(len(history))
+            for row, h in enumerate(history):
+                self.table_compound.setItem(row, 0, SmartTableWidgetItem(f"Ano {h['year']}", sort_value=h['year']))
+                self.table_compound.setItem(row, 1, SmartTableWidgetItem(f"R$ {h['invested']:,.2f}".replace(",", "X").replace(".", ",").replace("X", "."), sort_value=h['invested']))
+                self.table_compound.setItem(row, 2, SmartTableWidgetItem(f"R$ {h['total_interest']:,.2f}".replace(",", "X").replace(".", ",").replace("X", "."), sort_value=h['total_interest']))
+                self.table_compound.setItem(row, 3, SmartTableWidgetItem(f"R$ {h['balance']:,.2f}".replace(",", "X").replace(".", ",").replace("X", "."), sort_value=h['balance']))
 
     # 2. Financiamentos
     def _build_financing_tab(self) -> QWidget:
@@ -219,6 +224,7 @@ class FinanceView(QWidget):
         self.table_fin.setColumnCount(5)
         self.table_fin.setHorizontalHeaderLabels(["Mês", "Parcela", "Amortização", "Juros", "Saldo Devedor"])
         self.table_fin.horizontalHeader().setSectionResizeMode(QHeaderView.ResizeMode.Stretch)
+        enable_sorting_on_table(self.table_fin)
         layout.addWidget(self.table_fin, stretch=1)
 
         self._calculate_financing()
@@ -240,13 +246,14 @@ class FinanceView(QWidget):
         self.lbl_fin_interest.setText(f"Total Pago em Juros: R$ {res['total_interest']:,.2f}".replace(",", "X").replace(".", ",").replace("X", "."))
 
         sched = res["schedule"]
-        self.table_fin.setRowCount(len(sched))
-        for row, s in enumerate(sched):
-            self.table_fin.setItem(row, 0, QTableWidgetItem(f"Mês {s['month']}"))
-            self.table_fin.setItem(row, 1, QTableWidgetItem(f"R$ {s['payment']:,.2f}".replace(",", "X").replace(".", ",").replace("X", ".")))
-            self.table_fin.setItem(row, 2, QTableWidgetItem(f"R$ {s['amortization']:,.2f}".replace(",", "X").replace(".", ",").replace("X", ".")))
-            self.table_fin.setItem(row, 3, QTableWidgetItem(f"R$ {s['interest']:,.2f}".replace(",", "X").replace(".", ",").replace("X", ".")))
-            self.table_fin.setItem(row, 4, QTableWidgetItem(f"R$ {s['balance']:,.2f}".replace(",", "X").replace(".", ",").replace("X", ".")))
+        with batch_table_update(self.table_fin):
+            self.table_fin.setRowCount(len(sched))
+            for row, s in enumerate(sched):
+                self.table_fin.setItem(row, 0, SmartTableWidgetItem(f"Mês {s['month']}", sort_value=s['month']))
+                self.table_fin.setItem(row, 1, SmartTableWidgetItem(f"R$ {s['payment']:,.2f}".replace(",", "X").replace(".", ",").replace("X", "."), sort_value=s['payment']))
+                self.table_fin.setItem(row, 2, SmartTableWidgetItem(f"R$ {s['amortization']:,.2f}".replace(",", "X").replace(".", ",").replace("X", "."), sort_value=s['amortization']))
+                self.table_fin.setItem(row, 3, SmartTableWidgetItem(f"R$ {s['interest']:,.2f}".replace(",", "X").replace(".", ",").replace("X", "."), sort_value=s['interest']))
+                self.table_fin.setItem(row, 4, SmartTableWidgetItem(f"R$ {s['balance']:,.2f}".replace(",", "X").replace(".", ",").replace("X", "."), sort_value=s['balance']))
 
     # 3. Margem e Markup
     def _build_margin_tab(self) -> QWidget:

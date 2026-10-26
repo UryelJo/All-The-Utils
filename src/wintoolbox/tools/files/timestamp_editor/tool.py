@@ -19,6 +19,9 @@ from .logic import (
     batch_update_timestamps,
     get_file_timestamps,
 )
+from wintoolbox.ui.widgets.sortable_table import (
+    SmartTableWidgetItem, enable_sorting_on_table, batch_table_update
+)
 
 
 @register
@@ -89,6 +92,7 @@ class TimestampEditorView(QWidget):
         self.table.horizontalHeader().setSectionResizeMode(4, QHeaderView.ResizeToContents)
         self.table.verticalHeader().setVisible(False)
         self.table.setFixedHeight(220)
+        enable_sorting_on_table(self.table)
         layout.addWidget(self.table)
 
         # Card de Configuração das Novas Datas
@@ -206,13 +210,14 @@ class TimestampEditorView(QWidget):
         self._refresh_table()
 
     def _refresh_table(self):
-        self.table.setRowCount(len(self.file_items))
-        for row, item in enumerate(self.file_items):
-            self.table.setItem(row, 0, QTableWidgetItem(item.path.name))
-            self.table.setItem(row, 1, QTableWidgetItem(item.formatted_ctime))
-            self.table.setItem(row, 2, QTableWidgetItem(item.formatted_mtime))
-            self.table.setItem(row, 3, QTableWidgetItem(item.formatted_atime))
-            self.table.setItem(row, 4, QTableWidgetItem("Pendente"))
+        with batch_table_update(self.table):
+            self.table.setRowCount(len(self.file_items))
+            for row, item in enumerate(self.file_items):
+                self.table.setItem(row, 0, SmartTableWidgetItem(item.path.name, sort_value=item.path.name.lower(), user_data=item))
+                self.table.setItem(row, 1, SmartTableWidgetItem(item.formatted_ctime, sort_value=item.ctime))
+                self.table.setItem(row, 2, SmartTableWidgetItem(item.formatted_mtime, sort_value=item.mtime))
+                self.table.setItem(row, 3, SmartTableWidgetItem(item.formatted_atime, sort_value=item.atime))
+                self.table.setItem(row, 4, SmartTableWidgetItem("Pendente"))
         self.lbl_status.setText(f"{len(self.file_items)} arquivo(s) na lista prontos para alteração.")
 
     def _apply_timestamps(self):
