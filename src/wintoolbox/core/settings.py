@@ -4,6 +4,7 @@ Localizado em %APPDATA%/WinToolbox/settings.json.
 Suporta backup, restauração, favoritos e histórico de ferramentas recentes.
 """
 import os
+import sys
 import json
 import shutil
 from pathlib import Path
@@ -35,8 +36,23 @@ DEFAULT_SETTINGS: Dict[str, Any] = {
     "api_tokens": {}               # Tokens e chaves de API centralizados { "servico": "token" }
 }
 
+def is_portable_mode() -> bool:
+    """Detecta se o aplicativo está rodando em modo portátil (pasta 'data' ou arquivo '.portable' ao lado do app)."""
+    app_root = Path(sys.executable).parent if getattr(sys, "frozen", False) else Path(__file__).resolve().parents[3]
+    return (app_root / ".portable").exists() or (app_root / "data").is_dir()
+
+
 def get_settings_dir() -> Path:
-    """Retorna o diretório de dados da aplicação."""
+    """Retorna o diretório de dados da aplicação.
+    Suporta Modo Portátil automático (sem gravar em %APPDATA% se existir 'data' ou '.portable' localmente).
+    """
+    app_root = Path(sys.executable).parent if getattr(sys, "frozen", False) else Path(__file__).resolve().parents[3]
+    portable_data_dir = app_root / "data"
+    portable_flag = app_root / ".portable"
+    if portable_flag.exists() or portable_data_dir.is_dir():
+        portable_data_dir.mkdir(parents=True, exist_ok=True)
+        return portable_data_dir
+
     appdata = os.environ.get("APPDATA")
     if appdata:
         base = Path(appdata) / "AllTheUtils"

@@ -93,3 +93,32 @@ def test_api_tokens_management():
     # Remover passando vazio
     set_api_token("virustotal", "")
     assert get_api_token("virustotal") == ""
+
+
+def test_portable_mode_detection(tmp_path: Path, monkeypatch: pytest.MonkeyPatch):
+    """Valida que o aplicativo detecta o modo portátil quando a pasta data local existe."""
+    import wintoolbox.core.settings as settings_mod
+
+    fake_root = tmp_path / "app_bundle"
+    fake_root.mkdir()
+    fake_exe = fake_root / "WinToolbox.exe"
+    fake_exe.touch()
+
+    monkeypatch.setattr(settings_mod.sys, "frozen", True, raising=False)
+    monkeypatch.setattr(settings_mod.sys, "executable", str(fake_exe))
+
+    # Inicialmente não é portátil
+    assert settings_mod.is_portable_mode() is False
+
+    # Cria a pasta data local ao lado do executável
+    data_dir = fake_root / "data"
+    data_dir.mkdir()
+    assert settings_mod.is_portable_mode() is True
+
+    # Desfaz o monkeypatch da fixture autouse apenas para testar a função real get_settings_dir
+    monkeypatch.undo()
+    monkeypatch.setattr(settings_mod.sys, "frozen", True, raising=False)
+    monkeypatch.setattr(settings_mod.sys, "executable", str(fake_exe))
+
+    resolved_dir = settings_mod.get_settings_dir()
+    assert resolved_dir == data_dir

@@ -316,8 +316,8 @@ Brasil e Segurança:
 ### Fase 14 — Empacotamento, Distribuição e Modo Portátil
 - [x] Fila central de tarefas assíncronas em segundo plano (`core/tasks.py`, `BackgroundLoader`).
 - [x] Build executável PyInstaller `--onedir` com autoteste (`build.py`).
-- [ ] Suporte a Modo Portátil automático (sem uso de %APPDATA% se pasta local existir).
-- [ ] Instalador Inno Setup com integração de menu de contexto do Explorer.
+- [x] Suporte a Modo Portátil automático (sem uso de %APPDATA% se pasta local existir).
+- [x] Instalador Inno Setup com integração de menu de contexto do Explorer (`installer.iss`).
 
 > **Observação sobre APIs Externas**: Ferramentas que dependem de chaves de API pagas (como LLMs de chat, geradores de imagem generativos como DALL-E, tradutores pagos e serviços de nuvem) estão intencionalmente desacopladas do fluxo principal, priorizando funcionalidades 100% locais, gratuitas e offline. A infraestrutura para consumo de tokens em `core/settings.py` permanece disponível caso o usuário decida ativá-las futuramente.
 
@@ -331,8 +331,8 @@ Brasil e Segurança:
   - Aceleração por hardware no FFmpeg via **NVIDIA NVENC** (`h264_nvenc`, `hevc_nvenc`), **AMD AMF** (`h264_amf`, `hevc_amf`) e **Intel QuickSync** (`h264_qsv`) com fallback automático resiliente para CPU (`libx264`).
   - Motor de lote concorrente (`core/batch.py`) com `ThreadPoolExecutor` dimensionado automaticamente de acordo com os núcleos da máquina (`optimal_batch_workers = min(cpu_cores, 8)`).
   - Cálculo de hashes concorrente em lote na ferramenta de localização de arquivos duplicados (`files.duplicates`).
-- **Cobertura de Testes**: 182 testes unitários e de integração executados com 100% de aprovação no `pytest` (incluindo testes de arquitetura, aceleração de hardware, teste de renderização de view de todas as 120 ferramentas e suíte da Fase 15).
-- **Tempo de Execução dos Testes**: ~47.0s.
+- **Cobertura de Testes**: **195 testes unitários e de integração** executados com 100% de aprovação no `pytest`, em conformidade estrita com as **Diretrizes de Qualidade Anti-Gambiarra** (Validação de Efeito Real Black-Box, Proibição de Asserções Frouxas e Isolamento de Rede/Ambiente).
+- **Tempo de Execução dos Testes**: ~22.0s para testes unitários + ~28.0s para smoke test com 126 ferramentas.
 
 
 ---

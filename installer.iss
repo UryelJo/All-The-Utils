@@ -48,6 +48,7 @@ Name: "english"; MessagesFile: "compiler:Default.isl"
 
 [Tasks]
 Name: "desktopicon"; Description: "{cm:CreateDesktopIcon}"; GroupDescription: "{cm:AdditionalIcons}"; Flags: unchecked
+Name: "contextmenu"; Description: "Adicionar 'Abrir com All the Utils' ao menu de contexto de arquivos e pastas"; GroupDescription: "Integração com o Windows Explorer:"
 
 [Files]
 ; Copia todos os arquivos da pasta gerada pelo PyInstaller (onedir)
@@ -56,6 +57,17 @@ Source: "{#SourceDir}\*"; DestDir: "{app}"; Flags: ignoreversion recursesubdirs 
 [Icons]
 Name: "{autoprograms}\{#MyAppName}"; Filename: "{app}\{#MyAppExeName}"; IconFilename: "{app}\{#MyAppExeName}"
 Name: "{autodesktop}\{#MyAppName}"; Filename: "{app}\{#MyAppExeName}"; Tasks: desktopicon; IconFilename: "{app}\{#MyAppExeName}"
+
+[Registry]
+; Menu de contexto para arquivos (*)
+Root: HKA; Subkey: "Software\Classes\*\shell\AllTheUtils"; ValueType: string; ValueName: ""; ValueData: "Abrir com All the Utils"; Flags: uninsdeletekey; Tasks: contextmenu
+Root: HKA; Subkey: "Software\Classes\*\shell\AllTheUtils"; ValueType: string; ValueName: "Icon"; ValueData: "{app}\{#MyAppExeName},0"; Tasks: contextmenu
+Root: HKA; Subkey: "Software\Classes\*\shell\AllTheUtils\command"; ValueType: string; ValueName: ""; ValueData: """{app}\{#MyAppExeName}"" ""%1"""; Tasks: contextmenu
+
+; Menu de contexto para pastas (Directory)
+Root: HKA; Subkey: "Software\Classes\Directory\shell\AllTheUtils"; ValueType: string; ValueName: ""; ValueData: "Abrir com All the Utils"; Flags: uninsdeletekey; Tasks: contextmenu
+Root: HKA; Subkey: "Software\Classes\Directory\shell\AllTheUtils"; ValueType: string; ValueName: "Icon"; ValueData: "{app}\{#MyAppExeName},0"; Tasks: contextmenu
+Root: HKA; Subkey: "Software\Classes\Directory\shell\AllTheUtils\command"; ValueType: string; ValueName: ""; ValueData: """{app}\{#MyAppExeName}"" ""%1"""; Tasks: contextmenu
 
 [Run]
 Filename: "{app}\{#MyAppExeName}"; Description: "{cm:LaunchProgram,{#StringChange(MyAppName, '&', '&&')}}"; Flags: nowait postinstall skipifsilent
