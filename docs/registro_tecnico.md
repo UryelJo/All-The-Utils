@@ -433,16 +433,16 @@ Esta fase consolida a expansão estratégica do All the Utils / WinToolbox, adic
 
 #### 10. Áudio e Vídeo
 - [x] **`media.subtitles`** (`Tool`): Editor e conversor bidirecional de legendas (SRT ↔ WebVTT) com ajuste fino de sincronia (Time Shift) e limpeza de tags HTML.
-- [ ] **`media.inspector`** (`Tool`): Relatório técnico detalhado e aprofundado no estilo MediaInfo via `ffprobe`: codecs, perfis, bitrates, faixas de áudio/legenda, metadados de câmera e capítulos, com exportação JSON/TXT.
-- [ ] **`media.compress_target`** (`FileTool`): Compressor inteligente de vídeo para atingir um tamanho final exato em megabytes (ex: limite de 25 MB do Discord ou WhatsApp) calculando automaticamente o bitrate de vídeo em duas passadas.
-- [ ] **`media.stream_manager`** (`Tool`): Gerenciador de trilhas e remux de contêineres multimídia (MKV/MP4) em alta velocidade sem recodificação: extrair, reordenar, adicionar ou remover faixas de áudio e legendas.
-- [ ] **`media.silence_remover`** (`FileTool`): Removedor automático de trechos de silêncio e pausas mortas em podcasts, aulas e gravações de voz utilizando o filtro nativo do FFmpeg `silenceremove`.
-- [ ] **`media.spectrogram`** (`Tool`): Gerador visual de forma de onda de áudio e espectrograma de frequências sonoras via FFmpeg (`showspectrumpic`) para análise acústica de faixas de som.
-- [ ] **`media.speed_changer`** (`FileTool`): Modificador de velocidade de reprodução de arquivos de vídeo e áudio (0.5x a 3.0x) com preservação e compensação de tom de voz (pitch) através do filtro `atempo`.
-- [ ] **`media.video_watermark`** (`FileTool`): Aplicador em lote de marca d'água de texto ou logotipo PNG sobre vídeos, com controle de opacidade, dimensionamento e posicionamento com aceleração por GPU.
-- [ ] **`media.audio_recorder`** (`Tool`): Gravador dedicado de áudio com suporte a gravação do microfone e áudio de reprodução do sistema (loopback de áudio) com visualizador de níveis sonoros VU em tempo real.
-- [ ] **`media.cue_splitter`** (`Tool`): Divisor de arquivos de áudio de álbum contínuo (FLAC, APE, WAV) a partir de planilhas de índice `.cue`, gerando faixas individuais nomeadas e com tags de metadados gravadas.
-- [ ] **`media.contact_sheet`** (`Tool`): Gerador de folhas de contato e mosaicos organizados de capturas de tela sequenciais de um vídeo com informações de duração, resolução e timecode de cada quadro.
+- [x] **`media.inspector`** (`Tool`): Relatório técnico detalhado e aprofundado no estilo MediaInfo via `ffprobe`: codecs, perfis, bitrates, faixas de áudio/legenda, metadados de câmera e capítulos, com exportação JSON/TXT.
+- [x] **`media.compress_target`** (`FileTool`): Compressor inteligente de vídeo para atingir um tamanho final exato em megabytes (ex: limite de 25 MB do Discord ou WhatsApp) calculando automaticamente o bitrate de vídeo em duas passadas.
+- [x] **`media.stream_manager`** (`Tool`): Gerenciador de trilhas e remux de contêineres multimídia (MKV/MP4) em alta velocidade sem recodificação: extrair, reordenar, adicionar ou remover faixas de áudio e legendas.
+- [x] **`media.silence_remover`** (`FileTool`): Removedor automático de trechos de silêncio e pausas mortas em podcasts, aulas e gravações de voz utilizando o filtro nativo do FFmpeg `silenceremove`.
+- [x] **`media.spectrogram`** (`Tool`): Gerador visual de forma de onda de áudio e espectrograma de frequências sonoras via FFmpeg (`showspectrumpic`) para análise acústica de faixas de som.
+- [x] **`media.speed_changer`** (`FileTool`): Modificador de velocidade de reprodução de arquivos de vídeo e áudio (0.5x a 3.0x) com preservação e compensação de tom de voz (pitch) através do filtro `atempo`.
+- [x] **`media.video_watermark`** (`FileTool`): Aplicador em lote de marca d'água de texto ou logotipo PNG sobre vídeos, com controle de opacidade, dimensionamento e posicionamento com aceleração por GPU.
+- [x] **`media.audio_recorder`** (`Tool`): Gravador dedicado de áudio com suporte a gravação do microfone e áudio de reprodução do sistema (loopback de áudio) com visualizador de níveis sonoros VU em tempo real.
+- [x] **`media.cue_splitter`** (`Tool`): Divisor de arquivos de áudio de álbum contínuo (FLAC, APE, WAV) a partir de planilhas de índice `.cue`, gerando faixas individuais nomeadas e com tags de metadados gravadas.
+- [x] **`media.contact_sheet`** (`Tool`): Gerador de folhas de contato e mosaicos organizados de capturas de tela sequenciais de um vídeo com informações de duração, resolução e timecode de cada quadro.
 
 #### 11. Desenvolvedores
 - [x] **`dev.api_client`** (`Tool`): Cliente HTTP/REST interativo para desenvolvedores com suporte a GET, POST, PUT, DELETE, PATCH, headers e visualizador formatado de respostas.
@@ -501,15 +501,15 @@ Esta fase consolida a expansão estratégica do All the Utils / WinToolbox, adic
 ---
 
 ## 7. Métrica de Qualidade e Testes
-- **Total de Ferramentas Registradas**: 215 ferramentas operacionais em 15 categorias.
-- **Padrão Arquitetural de Lógica Desacoplada**: 100% das 215 ferramentas possuem divisão estrita entre UI (`tool.py`) e regras de negócio puras (`logic.py`), com zero importações de bibliotecas gráficas na camada de lógica (validado estritamente por `tests/test_logic_architecture.py`).
+- **Total de Ferramentas Registradas**: 225 ferramentas operacionais em 15 categorias.
+- **Padrão Arquitetural de Lógica Desacoplada**: 100% das 225 ferramentas possuem divisão estrita entre UI (`tool.py`) e regras de negócio puras (`logic.py`), com zero importações de bibliotecas gráficas na camada de lógica (validado estritamente por `tests/test_logic_architecture.py`).
 - **Aceleração por Hardware (GPU) & Paralelismo**:
   - Detecção automática de GPUs instaladas (NVIDIA GeForce/RTX via `nvidia-smi` / WMI, AMD Radeon e Intel Arc/Iris).
   - Aceleração por hardware no FFmpeg via **NVIDIA NVENC** (`h264_nvenc`, `hevc_nvenc`), **AMD AMF** (`h264_amf`, `hevc_amf`) e **Intel QuickSync** (`h264_qsv`) com fallback automático resiliente para CPU (`libx264`).
   - Motor de lote concorrente (`core/batch.py`) com `ThreadPoolExecutor` dimensionado automaticamente de acordo com os núcleos da máquina (`optimal_batch_workers = min(cpu_cores, 8)`).
   - Cálculo de hashes concorrente em lote na ferramenta de localização de arquivos duplicados (`files.duplicates`).
-- **Cobertura de Testes**: **Mais de 555 testes unitários e de integração** executados com 100% de aprovação no `pytest`, em conformidade estrita com as **Diretrizes de Qualidade Anti-Gambiarra** (Validação de Efeito Real Black-Box, Proibição de Asserções Frouxas e Isolamento de Rede/Ambiente).
-- **Tempo de Execução dos Testes**: Suíte completa executada com sucesso e smoke test validando todas as 215 ferramentas.
+- **Cobertura de Testes**: **Mais de 581 testes unitários e de integração** executados com 100% de aprovação no `pytest`, em conformidade estrita com as **Diretrizes de Qualidade Anti-Gambiarra** (Validação de Efeito Real Black-Box, Proibição de Asserções Frouxas e Isolamento de Rede/Ambiente).
+- **Tempo de Execução dos Testes**: Suíte completa executada com sucesso e smoke test validando todas as 225 ferramentas.
 
 ---
 

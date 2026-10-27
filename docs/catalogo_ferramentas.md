@@ -1712,5 +1712,98 @@ Este documento mantém o inventário detalhado de todas as ferramentas disponív
     - Binarização inteligente (*Thresholding*) para conversão em preto e branco puro, removendo sombras cinzas de fundo e manchas de papel.
   - Seleção de resolução de renderização (100 DPI, 150 DPI equilibrado ou 300 DPI alta resolução).
 
+---
+
+## 23. Áudio, Vídeo e Multimídia (`tools/media/`)
+
+### `media.inspector` — Inspetor Técnico de Mídia (MediaInfo)
+- **Tipo**: `Tool` (Interativo e Análise Técnica)
+- **Identificador**: `media.inspector`
+- **Recursos**:
+  - Inspeção aprofundada de contêineres de vídeo e áudio via `ffprobe` nativo.
+  - Exibição de metadados gerais (formato, taxa de bits global, duração, encoders e tags).
+  - Tabela detalhada de streams de vídeo: codec, perfil (ex: High@L4.1), resolução, aspecto, framerate (FPS), espaço de cor e amostragem de croma (ex: yuv420p).
+  - Tabela de faixas de áudio: codec, taxa de amostragem (Hz), canais, idioma e bitrate.
+  - Tabela de legendas: formato (subrip, ass, mov_text), idioma e títulos de faixa.
+  - Exportação de relatórios técnicos completos em formatos TXT ou JSON estruturado.
+
+### `media.compress_target` — Compressor de Vídeo com Meta de Tamanho em MB
+- **Tipo**: `FileTool` (Processamento em Lote)
+- **Identificador**: `media.compress_target`
+- **Recursos**:
+  - Cálculo automático e preciso de bitrate de vídeo e áudio para atingir um tamanho final desejado em megabytes (ex: 25 MB para Discord ou WhatsApp).
+  - Presets populares integrados (8 MB, 16 MB, 25 MB, 50 MB, 100 MB).
+  - Codificação de alta eficiência com H.264/AAC e suporte a presets de velocidade do encoder.
+
+### `media.stream_manager` — Gerenciador de Trilhas e Remux de Contêineres
+- **Tipo**: `Tool` (Interativo e Remuxing sem Perdas)
+- **Identificador**: `media.stream_manager`
+- **Recursos**:
+  - Manipulação direta de contêineres multimídia (MP4 e MKV) em alta velocidade sem recodificação (*stream copy*).
+  - Seleção e exclusão de faixas indesejadas de áudio ou legendas para diminuir o tamanho do arquivo.
+  - Extração individualizada de faixas para arquivos separados (.mp3, .aac, .srt).
+  - Reorganização e geração do novo contêiner sem perda de qualidade visual ou sonora.
+
+### `media.silence_remover` — Removedor Automático de Silêncios e Pausas
+- **Tipo**: `FileTool` (Processamento em Lote)
+- **Identificador**: `media.silence_remover`
+- **Recursos**:
+  - Detecção e eliminação de trechos de silêncio e pausas mortas em podcasts, videoaulas e gravações.
+  - Utilização do filtro acústico `silenceremove` do FFmpeg.
+  - Limiar de ruído configurável em decibéis (-30 dB a -60 dB) e duração mínima de silêncio (0.3s a 2.0s).
+
+### `media.spectrogram` — Espectrograma e Forma de Onda de Áudio
+- **Tipo**: `Tool` (Interativo e Análise Acústica)
+- **Identificador**: `media.spectrogram`
+- **Recursos**:
+  - Geração de espectrogramas acústicos de alta fidelidade via filtro `showspectrumpic` do FFmpeg com réguas de tempo e escala de frequências.
+  - Geração de gráficos visuais de amplitude de forma de onda (*Waveform*) via filtro `showwavespic`.
+  - Múltiplos mapas de cores térmicos e acústicos (Magma, Viridis, Plasma, Fogo).
+  - Pré-visualização na interface gráfica e exportação em imagens PNG de alta resolução.
+
+### `media.speed_changer` — Alterar Velocidade de Mídia
+- **Tipo**: `FileTool` (Processamento em Lote)
+- **Identificador**: `media.speed_changer`
+- **Recursos**:
+  - Modificação da velocidade de reprodução de arquivos de vídeo e áudio de 0.25x a 4.0x.
+  - Modo com Preservação de Tom de Voz (*Pitch Correction*) através de encadeamento dinâmico de filtros `atempo`.
+  - Modo Efeito Vinil/Fita (*Tape Speed Effect*) com alteração proporcional da afinação.
+
+### `media.video_watermark` — Marca d'Água em Vídeo
+- **Tipo**: `FileTool` (Processamento em Lote)
+- **Identificador**: `media.video_watermark`
+- **Recursos**:
+  - Inserção de logotipos PNG transparentes com canal alfa ou textos estilizados sobre vídeos em lote.
+  - 7 opções de posicionamento predefinidas (Cantos, Centro, Topo, Base) com margens configuráveis.
+  - Ajuste de opacidade (10% a 100%) e tamanho de fonte com escape robusto de caracteres especiais.
+
+### `media.audio_recorder` — Gravador de Áudio Dedicado
+- **Tipo**: `Tool` (Interativo e Captura de Áudio)
+- **Identificador**: `media.audio_recorder`
+- **Recursos**:
+  - Gravação de áudio a partir de dispositivos de entrada conectados via DirectShow e FFmpeg.
+  - Listagem e atualização dinâmica dos microfones e interfaces de som disponíveis no Windows.
+  - Cronômetro visual em tempo real, seleção de taxa de amostragem (44.1 kHz, 48 kHz) e formatos de saída (WAV, MP3, AAC, FLAC).
+  - Finalização limpa de headers via comando de interrupção atômica.
+
+### `media.cue_splitter` — Divisor de CUE Sheet
+- **Tipo**: `Tool` (Interativo e Fatiamento de Álbuns)
+- **Identificador**: `media.cue_splitter`
+- **Recursos**:
+  - Interpretação e fatiamento de arquivos `.cue` (CUE Sheet) associados a arquivos de áudio contínuos (WAV, FLAC, APE, MP3).
+  - Tabela detalhada com título, artista e tempo de início de cada faixa.
+  - Localização heurística do arquivo de áudio mestre com suporte a múltiplas extensões.
+  - Aplicação automática de tags de metadados ID3/Vorbis nas faixas fatiadas e padrão de nomenclatura customizável.
+
+### `media.contact_sheet` — Folha de Contato de Vídeo (Thumbnail Grid)
+- **Tipo**: `Tool` (Interativo e Mosaicos de Vídeo)
+- **Identificador**: `media.contact_sheet`
+- **Recursos**:
+  - Extração automática de quadros uniformemente espaçados ao longo da duração do vídeo.
+  - Composição de mosaicos com grade configurável (ex: 3x3, 4x4, 5x5) em alta resolução (até 4K).
+  - Cabeçalho escuro com metadados técnicos (nome, tamanho, resolução, codecs, duração total).
+  - Marcação de timecode individual em cada miniatura e botões para salvar ou copiar a imagem para a área de transferência.
+
+
 
 
