@@ -38,7 +38,7 @@ class LineCounterTool(Tool):
     id = "dev.line_counter"
     name = "Contador de Linhas de Código (CLOC)"
     description = "Analisa repositórios de código quantificando linhas efetivas, comentários, linhas vazias e marcações TODO/FIXME por linguagem."
-    category = "dev"
+    category = "Desenvolvimento"
 
     def __init__(self):
         super().__init__()

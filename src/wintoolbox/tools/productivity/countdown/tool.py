@@ -168,7 +168,7 @@ class CountdownTool(Tool):
     id = "productivity.countdown"
     name = "Painel de Contagem Regressiva"
     description = "Monitore prazos de entrega, lançamentos e aniversários com relógios visuais e widget flutuante minimalista."
-    category = "productivity"
+    category = "Produtividade"
 
     def __init__(self):
         super().__init__()

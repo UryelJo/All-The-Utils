@@ -34,7 +34,7 @@ class StructDiffTool(Tool):
     id = "data.struct_diff"
     name = "Comparador Estrutural (JSON/YAML/TOML)"
     description = "Compara semanticamente estruturas de dados detectando adições, exclusões e alterações semânticas."
-    category = "data"
+    category = "Dados e Estruturas"
     icon = "Diff"
     tags = ["diff", "json", "yaml", "toml", "comparador", "estruturas", "dados"]
 

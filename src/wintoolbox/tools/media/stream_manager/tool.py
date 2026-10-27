@@ -34,7 +34,7 @@ class StreamManagerTool(Tool):
     id = "media.stream_manager"
     name = "Gerenciador de Trilhas e Remux"
     description = "Extrai, remove ou reorganiza faixas de áudio, vídeo e legendas sem perda de qualidade (stream copy)."
-    category = "media"
+    category = "Áudio e Vídeo"
 
     def build_view(self, parent=None) -> QWidget:
         widget = QWidget(parent)

@@ -37,7 +37,7 @@ class IsoTools(Tool):
     id = "archive.iso_tools"
     name = "Ferramentas de Imagens ISO e VHD"
     description = "Monta, desmonta e extrai imagens de disco virtuais (ISO, VHD, VHDX) com suporte nativo do Windows."
-    category = "archive"
+    category = "Compactação"
 
     def build_view(self, parent=None) -> QWidget:
         widget = QWidget(parent)

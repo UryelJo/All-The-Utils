@@ -32,7 +32,7 @@ class VideoWatermarkTool(FileTool):
     id = "media.video_watermark"
     name = "Marca d'Água em Vídeo"
     description = "Insere logotipos PNG transparentes ou textos estilizados sobre vídeos em lote."
-    category = "media"
+    category = "Áudio e Vídeo"
     extensions = [".mp4", ".mkv", ".mov", ".avi", ".webm"]
 
     def build_options(self, parent=None) -> QWidget:

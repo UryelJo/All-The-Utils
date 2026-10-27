@@ -33,7 +33,7 @@ class SchemaInferTool(Tool):
     id = "data.schema_infer"
     name = "Inferência de Schemas e Modelos"
     description = "Gera automaticamente JSON Schema, modelos Pydantic v2, Python Dataclasses e TypeScript a partir de JSON."
-    category = "data"
+    category = "Dados e Estruturas"
     icon = "Code"
     tags = ["schema", "pydantic", "typescript", "dataclass", "json", "tipagem", "modelos"]
 

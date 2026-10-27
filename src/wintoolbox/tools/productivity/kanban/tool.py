@@ -189,7 +189,7 @@ class KanbanTool(Tool):
     id = "productivity.kanban"
     name = "Quadro Kanban de Tarefas"
     description = "Organize seus projetos visualmente em colunas com cartões, checklists, tags e prazos de entrega 100% offline."
-    category = "productivity"
+    category = "Produtividade"
 
     def __init__(self):
         super().__init__()

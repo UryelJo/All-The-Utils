@@ -33,7 +33,7 @@ class FilesFreeSpaceWipeTool(Tool):
     id = "files.free_space_wipe"
     name = "Sanitizador de Espaço Livre"
     description = "Sobrescreve o espaço livre de discos e partições (via cipher /w) para prevenir a recuperação de arquivos deletados."
-    category = "files"
+    category = "Arquivos e Pastas"
     icon = "Shield"
     tags = ["wipe", "limpeza", "espaco livre", "cipher", "seguranca", "disco", "privacidade"]
 

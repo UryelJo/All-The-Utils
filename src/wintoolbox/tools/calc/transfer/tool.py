@@ -50,7 +50,7 @@ class TransferCalcTool(Tool):
     id = "calc.transfer"
     name = "Estimador de Tempo de Download & Transferência"
     description = "Calcule o tempo exato para baixar ou transferir arquivos e converta Mbps de planos de internet para MB/s reais."
-    category = "calc"
+    category = "Calculadoras"
 
     def build_view(self, parent=None) -> QWidget:
         widget = QWidget(parent)

@@ -29,7 +29,7 @@ _log = get_logger("images.compare.ui")
 class CompareTool(Tool):
     id = "images.compare"
     name = "Comparador de Imagens"
-    category = "Imagens e Mídia"
+    category = "Imagens"
     description = "Compare duas imagens com slider antes/depois, mapa de diferença de pixels e modo piscante para avaliar compressões"
     keywords = ["comparar", "diferença", "slider", "antes", "depois", "compressão", "fidelidade", "psnr", "pixels"]
 

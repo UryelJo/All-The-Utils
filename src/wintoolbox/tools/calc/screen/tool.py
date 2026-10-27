@@ -55,7 +55,7 @@ class ScreenCalcTool(Tool):
     id = "calc.screen"
     name = "Calculadora de Telas & Monitores (PPI & Proporção)"
     description = "Calcule densidade de pixels (PPI), proporção dimensional (Aspect Ratio), tamanho físico em cm e escala ideal do Windows."
-    category = "calc"
+    category = "Calculadoras"
 
     def build_view(self, parent=None) -> QWidget:
         widget = QWidget(parent)

@@ -31,7 +31,7 @@ class FilesCleanupFinderTool(Tool):
     id = "files.cleanup_finder"
     name = "Higienizador de Arquivos e Pastas"
     description = "Localizador e higienizador de pastas vazias, arquivos de 0 byte e atalhos quebrados com simulação (Dry Run)."
-    category = "files"
+    category = "Arquivos e Pastas"
     icon = "Delete"
     tags = ["cleanup", "limpeza", "pastas vazias", "0 byte", "atalhos", "lixeira", "dry run"]
 

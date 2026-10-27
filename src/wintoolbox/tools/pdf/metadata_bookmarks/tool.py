@@ -35,7 +35,7 @@ class MetadataBookmarksTool(Tool):
     id = "pdf.metadata_bookmarks"
     name = "Editor de Metadados e Sumário de PDF"
     description = "Edita metadados (título, autor, assunto) e gerencia a árvore de marcadores de sumário (bookmarks) de PDFs."
-    category = "pdf"
+    category = "PDF"
 
     def build_view(self, parent=None) -> QWidget:
         widget = QWidget(parent)

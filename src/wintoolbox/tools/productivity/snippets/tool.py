@@ -44,7 +44,7 @@ class SnippetsTool(Tool):
     id = "productivity.snippets"
     name = "Expansor de Texto (Snippets)"
     description = "Armazene e expanda trechos de texto frequentes, modelos de e-mail e atas com substituição dinâmica de datas e variáveis."
-    category = "productivity"
+    category = "Produtividade"
 
     def __init__(self):
         super().__init__()

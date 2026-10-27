@@ -21,7 +21,7 @@ from wintoolbox.tools.network.dns_benchmark.logic import (
 class DnsBenchmarkTool(Tool):
     id = "network.dns_benchmark"
     name = "Benchmark de Servidores DNS"
-    category = "Rede"
+    category = "Rede e Internet"
     description = "Compare a latência e tempo de resposta de servidores DNS públicos (Cloudflare, Google, Quad9, OpenDNS)"
     keywords = ["dns", "benchmark", "latencia", "ping", "cloudflare", "google dns", "quad9", "provedor", "velocidade"]
 

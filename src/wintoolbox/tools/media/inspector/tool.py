@@ -34,7 +34,7 @@ class MediaInspectorTool(Tool):
     id = "media.inspector"
     name = "Inspetor Técnico de Mídia (MediaInfo)"
     description = "Exibe relatório técnico detalhado de codecs, resolução, bitrates e faixas de áudio/vídeo via FFprobe."
-    category = "media"
+    category = "Áudio e Vídeo"
 
     def build_view(self, parent=None) -> QWidget:
         widget = QWidget(parent)

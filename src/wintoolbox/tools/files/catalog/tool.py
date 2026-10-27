@@ -34,7 +34,7 @@ class FilesCatalogTool(Tool):
     id = "files.catalog"
     name = "Catalogador de Mídias Externas"
     description = "Indexador de HDs externos e pendrives: salva snapshots da estrutura de pastas para busca offline."
-    category = "files"
+    category = "Arquivos e Pastas"
     icon = "HardDrive"
     tags = ["catalog", "disco", "hd", "pendrive", "nas", "snapshot", "busca", "offline"]
 

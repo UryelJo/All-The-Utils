@@ -35,7 +35,7 @@ class TablesToCsvTool(Tool):
     id = "pdf.tables_to_csv"
     name = "Extrator de Tabelas de PDF (CSV / Excel)"
     description = "Extrai tabelas de documentos e relatórios em PDF com conversão para arquivos CSV e planilhas Excel."
-    category = "pdf"
+    category = "PDF"
 
     def build_view(self, parent=None) -> QWidget:
         widget = QWidget(parent)

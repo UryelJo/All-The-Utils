@@ -23,7 +23,7 @@ class BatchExtractTool(FileTool):
     id = "archive.batch_extract"
     name = "Descompactador em Lote"
     description = "Descompacta múltiplos arquivos compactados simultâneos (ZIP, TAR, 7Z, RAR) com subpastas organizadas."
-    category = "archive"
+    category = "Compactação"
     extensions = [
         ".zip",
         ".tar",

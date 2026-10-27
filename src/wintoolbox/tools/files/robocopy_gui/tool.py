@@ -35,7 +35,7 @@ class FilesRobocopyGuiTool(Tool):
     id = "files.robocopy_gui"
     name = "Assistente Robocopy"
     description = "Interface visual para o Robocopy do Windows: espelhamento (/MIR), retomada (/Z), multithread (/MT) e simulação."
-    category = "files"
+    category = "Arquivos e Pastas"
     icon = "Copy"
     tags = ["robocopy", "copia", "sincronizar", "espelho", "backup", "multithread"]
 

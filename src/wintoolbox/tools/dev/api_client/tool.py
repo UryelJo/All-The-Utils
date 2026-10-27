@@ -32,7 +32,7 @@ from wintoolbox.ui.widgets.data_table import Column, DataTableView
 class ApiClientTool(Tool):
     id = "dev.api_client"
     name = "Cliente HTTP / REST para Desenvolvedores"
-    category = "Desenvolvedores"
+    category = "Desenvolvimento"
     description = (
         "Cliente de requisições HTTP e REST completo para testar APIs locais e externas, "
         "com suporte a headers customizados, body JSON, medição de latência e formatação de respostas."

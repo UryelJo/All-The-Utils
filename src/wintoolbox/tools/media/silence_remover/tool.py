@@ -22,7 +22,7 @@ class SilenceRemoverTool(FileTool):
     id = "media.silence_remover"
     name = "Removedor de Silêncios e Pausas"
     description = "Remove automaticamente trechos de silêncio e pausas mortas em podcasts, gravações de voz e aulas."
-    category = "media"
+    category = "Áudio e Vídeo"
     extensions = [
         ".mp3",
         ".wav",

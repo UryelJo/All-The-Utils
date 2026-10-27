@@ -35,7 +35,7 @@ class FormFillerTool(Tool):
     id = "pdf.form_filler"
     name = "Preenchedor de Formulários PDF"
     description = "Lê e preenche campos interativos de formulários PDF (AcroForm) com opção de achatamento (flatten)."
-    category = "pdf"
+    category = "PDF"
 
     def build_view(self, parent=None) -> QWidget:
         widget = QWidget(parent)

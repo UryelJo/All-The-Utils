@@ -34,7 +34,7 @@ class SpectrogramTool(Tool):
     id = "media.spectrogram"
     name = "Espectrograma e Forma de Onda de Áudio"
     description = "Gera espectrogramas de frequências sonoras e gráficos visuais de ondas acústicas via FFmpeg."
-    category = "media"
+    category = "Áudio e Vídeo"
 
     def build_view(self, parent=None) -> QWidget:
         widget = QWidget(parent)

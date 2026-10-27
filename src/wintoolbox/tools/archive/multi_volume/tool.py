@@ -38,7 +38,7 @@ class MultiVolumeTool(Tool):
     id = "archive.multi_volume"
     name = "Divisor e Juntador de Volumes"
     description = "Divide arquivos compactados em múltiplos volumes numerados (.001 ou .part1) e junta partes."
-    category = "archive"
+    category = "Compactação"
 
     def build_view(self, parent=None) -> QWidget:
         widget = QWidget(parent)

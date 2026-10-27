@@ -45,7 +45,7 @@ class ProcessWatcherTool(Tool):
     id = "automation.process_watcher"
     name = "Sentinela de Processos (Alertas de Execução & Conclusão)"
     description = "Monitore processos do Windows e receba avisos sonoros ou notificações quando renderizações ou programas terminarem."
-    category = "automation"
+    category = "Automação"
 
     def __init__(self):
         super().__init__()

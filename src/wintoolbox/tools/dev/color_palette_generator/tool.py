@@ -34,7 +34,7 @@ from wintoolbox.tools.dev.color_palette_generator.logic import (
 class ColorPaletteGeneratorTool(Tool):
     id = "dev.color_palette_generator"
     name = "Gerador de Paletas Harmônicas e WCAG"
-    category = "Desenvolvedores"
+    category = "Desenvolvimento"
     description = (
         "Gera paletas de cores harmônicas (Complementar, Análoga, Triádica, Monocromática) "
         "com teste de contraste e acessibilidade WCAG 2.1 e exportação de variáveis CSS."

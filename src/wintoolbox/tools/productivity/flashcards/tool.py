@@ -50,7 +50,7 @@ class FlashcardsTool(Tool):
     id = "productivity.flashcards"
     name = "Cartões de Memorização (Flashcards SM-2)"
     description = "Aumente sua retenção de conteúdo com repetição espaçada inteligente, gestão de baralhos e importação CSV."
-    category = "productivity"
+    category = "Produtividade"
 
     def __init__(self):
         super().__init__()

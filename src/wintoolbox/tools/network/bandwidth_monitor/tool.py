@@ -95,7 +95,7 @@ class BandwidthGraphWidget(QWidget):
 class BandwidthMonitorTool(Tool):
     id = "network.bandwidth_monitor"
     name = "Monitor de Tráfego de Rede"
-    category = "Rede"
+    category = "Rede e Internet"
     description = "Monitore em tempo real as velocidades de download e upload por interface com gráfico de linha"
     keywords = ["rede", "trafego", "largura de banda", "download", "upload", "bandwidth", "velocidade", "grafico"]
 

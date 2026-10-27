@@ -51,7 +51,7 @@ class RecipesTool(Tool):
     id = "automation.recipes"
     name = "Receitas de Automação (Pipelines Multi-Ferramentas)"
     description = "Crie pipelines reutilizáveis encadeando múltiplas ferramentas (ex: Converter -> Otimizar -> Renomear)."
-    category = "automation"
+    category = "Automação"
 
     def __init__(self):
         super().__init__()

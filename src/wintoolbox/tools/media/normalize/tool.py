@@ -20,7 +20,7 @@ _log = get_logger("media.normalize.ui")
 class NormalizeTool(FileTool):
     id = "media.normalize"
     name = "Normalizador de Volume em Lote (Loudnorm)"
-    category = "Imagens e Mídia"
+    category = "Imagens"
     description = "Equalize e normalize o volume de músicas, podcasts e vídeos em lote para o padrão internacional EBU R128 (-14 LUFS)"
     keywords = ["normalizar", "volume", "loudnorm", "lufs", "audio", "video", "som", "mp3", "ebu r128", "podcast", "lote"]
 

@@ -30,7 +30,7 @@ class ConfigConvertTool(Tool):
     id = "data.config_convert"
     name = "Conversor de Configurações"
     description = "Conversor universal entre arquivos de configuração: .env, .ini, .properties, TOML, YAML e JSON."
-    category = "data"
+    category = "Dados e Estruturas"
     icon = "Settings"
     tags = ["config", "env", "ini", "properties", "toml", "yaml", "json", "converter"]
 

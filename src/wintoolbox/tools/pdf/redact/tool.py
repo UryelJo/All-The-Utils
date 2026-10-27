@@ -30,7 +30,7 @@ class RedactTool(Tool):
     id = "pdf.redact"
     name = "Censura e Tarjamento em PDF"
     description = "Aplica tarjamento permanente (Redaction) sobre termos confidenciais ou áreas sensíveis em PDFs."
-    category = "pdf"
+    category = "PDF"
 
     def build_view(self, parent=None) -> QWidget:
         widget = QWidget(parent)

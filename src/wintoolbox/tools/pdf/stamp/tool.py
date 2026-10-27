@@ -24,7 +24,7 @@ _log = get_logger("pdf.stamp.ui")
 class StampTool(Tool):
     id = "pdf.stamp"
     name = "Carimbos e Numeração em PDF"
-    category = "PDF e Documentos"
+    category = "PDF"
     description = "Aplique numeração automática de páginas, carimbos textuais e marcas d'água em arquivos PDF"
     keywords = ["pdf", "carimbo", "marca d'agua", "numeracao", "paginas", "watermark", "confidencial", "rascunho"]
 

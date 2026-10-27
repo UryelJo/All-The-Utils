@@ -34,7 +34,7 @@ class IntegrityRepairTool(Tool):
     id = "archive.integrity_repair"
     name = "Verificador de Integridade e Recuperação"
     description = "Testa a integridade estrutural e CRC de arquivos compactados e recupera os arquivos intactos."
-    category = "archive"
+    category = "Compactação"
 
     def build_view(self, parent=None) -> QWidget:
         widget = QWidget(parent)

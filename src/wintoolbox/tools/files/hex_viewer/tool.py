@@ -31,7 +31,7 @@ class FilesHexViewerTool(Tool):
     id = "files.hex_viewer"
     name = "Visualizador Hexadecimal"
     description = "Visualizador hexadecimal com rolagem virtual suave e busca por hex ou texto ASCII."
-    category = "files"
+    category = "Arquivos e Pastas"
     icon = "Code"
     tags = ["hex", "dump", "binario", "offset", "bytes", "visualizador"]
 

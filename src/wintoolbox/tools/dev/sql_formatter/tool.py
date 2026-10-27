@@ -30,7 +30,7 @@ from wintoolbox.tools.dev.sql_formatter.logic import (
 class SqlFormatterTool(Tool):
     id = "dev.sql_formatter"
     name = "Formatador e Embelezador SQL"
-    category = "Desenvolvedores"
+    category = "Desenvolvimento"
     description = (
         "Formata, embeleza e minifica consultas e scripts SQL (SELECT, JOIN, WHERE, GROUP BY, INSERT), "
         "com palavras-chave em maiúsculas e preservação de comentários e literais."

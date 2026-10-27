@@ -183,7 +183,7 @@ class CanvasWidget(QWidget):
 class AnnotateTool(Tool):
     id = "images.annotate"
     name = "Editor de Anotações"
-    category = "Imagens e Mídia"
+    category = "Imagens"
     description = "Anotações sobre imagens com setas, retângulos, numeração de passos, textos e tarjas de desfoque ou pixelização"
     keywords = ["anotação", "anotar", "seta", "retângulo", "passos", "censura", "desfoque", "pixelizar", "privacidade"]
 

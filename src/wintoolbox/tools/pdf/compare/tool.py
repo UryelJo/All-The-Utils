@@ -31,7 +31,7 @@ class PdfCompareTool(Tool):
     id = "pdf.compare"
     name = "Comparador de Documentos PDF"
     description = "Compara duas versões de um documento PDF destacando alterações de texto, adições e exclusões."
-    category = "pdf"
+    category = "PDF"
 
     def build_view(self, parent=None) -> QWidget:
         widget = QWidget(parent)

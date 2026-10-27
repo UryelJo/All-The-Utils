@@ -38,7 +38,7 @@ class LogViewerTool(Tool):
     id = "data.log_viewer"
     name = "Visualizador de Logs"
     description = "Leitor de arquivos de log com filtro por severidade (INFO, WARN, ERROR), busca por regex e modo tail."
-    category = "data"
+    category = "Dados e Estruturas"
     icon = "DocumentText"
     tags = ["log", "viewer", "tail", "monitor", "debug", "error", "warn", "info"]
 

@@ -44,7 +44,7 @@ class ReciboOrcamentoTool(Tool):
     id = "productivity.recibo_orcamento"
     name = "Emissor de Recibos e Orçamentos"
     description = "Gere recibos de pagamento e propostas de orçamento em PDF com conversão automática de valores por extenso."
-    category = "productivity"
+    category = "Produtividade"
 
     def build_view(self, parent=None) -> QWidget:
         widget = QWidget(parent)

@@ -39,7 +39,7 @@ class SalaryBrTool(Tool):
     id = "calc.salary_br"
     name = "Calculadora Salarial CLT (Folha de Pagamento)"
     description = "Calcule salário líquido, deduções progressivas de INSS e IRRF, alíquota efetiva, FGTS, férias e rescisão trabalhista."
-    category = "calc"
+    category = "Calculadoras"
 
     def build_view(self, parent=None) -> QWidget:
         widget = QWidget(parent)

@@ -40,7 +40,7 @@ class SelfSignedCertTool(Tool):
     id = "dev.selfsigned_cert"
     name = "Gerador de Certificados SSL/TLS (Self-Signed)"
     description = "Cria certificados SSL/TLS autoassinados e CAs locais com SANs customizados (localhost, IPs) para testes e desenvolvimento."
-    category = "dev"
+    category = "Desenvolvimento"
 
     def __init__(self):
         super().__init__()

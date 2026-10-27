@@ -22,7 +22,7 @@ from wintoolbox.tools.network.subnet_calc.logic import (
 class SubnetCalculatorTool(Tool):
     id = "network.subnet_calc"
     name = "Calculadora de Sub-rede IPv4"
-    category = "Rede"
+    category = "Rede e Internet"
     description = "Calcule sub-redes CIDR, faixas de hosts utilizáveis, broadcast, wildcard e binário"
     keywords = ["sub-rede", "subnet", "cidr", "ip", "ipv4", "mascara", "broadcast", "hosts", "rfc1918"]
 

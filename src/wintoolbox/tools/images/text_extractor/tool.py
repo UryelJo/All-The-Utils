@@ -86,7 +86,7 @@ class ScreenSnipperOverlay(QDialog):
 class TextExtractorTool(Tool):
     id = "images.text_extractor"
     name = "Extrator de Texto de Tela"
-    category = "Imagens e Mídia"
+    category = "Imagens"
     description = "Capture qualquer região da tela e copie instantaneamente o texto via OCR WinRT para a área de transferência"
     keywords = ["ocr", "texto", "tela", "capturar", "copiar", "extrator", "powertoys", "snipping", "leitor"]
 

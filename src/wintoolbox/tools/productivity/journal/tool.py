@@ -43,7 +43,7 @@ class JournalTool(Tool):
     id = "productivity.journal"
     name = "Diário Pessoal & Registros Diários"
     description = "Registre reflexões, memórias e progresso diário com calendário, categorização de humor e exportação Markdown."
-    category = "productivity"
+    category = "Produtividade"
 
     def __init__(self):
         super().__init__()

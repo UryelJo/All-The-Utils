@@ -35,7 +35,7 @@ class FilesTreeExportTool(Tool):
     id = "files.tree_export"
     name = "Exportador de Árvore de Pastas"
     description = "Gera árvores de diretórios nos formatos ASCII/Unicode, Markdown, CSV e HTML."
-    category = "files"
+    category = "Arquivos e Pastas"
     icon = "List"
     tags = ["tree", "arvore", "diretorio", "pastas", "ascii", "markdown", "csv", "html"]
 

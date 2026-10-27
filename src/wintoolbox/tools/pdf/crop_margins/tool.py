@@ -24,7 +24,7 @@ class CropMarginsTool(FileTool):
     id = "pdf.crop_margins"
     name = "Recortador de Margens de PDF"
     description = "Recorta margens vazias de documentos PDF com detecção automática do conteúdo ou valores manuais."
-    category = "pdf"
+    category = "PDF"
     extensions = [".pdf"]
 
     def build_options(self, parent=None) -> QWidget:

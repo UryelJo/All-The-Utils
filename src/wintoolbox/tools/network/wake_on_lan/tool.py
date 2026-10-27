@@ -24,7 +24,7 @@ from wintoolbox.tools.network.wake_on_lan.logic import (
 class WakeOnLanTool(Tool):
     id = "network.wake_on_lan"
     name = "Wake-on-LAN (WOL)"
-    category = "Rede"
+    category = "Rede e Internet"
     description = "Envie Magic Packets para ligar computadores e servidores na rede local com lista de favoritos"
     keywords = ["wol", "wake on lan", "magic packet", "ligar pc", "remoto", "mac", "broadcast", "udp"]
 

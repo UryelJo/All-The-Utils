@@ -34,7 +34,7 @@ class StatisticsTool(Tool):
     id = "calc.statistics"
     name = "Calculadora Estatística (Descritiva & Regressão)"
     description = "Analise conjuntos de dados com média, mediana, desvio padrão, variância, quartis e regressão linear simples."
-    category = "calc"
+    category = "Calculadoras"
 
     def build_view(self, parent=None) -> QWidget:
         widget = QWidget(parent)

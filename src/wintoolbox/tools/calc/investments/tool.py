@@ -33,7 +33,7 @@ class InvestmentsCalcTool(Tool):
     id = "calc.investments"
     name = "Simulador de Investimentos Renda Fixa (CDB, LCI, Poupança, Tesouro)"
     description = "Compare rendimentos líquidos reais de CDB, LCI/LCA, Poupança e Tesouro Direto com alíquotas regressivas do Imposto de Renda."
-    category = "calc"
+    category = "Calculadoras"
 
     def build_view(self, parent=None) -> QWidget:
         widget = QWidget(parent)

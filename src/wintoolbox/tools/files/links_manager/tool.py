@@ -30,7 +30,7 @@ class FilesLinksManagerTool(Tool):
     id = "files.links_manager"
     name = "Gerenciador de Links NTFS"
     description = "Auditor de ponteiros de sistema de arquivos NTFS: links simbólicos, junctions e hardlinks."
-    category = "files"
+    category = "Arquivos e Pastas"
     icon = "Link"
     tags = ["link", "symlink", "junction", "hardlink", "ntfs", "quebrado", "ponteiro"]
 

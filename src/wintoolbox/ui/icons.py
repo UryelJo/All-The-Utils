@@ -21,6 +21,7 @@ CATEGORY_META: Dict[str, Tuple[str, str]] = {
     "Rede e Internet": ("cat_network", NEUTRAL_ICON_COLOR),
     "PDF e Documentos": ("cat_pdf", NEUTRAL_ICON_COLOR),
     "Documentos e PDF": ("cat_pdf", NEUTRAL_ICON_COLOR),
+    "PDF": ("cat_pdf", NEUTRAL_ICON_COLOR),
     "Texto e Redação": ("cat_text", NEUTRAL_ICON_COLOR),
     "Codificação e Hash": ("cat_encode", NEUTRAL_ICON_COLOR),
     "Dados e Estruturas": ("cat_data", NEUTRAL_ICON_COLOR),

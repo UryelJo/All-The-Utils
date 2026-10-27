@@ -44,7 +44,7 @@ class WindowRulesTool(Tool):
     id = "automation.window_rules"
     name = "Regras Automáticas para Janelas (Monitor & Snap)"
     description = "Defina monitor de exibição, coordenadas fixas e estado de maximização automático para seus programas ao abrir."
-    category = "automation"
+    category = "Automação"
 
     def __init__(self):
         super().__init__()

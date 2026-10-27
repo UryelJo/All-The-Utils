@@ -71,7 +71,7 @@ class CropOverlayItem(QGraphicsRectItem):
 class CropEditorTool(Tool):
     id = "images.crop_editor"
     name = "Editor de Recorte e Rotação"
-    category = "Imagens e Mídia"
+    category = "Imagens"
     description = "Recorte visual com proporções fixas (1:1, 16:9, 4:5, A4), grade de regra dos terços e rotação angular fina"
     keywords = ["recorte", "crop", "cortar", "foto", "proporção", "enquadramento", "rotação", "terços", "instagram"]
 

@@ -36,7 +36,7 @@ class TechnicalReferenceTool(Tool):
     id = "dev.reference"
     name = "Tabelas de Referência Técnica"
     description = "Guia de consulta offline de status HTTP, tipos MIME, tabela ASCII/Hex, teclas virtuais VK e atalhos do Windows."
-    category = "dev"
+    category = "Desenvolvimento"
 
     def __init__(self):
         super().__init__()

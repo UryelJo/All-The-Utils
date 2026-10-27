@@ -33,7 +33,7 @@ class SignVisualTool(Tool):
     id = "pdf.sign_visual"
     name = "Assinatura Visual em PDF"
     description = "Insere assinatura digitalizada (PNG transparente), rubrica e data sobre páginas de PDF."
-    category = "pdf"
+    category = "PDF"
 
     def build_view(self, parent=None) -> QWidget:
         widget = QWidget(parent)

@@ -39,7 +39,7 @@ class JsonExplorerTool(Tool):
     id = "json_explorer"
     name = "Explorador de JSON"
     description = "Visualizador em árvore interativo para arquivos JSON complexos, com busca e consultas JSONPath."
-    category = "data"
+    category = "Dados e Estruturas"
     icon = "Code"
     tags = ["json", "explorer", "árvore", "jsonpath", "visualizador", "dados"]
 

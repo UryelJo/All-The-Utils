@@ -27,7 +27,7 @@ _log = get_logger("media.transcribe.ui")
 class TranscribeTool(Tool):
     id = "media.transcribe"
     name = "Transcrição de Áudio Offline (Whisper)"
-    category = "Imagens e Mídia"
+    category = "Imagens"
     description = "Transcreva gravações, podcasts e vídeos para texto ou legendas SRT 100% offline utilizando Inteligência Artificial Whisper"
     keywords = ["transcricao", "audio", "whisper", "faster-whisper", "voz", "texto", "legenda", "srt", "ia", "offline"]
 

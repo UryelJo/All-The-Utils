@@ -41,7 +41,7 @@ class EnvCompareTool(Tool):
     id = "dev.env_compare"
     name = "Comparador de Ambientes (.env vs .env.example)"
     description = "Compara arquivos .env reais contra modelos de exemplo, alertando sobre variáveis ausentes com mascaramento de segredos."
-    category = "dev"
+    category = "Desenvolvimento"
 
     def __init__(self):
         super().__init__()

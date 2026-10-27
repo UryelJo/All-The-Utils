@@ -46,7 +46,7 @@ class DeviceTriggerTool(Tool):
     id = "automation.device_trigger"
     name = "Automação por Dispositivos Removíveis (Gatilhos USB)"
     description = "Execute ações automáticas como backups ou abertura de pastas ao conectar pendrives ou cartões de memória."
-    category = "automation"
+    category = "Automação"
 
     def __init__(self):
         super().__init__()

@@ -21,7 +21,7 @@ class NupBookletTool(FileTool):
     id = "pdf.nup_booklet"
     name = "Reorganizador de Páginas e Livretos (N-Up)"
     description = "Monta 2 ou 4 páginas por folha e gera imposição de livreto (booklet) para impressão e encadernação."
-    category = "pdf"
+    category = "PDF"
     extensions = [".pdf"]
 
     def build_options(self, parent=None) -> QWidget:

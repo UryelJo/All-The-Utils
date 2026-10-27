@@ -43,7 +43,7 @@ class SplitBillTool(Tool):
     id = "calc.split_bill"
     name = "Calculadora de Divisão de Contas (Restaurante & Eventos)"
     description = "Divida contas de restaurante igualitariamente ou por consumo individualizado com taxa de serviço e couvert."
-    category = "calc"
+    category = "Calculadoras"
 
     def __init__(self):
         super().__init__()

@@ -24,7 +24,7 @@ class CompressTargetTool(FileTool):
     id = "media.compress_target"
     name = "Compressor de Vídeo por Meta de Tamanho"
     description = "Comprime vídeos para atingir um tamanho final exato em MB (ex: 25 MB para Discord ou WhatsApp)."
-    category = "media"
+    category = "Áudio e Vídeo"
     extensions = [
         ".mp4",
         ".mkv",

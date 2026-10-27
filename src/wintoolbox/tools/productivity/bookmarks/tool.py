@@ -90,7 +90,7 @@ class BookmarksTool(Tool):
     id = "productivity.bookmarks"
     name = "Gerenciador de Links e Favoritos"
     description = "Organize seus links e artigos salvos com tags, busca rápida, verificador de links quebrados e importação de navegadores."
-    category = "productivity"
+    category = "Produtividade"
 
     def __init__(self):
         super().__init__()

@@ -87,7 +87,7 @@ class BreakReminderTool(Tool):
     id = "productivity.break_reminder"
     name = "Assistente de Ergonomia e Pausas Ativas"
     description = "Proteja sua visão e postura com a regra 20-20-20, lembretes de alongamento e hidratação regular."
-    category = "productivity"
+    category = "Produtividade"
 
     def __init__(self):
         super().__init__()

@@ -31,7 +31,7 @@ class MaterialsCalcTool(Tool):
     id = "calc.materials"
     name = "Calculadora de Materiais de Construção & Reforma"
     description = "Estime quantidades exatas de tinta, caixas de piso/porcelanato com perda, argamassa, rejunte e volume de concreto."
-    category = "calc"
+    category = "Calculadoras"
 
     def build_view(self, parent=None) -> QWidget:
         widget = QWidget(parent)

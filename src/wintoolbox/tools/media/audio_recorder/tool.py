@@ -34,7 +34,7 @@ class AudioRecorderTool(Tool):
     id = "media.audio_recorder"
     name = "Gravador de Áudio"
     description = "Grava áudio do microfone ou dispositivos de entrada com controle de tempo e formato."
-    category = "media"
+    category = "Áudio e Vídeo"
 
     def __init__(self):
         super().__init__()

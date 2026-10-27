@@ -38,7 +38,7 @@ class CssToolboxTool(Tool):
     id = "dev.css_toolbox"
     name = "CSS Developer Toolbox"
     description = "Gerador visual de gradientes, sombras multicamadas (box-shadow), cálculo de clamp() fluido, conversor px/rem e contraste WCAG."
-    category = "dev"
+    category = "Desenvolvimento"
 
     def build_view(self, parent=None) -> QWidget:
         widget = QWidget(parent)

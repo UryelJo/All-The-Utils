@@ -26,7 +26,7 @@ class ComicMakerTool(FileTool):
     id = "archive.comic_maker"
     name = "Conversor de Quadrinhos CBZ"
     description = "Converte pastas de imagens para quadrinhos CBZ com ordenação numérica natural e extrai CBZ para imagens."
-    category = "archive"
+    category = "Compactação"
     extensions = [
         ".cbz",
         ".zip",

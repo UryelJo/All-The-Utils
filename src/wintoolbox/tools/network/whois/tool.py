@@ -24,7 +24,7 @@ from wintoolbox.tools.network.whois.logic import (
 class WhoisLookupTool(Tool):
     id = "network.whois"
     name = "Consulta WHOIS de Domínios"
-    category = "Rede"
+    category = "Rede e Internet"
     description = "Consulte titularidade, registrador, datas de criação e expiração de domínios de internet e IPs"
     keywords = ["whois", "dominio", "registro", "dns", "nameserver", "expiracao", "proprietario", "tld"]
 

@@ -107,7 +107,7 @@ class IcsCalendarTool(Tool):
     id = "productivity.ics_calendar"
     name = "Visualizador de Calendário iCalendar (.ics)"
     description = "Abra, edite e crie compromissos no formato universal iCalendar (.ics) compatível com Outlook, Google e Apple Calendar."
-    category = "productivity"
+    category = "Produtividade"
 
     def __init__(self):
         super().__init__()

@@ -32,7 +32,7 @@ class HealthCalcTool(Tool):
     id = "calc.health"
     name = "Calculadora de Saúde & Metabolismo (IMC / TMB)"
     description = "Calcule IMC com classificação OMS, gasto calórico diário (TDEE), metas nutricionais e ingestão de água."
-    category = "calc"
+    category = "Calculadoras"
 
     def build_view(self, parent=None) -> QWidget:
         widget = QWidget(parent)

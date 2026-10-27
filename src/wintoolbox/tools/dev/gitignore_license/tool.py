@@ -41,7 +41,7 @@ class GitignoreLicenseTool(Tool):
     id = "dev.gitignore_license"
     name = "Gerador de .gitignore e Licenças Open Source"
     description = "Cria arquivos .gitignore combinados por tecnologia e templates oficiais de licenças (MIT, Apache, GPL, BSD)."
-    category = "dev"
+    category = "Desenvolvimento"
 
     def build_view(self, parent=None) -> QWidget:
         widget = QWidget(parent)

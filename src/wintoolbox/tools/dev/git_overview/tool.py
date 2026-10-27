@@ -34,7 +34,7 @@ class GitOverviewTool(Tool):
     id = "dev.git_overview"
     name = "Painel Agregador de Repositórios Git"
     description = "Visão panorâmica de múltiplos repositórios Git locais: branches ativas, arquivos modificados e sincronização remota."
-    category = "dev"
+    category = "Desenvolvimento"
 
     def __init__(self):
         super().__init__()

@@ -46,7 +46,7 @@ class CliSchedulerTool(Tool):
     id = "automation.cli_scheduler"
     name = "Agendador de Tarefas Headless (Windows Tasks)"
     description = "Agende execuções automáticas e periódicas de ferramentas do WinToolbox através do Agendador nativo do Windows."
-    category = "automation"
+    category = "Automação"
 
     def __init__(self):
         super().__init__()

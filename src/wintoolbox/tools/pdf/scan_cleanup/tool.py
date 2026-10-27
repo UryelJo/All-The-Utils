@@ -24,7 +24,7 @@ class ScanCleanupTool(FileTool):
     id = "pdf.scan_cleanup"
     name = "Higienizador de Scans e Digitalizações"
     description = "Melhora scans e digitalizações: aumenta contraste, nitidez e converte para preto e branco puro."
-    category = "pdf"
+    category = "PDF"
     extensions = [".pdf"]
 
     def build_options(self, parent=None) -> QWidget:

@@ -36,7 +36,7 @@ SCALE_OPTIONS = [
 class SvgConverterTool(FileTool):
     id = "images.svg_convert"
     name = "Conversor de SVG para PNG e ICO"
-    category = "Imagens e Mídia"
+    category = "Imagens"
     description = "Conversão de vetores SVG em lote para imagens PNG em alta resolução e ícones ICO multi-tamanho para Windows"
     keywords = ["svg", "vetor", "rasterizar", "png", "ico", "icone", "resolucao", "lote"]
     accepts = [".svg"]

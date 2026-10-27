@@ -33,7 +33,7 @@ class ContactSheetTool(Tool):
     id = "media.contact_sheet"
     name = "Folha de Contato de Vídeo"
     description = "Gera mosaicos visuais (thumbnails grid) com metadados e timecode para pré-visualização rápida de vídeos."
-    category = "media"
+    category = "Áudio e Vídeo"
 
     def __init__(self):
         super().__init__()

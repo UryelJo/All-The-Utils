@@ -1,7 +1,13 @@
 """
-Ponto de entrada quando executado como módulo: python -m wintoolbox
+Ponto de entrada quando executado como módulo: python -m wintoolbox ou diretamente como script.
 """
+import os
 import sys
+
+_SRC_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+if _SRC_DIR not in sys.path:
+    sys.path.insert(0, _SRC_DIR)
+
 
 def main():
     if "--self-test" in sys.argv:

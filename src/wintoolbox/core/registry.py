@@ -152,15 +152,114 @@ def _ensure_loaded() -> None:
             get_logger("registry").exception("Categoria '%s' não carregada (dependência ausente?)", pkg)
 
 
+CANONICAL_CATEGORIES: Dict[str, str] = {
+    # Calculadoras
+    "calc": "Calculadoras",
+    "calculator": "Calculadoras",
+    "calculadoras": "Calculadoras",
+    "calculadora": "Calculadoras",
+
+    # Desenvolvimento
+    "dev": "Desenvolvimento",
+    "desenvolvedores": "Desenvolvimento",
+    "desenvolvimento": "Desenvolvimento",
+    "developer": "Desenvolvimento",
+
+    # Áudio e Vídeo
+    "media": "Áudio e Vídeo",
+    "mídia": "Áudio e Vídeo",
+    "midia": "Áudio e Vídeo",
+    "audio e video": "Áudio e Vídeo",
+    "áudio e vídeo": "Áudio e Vídeo",
+    "audio": "Áudio e Vídeo",
+    "video": "Áudio e Vídeo",
+
+    # Produtividade
+    "productivity": "Produtividade",
+    "produtividade": "Produtividade",
+
+    # Automação
+    "automation": "Automação",
+    "automação": "Automação",
+    "automacao": "Automação",
+    "automações": "Automação",
+
+    # Dados e Estruturas
+    "data": "Dados e Estruturas",
+    "dados e estruturas": "Dados e Estruturas",
+    "dados": "Dados e Estruturas",
+
+    # Arquivos e Pastas
+    "files": "Arquivos e Pastas",
+    "arquivos e pastas": "Arquivos e Pastas",
+    "arquivos": "Arquivos e Pastas",
+
+    # Compactação
+    "archive": "Compactação",
+    "compactação": "Compactação",
+    "compactacao": "Compactação",
+    "compressão": "Compactação",
+
+    # PDF
+    "pdf": "PDF",
+    "pdf e documentos": "PDF",
+    "documentos e pdf": "PDF",
+
+    # Imagens
+    "imagens": "Imagens",
+    "imagens e mídia": "Imagens",
+    "imagens e midia": "Imagens",
+    "images": "Imagens",
+
+    # Rede e Internet
+    "rede": "Rede e Internet",
+    "rede e internet": "Rede e Internet",
+    "network": "Rede e Internet",
+
+    # Sistema
+    "sistema": "Sistema",
+    "sistema windows": "Sistema",
+    "system": "Sistema",
+
+    # Texto e Redação
+    "texto e redação": "Texto e Redação",
+    "texto e redacao": "Texto e Redação",
+    "texto": "Texto e Redação",
+    "text": "Texto e Redação",
+
+    # Codificação e Hash
+    "codificação e hash": "Codificação e Hash",
+    "codificacao e hash": "Codificação e Hash",
+    "encode": "Codificação e Hash",
+    "hash": "Codificação e Hash",
+
+    # Segurança
+    "segurança": "Segurança",
+    "seguranca": "Segurança",
+    "segurança e auditoria": "Segurança",
+    "security": "Segurança",
+}
+
+
+def normalize_category(category_name: str) -> str:
+    """Normaliza o nome da categoria para a nomenclatura canônica oficial em Português do Brasil."""
+    if not category_name:
+        return "Geral"
+    cleaned = category_name.strip().lower()
+    return CANONICAL_CATEGORIES.get(cleaned, category_name.strip())
+
+
 def register(tool_cls: Type[BaseTool]):
     """Decorador para registrar uma ferramenta automaticamente."""
     instance = tool_cls()
     if not instance.id:
         raise ValueError(f"Ferramenta {tool_cls.__name__} precisa ter um 'id' único.")
+    instance.category = normalize_category(instance.category)
     _TOOLS[instance.id] = instance
     if instance.id not in _CATEGORIES.setdefault(instance.category, []):
         _CATEGORIES[instance.category].append(instance.id)
     return tool_cls
+
 
 
 def get_tool(tool_id: str) -> Optional[BaseTool]:

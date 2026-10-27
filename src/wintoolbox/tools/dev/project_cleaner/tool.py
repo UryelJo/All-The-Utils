@@ -37,7 +37,7 @@ class ProjectCleanerTool(Tool):
     id = "dev.project_cleaner"
     name = "Limpador de Projetos de Código"
     description = "Localiza e remove em massa pastas pesadas de compilação (node_modules, target, __pycache__, bin/obj, .venv) liberando espaço em disco."
-    category = "dev"
+    category = "Desenvolvimento"
 
     def __init__(self):
         super().__init__()

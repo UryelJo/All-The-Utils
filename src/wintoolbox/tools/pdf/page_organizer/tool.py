@@ -150,7 +150,7 @@ class PageCardWidget(QFrame):
 class PageOrganizerTool(Tool):
     id = "pdf.page_organizer"
     name = "Organizador Visual de Páginas PDF"
-    category = "PDF e Documentos"
+    category = "PDF"
     description = "Reorganize, gire e exclua páginas de arquivos PDF visualmente através de miniaturas interativas"
     keywords = ["pdf", "organizar", "paginas", "miniaturas", "girar", "reordenar", "excluir", "visual"]
 

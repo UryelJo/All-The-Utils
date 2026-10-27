@@ -38,7 +38,7 @@ class SqlOnFilesTool(Tool):
     id = "data.sql_on_files"
     name = "SQL em Arquivos"
     description = "Carregue arquivos CSV e JSON para um banco SQLite em memória e execute consultas SQL analíticas."
-    category = "data"
+    category = "Dados e Estruturas"
     icon = "Database"
     tags = ["sql", "sqlite", "csv", "json", "tabela", "consulta", "analise"]
 

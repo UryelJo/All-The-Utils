@@ -44,7 +44,7 @@ class GlobalHotkeysTool(Tool):
     id = "automation.hotkeys"
     name = "Atalhos Globais de Teclado (Hotkeys)"
     description = "Configure teclas de atalho globais do Windows para abrir rapidamente ferramentas do WinToolbox ou executar rotinas."
-    category = "automation"
+    category = "Automação"
 
     def __init__(self):
         super().__init__()

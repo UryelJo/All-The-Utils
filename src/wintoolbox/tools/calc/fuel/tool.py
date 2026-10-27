@@ -33,7 +33,7 @@ class FuelCalcTool(Tool):
     id = "calc.fuel"
     name = "Calculadora de Combustível (Etanol vs. Gasolina)"
     description = "Descubra qual combustível é mais econômico para seu carro e calcule os custos totais e rateio de viagens."
-    category = "calc"
+    category = "Calculadoras"
 
     def build_view(self, parent=None) -> QWidget:
         widget = QWidget(parent)

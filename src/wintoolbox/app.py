@@ -3,7 +3,13 @@ Inicialização e ciclo de vida da aplicação WinToolbox.
 """
 import ctypes
 import gc
+import os
 import sys
+
+_SRC_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+if _SRC_DIR not in sys.path:
+    sys.path.insert(0, _SRC_DIR)
+
 from PySide6.QtCore import QEvent, Qt
 from PySide6.QtWidgets import QApplication
 

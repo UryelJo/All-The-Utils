@@ -40,7 +40,7 @@ class MockServerTool(Tool):
     id = "dev.mock_server"
     name = "Servidor HTTP Mock Local"
     description = "Servidor web embutido para testes de APIs locais com rotas mockadas, latência simulada e inspeção de requisições."
-    category = "dev"
+    category = "Desenvolvimento"
 
     def __init__(self):
         super().__init__()

@@ -54,7 +54,7 @@ class ElectricalCalcTool(Tool):
     id = "calc.electrical"
     name = "Calculadora Elétrica Residencial (Consumo, Ohm & Resistores)"
     description = "Estime custos em kWh na conta de luz, resolva circuitos com a Lei de Ohm e decodifique faixas de cores de resistores."
-    category = "calc"
+    category = "Calculadoras"
 
     def build_view(self, parent=None) -> QWidget:
         widget = QWidget(parent)

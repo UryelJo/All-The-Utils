@@ -45,7 +45,7 @@ class FinanceTrackerTool(Tool):
     id = "productivity.finance_tracker"
     name = "Controle de Finanças Pessoais"
     description = "Gestão financeira 100% offline com importação de extratos OFX/CSV, categorização e balanço mensal."
-    category = "productivity"
+    category = "Produtividade"
 
     def __init__(self):
         super().__init__()
