@@ -1028,6 +1028,14 @@ Este documento mantém o inventário detalhado de todas as ferramentas disponív
     - Lista de fusos completa baseada na biblioteca IANA `zoneinfo` nativa do Python.
     - Cálculo de diferença de horas entre as regiões e horário convertido com 1 clique.
 
+### `calc.programmer` — Calculadora do Programador e Manipulador de Bits
+- **Tipo**: `Tool` (Interativo)
+- **Recursos**:
+  - Conversão bidirecional e instantânea entre 4 bases numéricas: Hexadecimal (HEX), Decimal (DEC com alternância entre Unsigned e Signed em complemento de dois), Octal (OCT) e Binário (BIN formatado em nibbles de 4 bits).
+  - Suporte a 4 larguras de palavra (Word Size): 64-bit (QWORD), 32-bit (DWORD), 16-bit (WORD) e 8-bit (BYTE) com truncamento e mascaramento automático.
+  - Operadores lógicos bitwise completos: AND, OR, XOR, NOT, Shift Left (`<<`), Shift Right lógico (`>>`), Shift Right aritmético (SAR com preservação de sinal), Rotação circular à esquerda (ROL) e à direita (ROR).
+  - Bit Board Interativo: painel visual com até 64 bits individuais chaveáveis por clique direto (0/1), botões de cópia em 1 clique para o clipboard, botão para zerar todos os bits ou definir todos em 1s.
+
 ---
 
 ## 14. Automação e Macros Locais (`tools/automation/`)
@@ -1078,6 +1086,16 @@ Este documento mantém o inventário detalhado de todas as ferramentas disponív
   - Ações suportadas: Mover para pasta de destino, Copiar ou Excluir.
   - **Modo Simulação (Dry Run)**: Avalia todos os arquivos da pasta e exibe na tabela visual exatamente o que seria feito antes de realizar qualquer alteração física no disco.
   - Execução segura com tratamento automático de arquivos de mesmo nome para evitar sobrescrita acidental.
+
+### `automation.macro_runner` — Executor e Gravador de Macros
+- **Tipo**: `Tool` (Interativo e Automação de Tarefas)
+- **Recursos**:
+  - Automação completa de fluxos repetitivos sem dependências externas via Win32 API (`mouse_event`, `keybd_event`, `SetCursorPos`).
+  - Suporte a múltiplos tipos de ações: Cliques do Mouse (esquerdo, direito, meio, simples ou duplo com coordenadas X,Y ou no cursor atual), Digitação de Texto Unicode simulada, Atalhos de Teclado Globais (combinações com Ctrl, Alt, Shift, Win, teclas de função F1-F12, etc.), Pausas de Espera (ms) e Rolagem de Scroll do Mouse.
+  - Tabela interativa com reordenação manual de passos (Mover Acima, Mover Abaixo), duplicação e remoção seletiva.
+  - Repetições configuráveis (Loops de 1 a 1000) com intervalo milimétrico entre ciclos e botão de interrupção instantânea.
+  - Serialização e persistência completa em arquivos padronizados `.json` com validação estrita de schema.
+  - Modelos pré-configurados prontos para demonstração e uso imediato.
 
 ---
 

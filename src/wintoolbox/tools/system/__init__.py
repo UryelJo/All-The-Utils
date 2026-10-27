@@ -23,3 +23,11 @@ import wintoolbox.tools.system.repair_center
 import wintoolbox.tools.system.privacy
 import wintoolbox.tools.system.context_menu
 import wintoolbox.tools.system.license_info
+import wintoolbox.tools.system.hardware_info
+import wintoolbox.tools.system.keep_awake
+import wintoolbox.tools.system.windows_features
+import wintoolbox.tools.system.boot_analyzer
+import wintoolbox.tools.system.event_viewer
+import wintoolbox.tools.system.devices
+import wintoolbox.tools.system.fonts_manager
+import wintoolbox.tools.system.wsl_manager

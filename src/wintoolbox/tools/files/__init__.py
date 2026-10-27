@@ -21,3 +21,5 @@ import wintoolbox.tools.files.unblock
 import wintoolbox.tools.files.permissions
 import wintoolbox.tools.files.checksum_manifest
 import wintoolbox.tools.files.junction_mover
+import wintoolbox.tools.files.folder_diff
+import wintoolbox.tools.files.symlink_manager

@@ -10,3 +10,5 @@ import wintoolbox.tools.pdf.security
 import wintoolbox.tools.pdf.office_convert
 import wintoolbox.tools.pdf.page_organizer
 import wintoolbox.tools.pdf.stamp
+import wintoolbox.tools.pdf.metadata_editor
+import wintoolbox.tools.pdf.ocr_searchable

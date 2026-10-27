@@ -319,21 +319,197 @@ Brasil e Segurança:
 - [x] Suporte a Modo Portátil automático (sem uso de %APPDATA% se pasta local existir).
 - [x] Instalador Inno Setup com integração de menu de contexto do Explorer (`installer.iss`).
 
+### Fase 16 — Expansão do Catálogo de Utilitários de Alto Impacto (Planejada)
+
+Esta fase consolida a expansão estratégica do All the Utils / WinToolbox, adicionando utilitários essenciais que complementam as ferramentas existentes, mantendo 100% de execução local, alto desempenho e conformidade com o ecossistema Windows 11 Fluent Design.
+
+#### 1. Imagens e Mídia
+- [x] **`images.crop_editor`** (`Tool`): Recorte interativo com proporções fixas (1:1, 16:9, 4:5, A4), rotação fina (-45° a +45°) e sobreposição de grade de terços via `QGraphicsView`.
+- [x] **`images.annotate`** (`Tool`): Editor de anotações sobre capturas com setas vetoriais, retângulos, numeração sequencial de passos, caixas de texto e desfoque/pixelização de áreas sensíveis (tarjas de privacidade).
+- [x] **`images.text_extractor`** (`Tool`): Capturador de texto de tela no estilo "Text Extractor" do PowerToys, com atalho global para seleção retangular e cópia instantânea do texto reconhecido via OCR WinRT nativo.
+- [x] **`images.compare`** (`Tool`): Comparador visual de duas imagens com slider cortina interativo (antes/depois), mapa de diferença absoluta de pixels e modo toggle/piscante para validação de fidelidade de compressão.
+- [x] **`images.svg_convert`** (`FileTool`): Conversor em lote de SVG vetorial para PNG em alta resolução e ICO para Windows, utilizando renderização nativa de alta fidelidade via `PySide6.QtSvg.QSvgRenderer`.
+- [x] **`images.border_shadow`** (`FileTool`): Embelezador de screenshots e mockups em lote com cantos arredondados, sombra difusa configurável, moldura externa e fundos decorativos (gradiente ou cor sólida).
+- [x] **`images.barcode`** (`Tool`): Gerador completo de códigos de barras lineares (Code 128, EAN-13, EAN-8, ITF, UPC-A) com personalização de dimensões e exportação em PNG e SVG, complementando o leitor do `images.qrcode`.
+- [x] **`images.split_grid`** (`FileTool`): Divisor de imagens em grade retangular (NxM) para carrossel contínuo do Instagram e extração de sprites para jogos.
+
+#### 2. Sistema Windows
+- [x] **`system.hardware_info`** (`Tool`): Inventário aprofundado de componentes da máquina (CPU, slots e barramentos de memória RAM, placa-mãe, BIOS, GPUs, monitores conectados via EDID e portas) via CIM/WMI, com exportação de relatório técnico.
+- [x] **`system.keep_awake`** (`Tool`): Inibidor de suspensão e bloqueio de tela (estilo PowerToys Awake) utilizando a API nativa `SetThreadExecutionState` do Windows, com timer de expiração configurável e ícone na bandeja.
+- [x] **`system.windows_features`** (`Tool`): Gerenciador visual para habilitar/desabilitar recursos opcionais do Windows (WSL, Hyper-V, Windows Sandbox, .NET 3.5, Telnet) via DISM/PowerShell com elevação UAC transparente.
+- [x] **`system.boot_analyzer`** (`Tool`): Analisador de tempo de inicialização do sistema e diagnóstico de serviços e programas que causam atraso no boot através dos logs de eventos `Microsoft-Windows-Diagnostics-Performance/Operational` (Event ID 100).
+- [x] **`system.event_viewer`** (`Tool`): Visualizador amigável e performático de logs de eventos do Windows (`System`, `Application`, `Security`) com filtros por nível de severidade, origem, ID e período com exportação CSV.
+- [x] **`system.devices`** (`Tool`): Painel de dispositivos do Windows com destaque para componentes com código de erro PnP, verificação de drivers e histórico completo de periféricos USB já conectados.
+- [x] **`system.fonts_manager`** (`Tool`): Gerenciador de tipografia do sistema com prévia de fontes, instalação rápida sem privilégios administrativos no `%LOCALAPPDATA%\Microsoft\Windows\Fonts` e remoção segura.
+- [x] **`system.wsl_manager`** (`Tool`): Painel de gerenciamento do Windows Subsystem for Linux (WSL): listar distros, status de execução, iniciar/parar com 1 clique, exportar tarball, importar e migrar VHDX para outro disco.
+
+#### 3. Rede e Comunicação
+- [x] **`network.wake_on_lan`** (`Tool`): Transmissor de pacotes mágicos UDP WOL (RFC padrão) para despertar computadores na rede local via broadcast com validação de endereço MAC.
+- [x] **`network.whois`** (`Tool`): Cliente de consulta de registro de domínios via porta TCP 43 com suporte a WHOIS internacional e parse especializado do Registro.br.
+- [x] **`network.bandwidth_monitor`** (`Tool`): Monitoramento em tempo real de taxas de download/upload por interface de rede com gráfico histórico contínuo e contador de sessão.
+- [x] **`network.subnet_calc`** (`Tool`): Calculadora de sub-redes IPv4 / CIDR com detecção de classes, hosts úteis, broadcast e representações binárias.
+- [x] **`network.dns_benchmark`** (`Tool`): Medidor de latência de resposta comparativo entre os principais servidores DNS públicos (Cloudflare, Google, Quad9, OpenDNS, DNS do provedor) com integração direta ao `network.dns_manager`.
+- [ ] **`network.wifi_analyzer`** (`Tool`): Analisador de espectro Wi-Fi das redes ao alcance com BSSID, canal, largura de banda (2.4/5/6 GHz), potência do sinal (dBm) e algoritmo de recomendação do canal menos congestionado.
+- [ ] **`network.socket_client`** (`Tool`): Cliente e servidor de soquetes de rede TCP e UDP (estilo netcat/socat) para diagnóstico de conectividade, envio de payloads em texto ou hexadecimal e log bidirecional.
+- [ ] **`network.email_headers`** (`Tool`): Analisador forense e rastreador de cabeçalhos de e-mail (RFC 822/5322), mapeando saltos entre servidores de correio (hops), cálculo de latência de trânsito e verificação de resultados de autenticação SPF, DKIM e DMARC.
+- [ ] **`network.lan_speedtest`** (`Tool`): Teste de velocidade e largura de banda ponto a ponto (peer-to-peer) entre dois computadores na mesma rede local sem depender de servidores da internet.
+- [ ] **`network.shares`** (`Tool`): Gerenciador de compartilhamentos de rede SMB locais (listar, criar, revogar) e mapeador visual de unidades de rede persistentes (`net use`).
+- [ ] **`network.url_tools`** (`Tool`): Utilitário de composição, decodificação e construção de links com parâmetros UTM de campanhas de marketing, com encurtador integrado.
+
+#### 4. Texto e Redação
+- [x] **`text.diff_visual`** (`Tool`): Comparador visual com realce inline de caracteres modificados, inseridos e removidos estilo GitHub diff, com visualização lado a lado ou unificada.
+- [x] **`text.regex_tester`** (`Tool`): Testador e depurador de expressões regulares em tempo real com realce colorido de grupos de captura, flags e substituição dinâmica.
+- [x] **`text.markdown_editor`** (`Tool`): Editor de texto Markdown com prévia sincronizada em tempo real renderizada com estilos Fluent Design, atalhos rápidos de formatação e exportação HTML.
+- [x] **`text.lorem_advanced`** (`Tool`): Gerador avançado de texto de preenchimento (Lorem Ipsum, Tecnológico, Jurídico e Corporativo) em palavras, frases ou parágrafos estruturados em Markdown/HTML.
+- [x] **`text.case_converter`** (`Tool`): Conversor e normalizador de caixas de texto com suporte a CamelCase, snake_case, kebab-case, PascalCase, Title Case e remoção de acentos.
+- [ ] **`text.stats`** (`Tool`): Analisador estatístico textual completo: contagem de caracteres, palavras, linhas, frases, tempo estimado de leitura/fala e índices de legibilidade (Flesch-Kincaid e Flesch-Brás adaptado ao português).
+- [ ] **`text.number_words`** (`Tool`): Conversor de valores numéricos e monetários para extenso em reais brasileiros ("R$ 1.234,50" -> "mil duzentos e trinta e quatro reais e cinquenta centavos"), ideal para recibos e documentos fiscais.
+- [ ] **`text.template_filler`** (`Tool`): Mala direta offline inteligente: preenchimento de modelos com sintaxe de placeholders `{{campo}}` combinados com linhas de uma planilha CSV para gerar múltiplos documentos de saída.
+- [ ] **`text.unicode_inspector`** (`Tool`): Detector e limpador de caracteres Unicode problemáticos: caracteres zero-width, caracteres invisíveis, homóglifos de ataque de phishing, normalização de formas canônicas NFC/NFD e substituição de aspas tipográficas.
+- [ ] **`text.list_ops`** (`Tool`): Processador de operações de conjuntos entre duas listas de texto (união, interseção, diferença A-B, diferença simétrica, deduplicação e ordenação natural).
+- [ ] **`text.name_formatter`** (`Tool`): Padronizador e capitalizador gramatical de nomes próprios em português ("JOAO DA SILVA" -> "João da Silva"), preservando partículas de ligação minúsculas ("da", "de", "do", "dos", "das", "e").
+- [ ] **`text.boleto_parser`** (`Tool`): Decodificador e validador de linha digitável e código de barras de boletos de cobrança bancária e concessionárias de serviços (identificação de banco emissor, valor nominal, fator de vencimento e cálculo dos dígitos verificadores módulo 10/11).
+
+#### 5. Codificação e Hash
+- [x] **`encode.base64_file`** (`Tool`): Conversor bidirecional entre arquivos físicos de qualquer extensão e Base64 / Data URI com detecção automática de MIME type por magic bytes.
+- [x] **`encode.jwt_debugger`** (`Tool`): Depurador e validador de tokens JWT (RFC 7519), verificação de claims temporais (exp/nbf/iat) e validação criptográfica de assinatura HMAC (HS256/384/512).
+- [x] **`encode.hash_advanced`** (`Tool`): Geração e verificação em lote de manifestos de integridade (.sha256, .md5, .sfv/CRC32), hashes criptográficos modernos (BLAKE2b, SHA3) e relatório comparativo.
+- [x] **`encode.html_entities`** (`Tool`): Codificador e decodificador de entidades HTML (nomeadas, numéricas decimais e hexadecimais) com catálogo pesquisável com DataTableView.
+- [ ] **`encode.hmac`** (`Tool`): Gerador de códigos de autenticação de mensagem em hash (HMAC) com SHA-256, SHA-512 e MD5 a partir de chaves em texto ou hexadecimal, para validação de webhooks e assinaturas de APIs.
+- [ ] **`encode.keygen`** (`Tool`): Gerador de pares de chaves criptográficas assimétricas RSA (2048/4096 bits) e Ed25519 em formato OpenSSH e PEM, com visualizador de impressões digitais SHA-256 e MD5 via biblioteca `cryptography`.
+- [ ] **`encode.cert_inspector`** (`FileTool`): Decodificador e conversor de certificados digitais locais nos formatos PEM, CRT, CER, CSR e PFX/PKCS#12 (extração de SANs, emissor, titular, validade e algoritmo).
+- [ ] **`encode.nfe_key`** (`Tool`): Decodificador e validador da chave de acesso de 44 dígitos de documentos fiscais eletrônicos brasileiros (NF-e, NFC-e, CT-e, MDF-e), extraindo UF, ano/mês, CNPJ do emitente, modelo, série, número da nota e dígito verificador.
+- [ ] **`encode.classic_ciphers`** (`Tool`): Decodificador e codificador educativo de cifras clássicas de criptografia: Cifra de César com deslocamento configurável, Vigenère, Código Morse, Cifra Atbash e ROT13/ROT47.
+- [ ] **`encode.punycode_html`** (`Tool`): Conversor bidirecional de domínios internacionalizados IDN/Punycode (`xn--...`) e codificador/decodificador de entidades de caracteres HTML (nomeadas e numéricas).
+
+#### 6. Dados e Estruturas
+- [x] **`data.json_path`** (`Tool`): Avaliador de expressões JSONPath (RFC 9535) com recursão profunda `$..chave`, filtros predicados `[?(@.price < 60)]` e realce visual de resultados.
+- [x] **`data.csv_to_db`** (`Tool`): Conversor em lote de arquivos CSV/TSV para bancos físicos SQLite (.db) e scripts SQL DDL/DML com inferência de tipos.
+- [x] **`data.xml_json`** (`Tool`): Conversor bidirecional XML <-> JSON preservando atributos de nós (`@attr`), listas homogêneas e indentação customizada.
+- [x] **`data.regex_extract`** (`Tool`): Extrator de dados em massa por regex com presets integrados (e-mails, URLs, IPs, CPFs, UUIDs) e exportação em CSV/JSON.
+- [ ] **`data.json_explorer`** (`Tool`): Visualizador em árvore expansível e interativo para arquivos JSON complexos, com campo de busca de chaves/valores e suporte a consultas com sintaxe JSONPath.
+- [ ] **`data.csv_tools`** (`FileTool`): Utilitário de manipulação de planilhas CSV em lote: divisão por linhas/colunas, fusão de múltiplos arquivos com mesmo cabeçalho, reordenação de colunas, remoção de duplicatas e conversão de delimitadores (vírgula, ponto-e-vírgula, tabulação).
+- [ ] **`data.sql_on_files`** (`Tool`): Carregador de arquivos tabulares (CSV, JSON, Excel) para um banco SQLite em memória (`:memory:`) com execução de consultas SQL analíticas e exportação de resultados.
+- [ ] **`data.struct_diff`** (`Tool`): Comparador semântico de estruturas de dados (JSON, YAML, TOML) que detecta adições, modificações e exclusões ignorando variações cosméticas de formatação e ordenação de chaves.
+- [ ] **`data.schema_infer`** (`Tool`): Gerador automático de esquemas e modelos de tipagem a partir de um JSON de entrada: JSON Schema, contratos Pydantic v2, Python `dataclass` e interfaces TypeScript.
+- [ ] **`data.excel_tools`** (`FileTool`): Utilitários para arquivos Excel (`.xlsx` via `openpyxl`): dividir abas em pastas de trabalho separadas, consolidar planilhas em uma única aba e extração de intervalos definidos.
+- [ ] **`data.config_convert`** (`Tool`): Conversor universal bidirecional entre formatos de arquivos de configuração: `.env`, `.ini`, `.properties`, TOML, YAML e JSON.
+- [ ] **`data.log_viewer`** (`Tool`): Leitor de arquivos de log volumosos com carregamento sob demanda em chunks, filtragem instantânea por regex e níveis (INFO, WARN, ERROR), realce de cores e modo monitoramento contínuo ("tail").
+
+#### 7. Arquivos e Pastas
+- [x] **`files.folder_diff`** (`Tool`): Comparador diferencial de diretórios recursivo com verificação profunda por hash SHA-256 e categorização (Idênticos, Modificados, Apenas em A, Apenas em B).
+- [x] **`files.symlink_manager`** (`Tool`): Criador e auditor visual de Directory Junctions (`_winapi.CreateJunction`), Symlinks e Hardlinks com detecção de links órfãos e remoção segura sem apagar o alvo.
+- [ ] **`files.catalog`** (`Tool`): Indexador e catalogador de mídias externas (HDs externos, pendrives, NAS) que salva snapshots da estrutura de pastas para busca e localização de arquivos mesmo quando o dispositivo estiver desconectado.
+- [ ] **`files.type_detector`** (`FileTool`): Identificador do tipo real de arquivos baseado em assinaturas binárias (Magic Bytes), identificando arquivos mascarados com extensão incorreta ou corrompidos.
+- [ ] **`files.cleanup_finder`** (`Tool`): Localizador e higienizador em lote de diretórios vazios, arquivos com tamanho 0 byte e atalhos `.lnk` com caminhos quebrados, com modo de simulação (Dry Run).
+- [ ] **`files.links_manager`** (`Tool`): Gerenciador visual de ponteiros de sistema de arquivos NTFS: listagem de links simbólicos, hardlinks e junções (Junctions), detecção de alvos quebrados e criação assistida.
+- [ ] **`files.doc_metadata`** (`FileTool`): Inspetor e limpador de metadados em lote de documentos de escritório (Microsoft Word `.docx`, Excel `.xlsx`, PowerPoint `.pptx` e PDF), removendo autor, empresa, comentários e histórico de revisões.
+- [ ] **`files.tree_export`** (`Tool`): Gerador de representações de árvores de diretórios com exportação para texto puro ASCII, árvore em Markdown, tabela CSV e relatório HTML com tamanhos e metadados.
+- [ ] **`files.hex_viewer`** (`Tool`): Visualizador hexadecimal de arquivos binários com rolagem virtual suave para arquivos de qualquer tamanho, busca por bytes hexadecimais ou strings ASCII e navegação por offset.
+- [ ] **`files.robocopy_gui`** (`Tool`): Interface gráfica simplificada e amigável para o utilitário nativo Robocopy do Windows, com modos de espelhamento, retomada de cópia, limites de banda e geração de relatórios de log.
+- [ ] **`files.free_space_wipe`** (`Tool`): Utilitário de sanitização de segurança para sobrescrever o espaço livre de partições e discos (via automação do utilitário nativo `cipher /w` ou rotina criptográfica), prevenindo a recuperação de arquivos deletados.
+
+#### 8. Compactação
+- [x] **`archive.multi_extract`** (`Tool`): Extrator em lote de arquivos compactados (ZIP, TAR, GZ) com criação automática de subpastas e proteção estrita contra Path Traversal / Zip Slip.
+- [x] **`archive.creator_advanced`** (`Tool`): Criador avançado de arquivos ZIP com seleção de algoritmos (LZMA, BZIP2, DEFLATE, STORE), nível de compressão e divisão em volumes multipartes (.001, .002).
+- [ ] **`archive.batch_extract`** (`FileTool`): Descompactador em lote para múltiplos arquivos compactados simultâneos (ZIP, RAR, 7Z, TAR), com criação automática de subpastas individuais, opção de deleção do arquivo de origem após sucesso e detecção inteligente de pasta raiz duplicada.
+- [ ] **`archive.integrity_repair`** (`Tool`): Verificador de integridade estrutural de arquivos compactados e extrator de recuperação de emergência, salvando todos os arquivos intactos contidos dentro de arquivos ZIP parcialmente danificados.
+- [ ] **`archive.iso_tools`** (`Tool`): Utilitário visual para montar e desmontar imagens de disco ISO e VHD/VHDX via PowerShell nativo (`Mount-DiskImage` / `Dismount-DiskImage`) e extração direta de seu conteúdo.
+- [ ] **`archive.comic_maker`** (`FileTool`): Conversor especializado entre pastas de imagens e arquivos de história em quadrinhos digitais CBZ (`.cbz`), com ordenação natural numérica das páginas e compressão otimizada.
+- [ ] **`archive.multi_volume`** (`Tool`): Criador e juntador de arquivos compactados divididos em múltiplos volumes numerados (ex: `.7z.001`, `.7z.002` ou `.part1.rar`).
+
+#### 9. PDF e Documentos
+- [x] **`pdf.metadata_editor`** (`Tool`): Editor e higienizador/anonimizador de metadados ISO 32000-1 em lote via `pypdf` com limpeza de rastros de privacidade.
+- [x] **`pdf.ocr_searchable`** (`FileTool`): Conversor de PDFs escaneados ou imagens em PDFs pesquisáveis (Searchable PDF) injetando camada invisível de texto via ReportLab e `pypdf`.
+- [ ] **`pdf.sign_visual`** (`Tool`): Inserção visual de assinatura digitalizada (imagem PNG com fundo transparente), data e rubrica com posicionamento e redimensionamento interativo sobre páginas de PDF.
+- [ ] **`pdf.redact`** (`Tool`): Ferramenta de censura e tarjamento permanente (Redaction) de áreas sensíveis em páginas de PDF, removendo de fato os vetores, textos e imagens subjacentes da estrutura do documento.
+- [ ] **`pdf.form_filler`** (`Tool`): Leitor e preenchedor de campos interativos de formulários PDF (AcroForm), com exportação dos dados preenchidos e opção de achatamento (flatten) permanente do formulário.
+- [ ] **`pdf.nup_booklet`** (`FileTool`): Reorganizador de páginas para impressão: montagem de N páginas por folha (2-up, 4-up) e imposição de livreto (booklet) com ordenação para encadernação frente e verso.
+- [ ] **`pdf.crop_margins`** (`FileTool`): Recortador de margens vazias de documentos PDF com detecção automática da caixa delimitadora do conteúdo de texto/imagem.
+- [ ] **`pdf.metadata_bookmarks`** (`Tool`): Editor completo de metadados do documento (título, autor, assunto, palavras-chave) e gerenciador da árvore de sumário / marcadores de navegação (TOC Bookmarks).
+- [ ] **`pdf.tables_to_csv`** (`Tool`): Extrator visual de tabelas presentes em relatórios em PDF com conversão direta para arquivos CSV e planilhas do Excel via biblioteca `pdfplumber`.
+- [ ] **`pdf.compare`** (`Tool`): Comparador comparativo lado a lado de duas versões de um documento PDF, destacando diferenças de texto e diferenças visuais de layout renderizadas.
+- [ ] **`pdf.scan_cleanup`** (`FileTool`): Higienizador de digitalizações e scans: desinclinação automática (deskew), realce de contraste de texto, conversão para preto e branco puro e montagem do PDF final limpo.
+
+#### 10. Áudio e Vídeo
+- [x] **`media.subtitles`** (`Tool`): Editor e conversor bidirecional de legendas (SRT ↔ WebVTT) com ajuste fino de sincronia (Time Shift) e limpeza de tags HTML.
+- [ ] **`media.inspector`** (`Tool`): Relatório técnico detalhado e aprofundado no estilo MediaInfo via `ffprobe`: codecs, perfis, bitrates, faixas de áudio/legenda, metadados de câmera e capítulos, com exportação JSON/TXT.
+- [ ] **`media.compress_target`** (`FileTool`): Compressor inteligente de vídeo para atingir um tamanho final exato em megabytes (ex: limite de 25 MB do Discord ou WhatsApp) calculando automaticamente o bitrate de vídeo em duas passadas.
+- [ ] **`media.stream_manager`** (`Tool`): Gerenciador de trilhas e remux de contêineres multimídia (MKV/MP4) em alta velocidade sem recodificação: extrair, reordenar, adicionar ou remover faixas de áudio e legendas.
+- [ ] **`media.silence_remover`** (`FileTool`): Removedor automático de trechos de silêncio e pausas mortas em podcasts, aulas e gravações de voz utilizando o filtro nativo do FFmpeg `silenceremove`.
+- [ ] **`media.spectrogram`** (`Tool`): Gerador visual de forma de onda de áudio e espectrograma de frequências sonoras via FFmpeg (`showspectrumpic`) para análise acústica de faixas de som.
+- [ ] **`media.speed_changer`** (`FileTool`): Modificador de velocidade de reprodução de arquivos de vídeo e áudio (0.5x a 3.0x) com preservação e compensação de tom de voz (pitch) através do filtro `atempo`.
+- [ ] **`media.video_watermark`** (`FileTool`): Aplicador em lote de marca d'água de texto ou logotipo PNG sobre vídeos, com controle de opacidade, dimensionamento e posicionamento com aceleração por GPU.
+- [ ] **`media.audio_recorder`** (`Tool`): Gravador dedicado de áudio com suporte a gravação do microfone e áudio de reprodução do sistema (loopback de áudio) com visualizador de níveis sonoros VU em tempo real.
+- [ ] **`media.cue_splitter`** (`Tool`): Divisor de arquivos de áudio de álbum contínuo (FLAC, APE, WAV) a partir de planilhas de índice `.cue`, gerando faixas individuais nomeadas e com tags de metadados gravadas.
+- [ ] **`media.contact_sheet`** (`Tool`): Gerador de folhas de contato e mosaicos organizados de capturas de tela sequenciais de um vídeo com informações de duração, resolução e timecode de cada quadro.
+
+#### 11. Desenvolvedores
+- [x] **`dev.api_client`** (`Tool`): Cliente HTTP/REST interativo para desenvolvedores com suporte a GET, POST, PUT, DELETE, PATCH, headers e visualizador formatado de respostas.
+- [x] **`dev.sql_formatter`** (`Tool`): Formatador e minificador SQL offline com capitalização de palavras-chave, quebras em cláusulas principais e indentação configurável.
+- [x] **`dev.color_palette_generator`** (`Tool`): Gerador de paletas harmônicas (Complementar, Análoga, Triádica, Monocromática), verificação de contraste WCAG 2.1 (AA/AAA) e exportação CSS.
+- [ ] **`dev.project_cleaner`** (`Tool`): Analisador e limpador em massa de pastas pesadas de compilação de código (`node_modules`, `__pycache__`, `.venv`, `bin/obj`, `target`, `dist`, `.gradle`), exibindo o espaço em disco recuperável e confirmação de limpeza.
+- [ ] **`dev.line_counter`** (`Tool`): Contador de linhas de código-fonte no estilo `cloc`, discriminando linhas de código efetivo, comentários e linhas em branco por linguagem, além de catalogar marcações de `TODO` e `FIXME`.
+- [ ] **`dev.selfsigned_cert`** (`Tool`): Gerador de certificados SSL/TLS autoassinados e Autoridades Certificadoras (CA) locais com suporte a múltiplos Subject Alternative Names (SAN: `localhost`, `127.0.0.1`, `*.local`) para testes de desenvolvimento via `cryptography`.
+- [ ] **`dev.env_compare`** (`Tool`): Comparador entre arquivos `.env` e modelos `.env.example`, apontando chaves ausentes em ambientes de produção com mascaramento de valores sensíveis.
+- [ ] **`dev.reference`** (`Tool`): Tabela de referência técnica offline contendo status HTTP, MIME types comuns, tabela ASCII/Unicode, atalhos de produtividade do Windows e códigos virtuais de teclas.
+- [ ] **`dev.css_toolbox`** (`Tool`): Ferramentas visuais para desenvolvedores web: gerador de gradientes CSS, sombras multicamadas (box-shadow), cálculo da função fluida `clamp()`, conversor de medidas `px ↔ rem` e analisador de taxa de contraste WCAG.
+- [ ] **`dev.minifier`** (`Tool`): Minificador e formatador local de código HTML, CSS e JavaScript sem necessidade de ferramentas baseadas em Node.js.
+- [ ] **`dev.git_overview`** (`Tool`): Painel agregador de múltiplos repositórios Git locais, exibindo branches atuais, status de modificações pendentes, commits à frente da origem e limpeza de branches já integradas.
+- [ ] **`dev.gitignore_license`** (`Tool`): Assistente de geração de arquivos `.gitignore` especializados por linguagem/framework e templates completos de licenças de código aberto (MIT, Apache 2.0, GPL, BSD).
+- [ ] **`dev.mock_server`** (`Tool`): Servidor HTTP local para testes com capacidade de responder rotas mockadas a partir de um esquema JSON ou respostas configuradas diretamente na interface.
+
+#### 12. Produtividade
+- [x] **`productivity.pomodoro`** (`Tool`): Temporizador Pomodoro com transições de estado (foco, pausa curta, pausa longa), contagem de ciclos e visualização gráfica Fluent.
+- [ ] **`productivity.finance_tracker`** (`Tool`): Controle de finanças pessoais 100% offline com categorização de despesas, gráficos analíticos e importação de extratos bancários brasileiros nos formatos OFX e CSV.
+- [ ] **`productivity.recibo_orcamento`** (`Tool`): Emissor de recibos de pagamento e propostas de orçamento em formato PDF para profissionais autônomos e prestadores de serviços, com logotipo customizado e conversão de valores monetários por extenso.
+- [ ] **`productivity.kanban`** (`Tool`): Quadro de organização de tarefas estilo Kanban com colunas arrastáveis personalizadas, cartões com checklists, datas de entrega e persistência em banco local.
+- [ ] **`productivity.snippets`** (`Tool`): Gerenciador de atalhos e expansão de trechos de texto frequentes através de abreviações disparadas por atalhos globais do Windows via `RegisterHotKey`.
+- [ ] **`productivity.flashcards`** (`Tool`): Sistema de memorização e estudo baseado no algoritmo de repetição espaçada SuperMemo (SM-2), com decks de cartões de perguntas e respostas e importação de arquivos CSV.
+- [ ] **`productivity.countdown`** (`Tool`): Painel de contagem regressiva para prazos de entrega, lançamentos e aniversários, com opção de widget flutuante minimalista na área de trabalho.
+- [ ] **`productivity.bookmarks`** (`Tool`): Gerenciador local de links e referências web categorizados por tags, com busca instantânea, verificador de links ativos e importação de favoritos de navegadores.
+- [ ] **`productivity.journal`** (`Tool`): Diário de registros pessoais com navegação por calendário, busca textual e exportação dos registros para Markdown estruturado.
+- [ ] **`productivity.ics_calendar`** (`Tool`): Visualizador e gerenciador local de eventos de calendário no formato padrão iCalendar (`.ics`).
+- [ ] **`productivity.break_reminder`** (`Tool`): Assistente de ergonomia no computador para incentivo a pausas ativas regulares: descanso ocular (regra 20-20-20), alongamento físico e hidratação.
+
+#### 13. Calculadoras
+- [x] **`calc.unit_converter`** (`Tool`): Conversor universal de unidades de medida (comprimento, massa, dados digitais, volume, temperatura, velocidade e pressão) com tabela comparativa completa.
+- [x] **`calc.finance`** (`Tool`): Calculadora financeira completa com juros compostos com aportes, simulação de financiamento (Price e SAC) e cálculo de margem de lucro e markup.
+- [x] **`calc.programmer`** (`Tool`): Calculadora de sistemas numéricos para programadores: conversão simultânea em Hexadecimal, Decimal, Octal e Binário, chaveamento visual de bits individuais (Bit Toggles), operadores bit a bit (AND, OR, XOR, NOT, Shift) e emulação de palavras de 8, 16, 32 e 64 bits.
+- [ ] **`calc.salary_br`** (`Tool`): Calculadora completa da folha de pagamento brasileira: salário líquido, deduções progressivas de INSS e IRRF, alíquota efetiva, FGTS, férias proporcionais com 1/3 e cálculo rescisório com tabelas mantidas em arquivo JSON editável.
+- [ ] **`calc.health`** (`Tool`): Calculadora de parâmetros de saúde e metabolismo: Índice de Massa Corporal (IMC), Taxa Metabólica Basal (TMB), estimativa de gasto calórico diário e ingestão diária recomendada de água.
+- [ ] **`calc.fuel`** (`Tool`): Comparador econômico de abastecimento Etanol vs. Gasolina (regra padrão dos 70% ou fator de eficiência real do motor) e estimador de custos de viagem com combustível e pedágios.
+- [ ] **`calc.statistics`** (`Tool`): Calculadora de estatística descritiva a partir de conjuntos de dados: média aritmética/ponderada, mediana, moda, variância populacional/amostral, desvio padrão, percentis e regressão linear simples.
+- [ ] **`calc.materials`** (`Tool`): Calculadora de materiais de construção e reformas: cálculo de área por m², rendimento e quantidade de latas de tinta, revestimentos cerâmicos/porcelanato com acréscimo de porcentagem de quebra/perda.
+- [ ] **`calc.electrical`** (`Tool`): Calculadora elétrica residencial: consumo de aparelhos em kWh e projeção de custo na fatura de energia, Lei de Ohm e decodificador visual das faixas de cores de resistores eletrônicos.
+- [ ] **`calc.transfer`** (`Tool`): Estimador de tempo de transferência e download de arquivos com base no tamanho do arquivo e velocidade de conexão (com diferenciação clara entre Mbps e MB/s).
+- [ ] **`calc.split_bill`** (`Tool`): Calculadora de divisão de despesas para refeições e eventos com taxa de serviço/gorjeta e rateio de itens com consumo individualizado.
+- [ ] **`calc.screen`** (`Tool`): Calculadora de densidade de pixels (PPI) de telas e monitores, proporção dimensional de aspecto (Aspect Ratio) e escala recomendada de exibição no Windows.
+- [ ] **`calc.investments`** (`Tool`): Simulador comparativo de rendimento de investimentos de renda fixa brasileira (CDB, LCI/LCA, Poupança e títulos do Tesouro Direto) com aplicação da tabela regressiva de alíquotas do Imposto de Renda.
+
+#### 14. Automação
+- [x] **`automation.macro_runner`** (`Tool`): Gravador e reprodutor de macros de automação: execução em sequência de cliques do mouse, digitação de texto e atalhos de teclado com repetições e persistência JSON.
+- [ ] **`automation.recipes`** (`Tool`): Mecanismo avançado de encadeamento de ferramentas do WinToolbox em "Receitas" de automação reutilizáveis (ex: "Converter Imagens" -> "Otimizar Compressão" -> "Renomear"), reutilizando os contratos padronizados `FileTool` e `get_options()`.
+- [ ] **`automation.hotkeys`** (`Tool`): Central de atalhos de teclado globais configuráveis para abrir ferramentas do WinToolbox, disparar scripts locais ou lançar softwares externos.
+- [ ] **`automation.device_trigger`** (`Tool`): Automação ativada por hardware: escuta eventos do Windows (via WMI/PnP) e dispara ações automáticas ao conectar pendrives, discos externos ou cartões de memória (ex: disparo de backup ou abertura de pasta).
+- [ ] **`automation.process_watcher`** (`Tool`): Sentinela de processos do Windows: monitoramento de programas específicos para disparar alertas visuais ou ações quando um processo é finalizado ou quando o consumo de CPU/Memória ultrapassa um limite configurado.
+- [ ] **`automation.cli_scheduler`** (`Tool`): Interface de integração entre a linha de comando do WinToolbox (`main.py run ...`) e o Agendador de Tarefas nativo do Windows para agendar rotinas headless periódicas.
+- [ ] **`automation.window_rules`** (`Tool`): Gerenciador de regras automáticas para janelas de aplicativos: define tela de exibição, coordenadas fixas e estado de maximização no momento em que softwares configurados são iniciados.
+
 > **Observação sobre APIs Externas**: Ferramentas que dependem de chaves de API pagas (como LLMs de chat, geradores de imagem generativos como DALL-E, tradutores pagos e serviços de nuvem) estão intencionalmente desacopladas do fluxo principal, priorizando funcionalidades 100% locais, gratuitas e offline. A infraestrutura para consumo de tokens em `core/settings.py` permanece disponível caso o usuário decida ativá-las futuramente.
 
 ---
 
 ## 7. Métrica de Qualidade e Testes
-- **Total de Ferramentas Registradas**: 126 ferramentas operacionais em 15 categorias.
-- **Padrão Arquitetural de Lógica Desacoplada**: 100% das 126 ferramentas possuem divisão estrita entre UI (`tool.py`) e regras de negócio puras (`logic.py`), com zero importações de `PySide6` na camada de lógica.
+- **Total de Ferramentas Registradas**: 171 ferramentas operacionais em 15 categorias.
+- **Padrão Arquitetural de Lógica Desacoplada**: 100% das 171 ferramentas possuem divisão estrita entre UI (`tool.py`) e regras de negócio puras (`logic.py`), com zero importações de `PySide6` na camada de lógica (validado estritamente por `tests/test_logic_architecture.py`).
 - **Aceleração por Hardware (GPU) & Paralelismo**:
   - Detecção automática de GPUs instaladas (NVIDIA GeForce/RTX via `nvidia-smi` / WMI, AMD Radeon e Intel Arc/Iris).
   - Aceleração por hardware no FFmpeg via **NVIDIA NVENC** (`h264_nvenc`, `hevc_nvenc`), **AMD AMF** (`h264_amf`, `hevc_amf`) e **Intel QuickSync** (`h264_qsv`) com fallback automático resiliente para CPU (`libx264`).
   - Motor de lote concorrente (`core/batch.py`) com `ThreadPoolExecutor` dimensionado automaticamente de acordo com os núcleos da máquina (`optimal_batch_workers = min(cpu_cores, 8)`).
   - Cálculo de hashes concorrente em lote na ferramenta de localização de arquivos duplicados (`files.duplicates`).
-- **Cobertura de Testes**: **195 testes unitários e de integração** executados com 100% de aprovação no `pytest`, em conformidade estrita com as **Diretrizes de Qualidade Anti-Gambiarra** (Validação de Efeito Real Black-Box, Proibição de Asserções Frouxas e Isolamento de Rede/Ambiente).
-- **Tempo de Execução dos Testes**: ~22.0s para testes unitários + ~28.0s para smoke test com 126 ferramentas.
-
+- **Cobertura de Testes**: **409 testes unitários e de integração** executados com 100% de aprovação no `pytest`, em conformidade estrita com as **Diretrizes de Qualidade Anti-Gambiarra** (Validação de Efeito Real Black-Box, Proibição de Asserções Frouxas e Isolamento de Rede/Ambiente).
+- **Tempo de Execução dos Testes**: ~57s para a suíte global completa (incluindo testes de fumaça de UI e validação de contratos com todas as 171 ferramentas).
 
 ---
 

@@ -6,3 +6,4 @@ import wintoolbox.tools.calc.date_calculator
 import wintoolbox.tools.calc.finance
 import wintoolbox.tools.calc.subnet_calculator
 import wintoolbox.tools.calc.world_clock
+import wintoolbox.tools.calc.programmer

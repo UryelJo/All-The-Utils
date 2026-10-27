@@ -76,6 +76,8 @@ class BaseTool:
 class Tool(BaseTool):
     """Ferramenta com interface gráfica e execução genérica."""
     def build_view(self, parent: Optional[QWidget] = None) -> QWidget:
+        if hasattr(self, "build_ui") and callable(getattr(self, "build_ui")):
+            return self.build_ui()
         raise NotImplementedError
 
     def run(self, params: Dict[str, Any], ctx: TaskContext) -> ToolResult:

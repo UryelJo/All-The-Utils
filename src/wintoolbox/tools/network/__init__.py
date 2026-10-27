@@ -15,3 +15,8 @@ import wintoolbox.tools.network.ftp_client
 import wintoolbox.tools.network.connections
 import wintoolbox.tools.network.latency_monitor
 import wintoolbox.tools.network.firewall
+import wintoolbox.tools.network.wake_on_lan
+import wintoolbox.tools.network.dns_benchmark
+import wintoolbox.tools.network.whois
+import wintoolbox.tools.network.bandwidth_monitor
+import wintoolbox.tools.network.subnet_calc
