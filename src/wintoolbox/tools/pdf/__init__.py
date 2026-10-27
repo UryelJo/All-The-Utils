@@ -12,3 +12,12 @@ import wintoolbox.tools.pdf.page_organizer
 import wintoolbox.tools.pdf.stamp
 import wintoolbox.tools.pdf.metadata_editor
 import wintoolbox.tools.pdf.ocr_searchable
+import wintoolbox.tools.pdf.sign_visual
+import wintoolbox.tools.pdf.redact
+import wintoolbox.tools.pdf.form_filler
+import wintoolbox.tools.pdf.nup_booklet
+import wintoolbox.tools.pdf.crop_margins
+import wintoolbox.tools.pdf.metadata_bookmarks
+import wintoolbox.tools.pdf.tables_to_csv
+import wintoolbox.tools.pdf.compare
+import wintoolbox.tools.pdf.scan_cleanup

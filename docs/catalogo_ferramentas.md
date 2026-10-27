@@ -1626,4 +1626,91 @@ Este documento mantém o inventário detalhado de todas as ferramentas disponív
   - Detecção e agrupamento automático de todas as partes da cadeia sequencial a partir da seleção de qualquer volume.
   - Reconstrução binária determinística bit a bit do arquivo consolidado original.
 
+---
+
+## 22. PDF e Documentos (`tools/pdf/`)
+
+### `pdf.sign_visual` — Assinatura Visual em PDF
+- **Tipo**: `Tool` (Interativo e Inserção Gráfica)
+- **Identificador**: `pdf.sign_visual`
+- **Recursos**:
+  - Inserção e posicionamento visual de imagens digitalizadas de assinaturas e rubricas (PNG com canal alfa/transparência) sobre documentos PDF.
+  - Ajuste de coordenadas (X, Y) e dimensões em pontos (pt) com preservação de proporção.
+  - Opção para adicionar carimbo de data/hora ou texto explicativo de formalização logo abaixo da rubrica.
+  - Seleção de página de aplicação: primeira página, última página, todas as páginas ou página número N específica.
+
+### `pdf.redact` — Censura e Tarjamento Permanente em PDF
+- **Tipo**: `Tool` (Interativo e Anonimização Segura)
+- **Identificador**: `pdf.redact`
+- **Recursos**:
+  - Localização automática de termos confidenciais (CPFs, nomes, salários, e-mails, senhas) via extração estruturada de layout do documento.
+  - Aplicação de tarjas retangulares opacas permanentes (preto de censura oficial ou branco para ocultação) que sobrepõem e removem a visualização dos dados.
+  - Suporte a busca diferenciando ou ignorando maiúsculas e minúsculas (*Case Sensitive*).
+  - Relatório de conformidade com total de ocorrências tarjadas e páginas afetadas.
+
+### `pdf.form_filler` — Preenchedor de Formulários PDF (AcroForm)
+- **Tipo**: `Tool` (Interativo e Manipulação de Formulários)
+- **Identificador**: `pdf.form_filler`
+- **Recursos**:
+  - Leitura e mapeamento de todos os campos interativos contidos no PDF (campos de texto, botões de seleção e listas suspensas).
+  - Tabela interativa para preenchimento ágil de valores com visualização dos nomes e tipos dos campos.
+  - Opção de achatamento (*Flatten*): transforma as anotações do formulário em conteúdo fixo da página, impedindo alterações posteriores por terceiros.
+  - Exportação dos dados preenchidos para arquivos estruturados no formato JSON.
+
+### `pdf.nup_booklet` — Reorganizador de Páginas e Livretos (N-Up / Booklet)
+- **Tipo**: `FileTool` (Processamento em Lote)
+- **Identificador**: `pdf.nup_booklet`
+- **Recursos**:
+  - Imposição N-Up para economia de papel em impressão:
+    - **2-Up**: 2 páginas por folha em orientação A4 paisagem com proporção preservada.
+    - **4-Up**: 4 páginas por folha em grade 2x2 em orientação A4 retrato.
+  - **Imposição de Livreto (*Booklet*)**: Cálculo automático da sequência de páginas para impressão frente e verso destinada à encadernação e dobra ao meio, com preenchimento de páginas em branco até múltiplo de 4.
+
+### `pdf.crop_margins` — Recortador de Margens de PDF
+- **Tipo**: `FileTool` (Processamento em Lote)
+- **Identificador**: `pdf.crop_margins`
+- **Recursos**:
+  - Recorte de bordas brancas e margens vazias de documentos PDF para melhor legibilidade em leitores digitais e tablets.
+  - **Modo Automático**: Detecção inteligente da caixa delimitadora (*bounding box*) do conteúdo real de texto e imagens, ajustando a CropBox com margem de respiro configurável.
+  - **Modo Manual**: Ajuste fino de margens fixas em pontos (esquerda, direita, superior e inferior).
+
+### `pdf.metadata_bookmarks` — Editor de Metadados e Sumário de PDF
+- **Tipo**: `Tool` (Interativo e Metadados de Documento)
+- **Identificador**: `pdf.metadata_bookmarks`
+- **Recursos**:
+  - Edição completa de propriedades e metadados do documento PDF (Título, Autor, Assunto, Palavras-chave).
+  - Gerenciador visual da árvore de marcadores de sumário (*TOC Bookmarks / Outlines*):
+    - Visualização dos marcadores existentes com página de destino.
+    - Adição de novos capítulos e marcadores interativos com navegação instantânea.
+    - Remoção ou reordenação de marcadores obsoletos.
+
+### `pdf.tables_to_csv` — Extrator de Tabelas de PDF (CSV / Excel)
+- **Tipo**: `Tool` (Interativo e Extração Tabular)
+- **Identificador**: `pdf.tables_to_csv`
+- **Recursos**:
+  - Detecção e extração de tabelas com layout estruturado em relatórios PDF via biblioteca `pdfplumber`.
+  - Visualização prévia da tabela selecionada em grade com contagem de linhas e colunas.
+  - Exportação em lote de todas as tabelas encontradas para arquivos CSV individuais.
+  - Exportação unificada para pasta de trabalho do Microsoft Excel (`.xlsx`), criando uma aba separada para cada tabela extraída.
+
+### `pdf.compare` — Comparador de Documentos PDF
+- **Tipo**: `Tool` (Interativo e Comparação Diferencial)
+- **Identificador**: `pdf.compare`
+- **Recursos**:
+  - Comparação diferencial página a página entre duas versões de um mesmo documento PDF.
+  - Cálculo percentual da taxa de similaridade textual via algoritmo de sequência difflib.
+  - Identificação de páginas idênticas, modificadas, adicionadas ou excluídas.
+  - Visualização lado a lado dos textos das páginas e destaque das linhas alteradas.
+
+### `pdf.scan_cleanup` — Higienizador de Scans e Digitalizações
+- **Tipo**: `FileTool` (Processamento em Lote)
+- **Identificador**: `pdf.scan_cleanup`
+- **Recursos**:
+  - Melhoria da legibilidade de documentos escaneados e fotografados:
+    - Aumento adaptativo de contraste para destacar textos desbotados.
+    - Aplicação de filtro de nitidez (*Sharpen*) nas bordas dos caracteres.
+    - Binarização inteligente (*Thresholding*) para conversão em preto e branco puro, removendo sombras cinzas de fundo e manchas de papel.
+  - Seleção de resolução de renderização (100 DPI, 150 DPI equilibrado ou 300 DPI alta resolução).
+
+
 

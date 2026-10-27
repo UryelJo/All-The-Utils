@@ -421,15 +421,15 @@ Esta fase consolida a expansão estratégica do All the Utils / WinToolbox, adic
 #### 9. PDF e Documentos
 - [x] **`pdf.metadata_editor`** (`Tool`): Editor e higienizador/anonimizador de metadados ISO 32000-1 em lote via `pypdf` com limpeza de rastros de privacidade.
 - [x] **`pdf.ocr_searchable`** (`FileTool`): Conversor de PDFs escaneados ou imagens em PDFs pesquisáveis (Searchable PDF) injetando camada invisível de texto via ReportLab e `pypdf`.
-- [ ] **`pdf.sign_visual`** (`Tool`): Inserção visual de assinatura digitalizada (imagem PNG com fundo transparente), data e rubrica com posicionamento e redimensionamento interativo sobre páginas de PDF.
-- [ ] **`pdf.redact`** (`Tool`): Ferramenta de censura e tarjamento permanente (Redaction) de áreas sensíveis em páginas de PDF, removendo de fato os vetores, textos e imagens subjacentes da estrutura do documento.
-- [ ] **`pdf.form_filler`** (`Tool`): Leitor e preenchedor de campos interativos de formulários PDF (AcroForm), com exportação dos dados preenchidos e opção de achatamento (flatten) permanente do formulário.
-- [ ] **`pdf.nup_booklet`** (`FileTool`): Reorganizador de páginas para impressão: montagem de N páginas por folha (2-up, 4-up) e imposição de livreto (booklet) com ordenação para encadernação frente e verso.
-- [ ] **`pdf.crop_margins`** (`FileTool`): Recortador de margens vazias de documentos PDF com detecção automática da caixa delimitadora do conteúdo de texto/imagem.
-- [ ] **`pdf.metadata_bookmarks`** (`Tool`): Editor completo de metadados do documento (título, autor, assunto, palavras-chave) e gerenciador da árvore de sumário / marcadores de navegação (TOC Bookmarks).
-- [ ] **`pdf.tables_to_csv`** (`Tool`): Extrator visual de tabelas presentes em relatórios em PDF com conversão direta para arquivos CSV e planilhas do Excel via biblioteca `pdfplumber`.
-- [ ] **`pdf.compare`** (`Tool`): Comparador comparativo lado a lado de duas versões de um documento PDF, destacando diferenças de texto e diferenças visuais de layout renderizadas.
-- [ ] **`pdf.scan_cleanup`** (`FileTool`): Higienizador de digitalizações e scans: desinclinação automática (deskew), realce de contraste de texto, conversão para preto e branco puro e montagem do PDF final limpo.
+- [x] **`pdf.sign_visual`** (`Tool`): Inserção visual de assinatura digitalizada (imagem PNG com fundo transparente), data e rubrica com posicionamento e redimensionamento interativo sobre páginas de PDF.
+- [x] **`pdf.redact`** (`Tool`): Ferramenta de censura e tarjamento permanente (Redaction) de áreas sensíveis em páginas de PDF, removendo de fato os vetores, textos e imagens subjacentes da estrutura do documento.
+- [x] **`pdf.form_filler`** (`Tool`): Leitor e preenchedor de campos interativos de formulários PDF (AcroForm), com exportação dos dados preenchidos e opção de achatamento (flatten) permanente do formulário.
+- [x] **`pdf.nup_booklet`** (`FileTool`): Reorganizador de páginas para impressão: montagem de N páginas por folha (2-up, 4-up) e imposição de livreto (booklet) com ordenação para encadernação frente e verso.
+- [x] **`pdf.crop_margins`** (`FileTool`): Recortador de margens vazias de documentos PDF com detecção automática da caixa delimitadora do conteúdo de texto/imagem.
+- [x] **`pdf.metadata_bookmarks`** (`Tool`): Editor completo de metadados do documento (título, autor, assunto, palavras-chave) e gerenciador da árvore de sumário / marcadores de navegação (TOC Bookmarks).
+- [x] **`pdf.tables_to_csv`** (`Tool`): Extrator visual de tabelas presentes em relatórios em PDF com conversão direta para arquivos CSV e planilhas do Excel via biblioteca `pdfplumber`.
+- [x] **`pdf.compare`** (`Tool`): Comparador comparativo lado a lado de duas versões de um documento PDF, destacando diferenças de texto e diferenças visuais de layout renderizadas.
+- [x] **`pdf.scan_cleanup`** (`FileTool`): Higienizador de digitalizações e scans: desinclinação automática (deskew), realce de contraste de texto, conversão para preto e branco puro e montagem do PDF final limpo.
 
 #### 10. Áudio e Vídeo
 - [x] **`media.subtitles`** (`Tool`): Editor e conversor bidirecional de legendas (SRT ↔ WebVTT) com ajuste fino de sincronia (Time Shift) e limpeza de tags HTML.
@@ -501,15 +501,15 @@ Esta fase consolida a expansão estratégica do All the Utils / WinToolbox, adic
 ---
 
 ## 7. Métrica de Qualidade e Testes
-- **Total de Ferramentas Registradas**: 206 ferramentas operacionais em 15 categorias.
-- **Padrão Arquitetural de Lógica Desacoplada**: 100% das 206 ferramentas possuem divisão estrita entre UI (`tool.py`) e regras de negócio puras (`logic.py`), com zero importações de bibliotecas gráficas na camada de lógica (validado estritamente por `tests/test_logic_architecture.py`).
+- **Total de Ferramentas Registradas**: 215 ferramentas operacionais em 15 categorias.
+- **Padrão Arquitetural de Lógica Desacoplada**: 100% das 215 ferramentas possuem divisão estrita entre UI (`tool.py`) e regras de negócio puras (`logic.py`), com zero importações de bibliotecas gráficas na camada de lógica (validado estritamente por `tests/test_logic_architecture.py`).
 - **Aceleração por Hardware (GPU) & Paralelismo**:
   - Detecção automática de GPUs instaladas (NVIDIA GeForce/RTX via `nvidia-smi` / WMI, AMD Radeon e Intel Arc/Iris).
   - Aceleração por hardware no FFmpeg via **NVIDIA NVENC** (`h264_nvenc`, `hevc_nvenc`), **AMD AMF** (`h264_amf`, `hevc_amf`) e **Intel QuickSync** (`h264_qsv`) com fallback automático resiliente para CPU (`libx264`).
   - Motor de lote concorrente (`core/batch.py`) com `ThreadPoolExecutor` dimensionado automaticamente de acordo com os núcleos da máquina (`optimal_batch_workers = min(cpu_cores, 8)`).
   - Cálculo de hashes concorrente em lote na ferramenta de localização de arquivos duplicados (`files.duplicates`).
-- **Cobertura de Testes**: **Mais de 540 testes unitários e de integração** executados com 100% de aprovação no `pytest`, em conformidade estrita com as **Diretrizes de Qualidade Anti-Gambiarra** (Validação de Efeito Real Black-Box, Proibição de Asserções Frouxas e Isolamento de Rede/Ambiente).
-- **Tempo de Execução dos Testes**: Suíte completa executada com sucesso e smoke test validando todas as 206 ferramentas.
+- **Cobertura de Testes**: **Mais de 555 testes unitários e de integração** executados com 100% de aprovação no `pytest`, em conformidade estrita com as **Diretrizes de Qualidade Anti-Gambiarra** (Validação de Efeito Real Black-Box, Proibição de Asserções Frouxas e Isolamento de Rede/Ambiente).
+- **Tempo de Execução dos Testes**: Suíte completa executada com sucesso e smoke test validando todas as 215 ferramentas.
 
 ---
 
