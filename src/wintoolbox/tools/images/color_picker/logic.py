@@ -7,6 +7,26 @@ import ctypes
 from ctypes import wintypes
 from typing import Dict, Optional, Tuple
 
+# Códigos de Teclas Virtuais Win32 para monitoramento de atalhos e cliques globais
+VK_LBUTTON = 0x01
+VK_RBUTTON = 0x02
+VK_RETURN = 0x0D
+VK_ESCAPE = 0x1B
+VK_SPACE = 0x20
+
+
+def is_key_pressed(vk_code: int) -> bool:
+    """
+    Verifica se uma tecla virtual do Windows está fisicamente pressionada.
+    Funciona globalmente em todo o sistema operacional, independente de qual
+    aplicativo esteja em foco (ex: WhatsApp, navegadores, jogos ou área de trabalho).
+    """
+    try:
+        return bool(ctypes.windll.user32.GetAsyncKeyState(vk_code) & 0x8000)
+    except Exception:
+        return False
+
+
 
 def rgb_to_formats(r: int, g: int, b: int) -> Dict[str, str]:
     """
