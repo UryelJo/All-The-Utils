@@ -1995,6 +1995,102 @@ Este documento mantém o inventário detalhado de todas as ferramentas disponív
   - Janelas pop-up temporizadas não-bloqueantes contendo exercícios ilustrados e dicas posturais.
   - Intervalos e notificações totalmente configuráveis e persistidos no perfil do usuário.
 
+---
+
+## 26. Calculadoras e Simuladores Técnicos (`tools/calc/`)
+
+### `calc.salary_br` — Calculadora Salarial CLT (Folha de Pagamento)
+- **Tipo**: `Tool` (Interativo e Cálculos Trabalhistas Brasileiros)
+- **Identificador**: `calc.salary_br`
+- **Recursos**:
+  - Cálculo oficial da folha de pagamento CLT com deduções progressivas de INSS por faixas salariais.
+  - Comparativo automático do IRRF: deduções legais (número de dependentes e pensão alimentícia) versus dedução simplificada mensal.
+  - Cálculo de alíquota efetiva real descontada do trabalhador e depósito patronal de FGTS (8%).
+  - Módulo de férias: terço constitucional (1/3) e opção de abono pecuniário (venda de dias).
+  - Simulador de rescisão contratual com discriminação de verbas rescisórias conforme o motivo (sem justa causa com multa rescisória do FGTS, pedido de demissão, justa causa ou acordo mútuo).
+
+### `calc.health` — Calculadora de Saúde & Metabolismo (IMC / TMB)
+- **Tipo**: `Tool` (Interativo e Biometria Nutricional)
+- **Identificador**: `calc.health`
+- **Recursos**:
+  - Cálculo de Índice de Massa Corporal (IMC) com classificação oficial conforme a Organização Mundial da Saúde (OMS) e indicação de faixa de peso ideal para a estatura.
+  - Cálculo de Taxa Metabólica Basal (TMB em repouso) utilizando a equação moderna de Mifflin-St Jeor para homens e mulheres.
+  - Estimativa do Gasto Energético Total Diário (TDEE) conforme o nível de atividade física e metas calóricas para emagrecimento ou hipertrofia muscular.
+  - Planejamento de hidratação diária com ingestão recomendada de água em litros, mililitros e copos de 250 ml considerando tempo de treino.
+
+### `calc.fuel` — Calculadora de Combustível (Etanol vs. Gasolina)
+- **Tipo**: `Tool` (Interativo e Economia Veicular)
+- **Identificador**: `calc.fuel`
+- **Recursos**:
+  - Comparador econômico na bomba com base na paridade padrão (regra dos 70%) ou fator de eficiência real e customizado do veículo.
+  - Indicação clara e em destaque do combustível mais vantajoso e preço máximo do etanol para compensar financeiramente.
+  - Estimador completo de custos de viagem com base na distância (km), consumo médio (km/l), valor do combustível e pedágios.
+  - Cálculo automático de custo por quilômetro rodado e divisão justa do valor por passageiro (rateio de carona).
+
+### `calc.statistics` — Calculadora Estatística (Descritiva & Regressão)
+- **Tipo**: `Tool` (Interativo e Análise Quantitativa)
+- **Identificador**: `calc.statistics`
+- **Recursos**:
+  - Análise descritiva univariada completa a partir de dados numéricos (separados por vírgula, espaço ou linha):
+    - Medidas de tendência central: Média aritmética, Mediana e Moda.
+    - Medidas de dispersão: Amplitude total, Variância amostral/populacional, Desvio padrão amostral/populacional e Erro padrão da média.
+    - Análise posicional: Quartis (Q1, Q2, Q3) e Intervalo Interquartil (IQR).
+  - Módulo de Regressão Linear Simples via Método dos Mínimos Quadrados:
+    - Equação da reta ajustada ($y = mx + b$).
+    - Coeficiente de Determinação ($R^2$), Coeficiente de Correlação de Pearson ($r$), inclinação e intercepto.
+
+### `calc.materials` — Calculadora de Materiais de Construção & Reforma
+- **Tipo**: `Tool` (Interativo e Orçamento de Obras)
+- **Identificador**: `calc.materials`
+- **Recursos**:
+  - Módulo de Pintura: cálculo de área total por demãos, rendimento da tinta por litro e otimização comercial de embalagens (combinação inteligente de Latas de 18L, Galões de 3,6L e Quartos de 900ml com minimização de sobras).
+  - Módulo de Pisos e Revestimentos: área líquida com acréscimo de margem técnica de perda por recortes (10%, 15% ou 20%), total de caixas a comprar, sacos de argamassa (20kg) e quilos de rejunte necessários.
+  - Módulo de Concreto e Contrapiso: cubagem em metros cúbicos ($m^3$) e estimativa de insumos no traço convencional (sacos de cimento 50kg, areia e pedra brita).
+
+### `calc.electrical` — Calculadora Elétrica Residencial (Consumo, Ohm & Resistores)
+- **Tipo**: `Tool` (Interativo e Engenharia Elétrica Básica)
+- **Identificador**: `calc.electrical`
+- **Recursos**:
+  - Estimativa de consumo mensal em kWh e custo projetado na fatura de energia elétrica residencial a partir de presets de aparelhos (ar-condicionado, chuveiro, PC gamer, geladeira, etc.) e tarifa local.
+  - Calculadora universal da Lei de Ohm: resolução automática de quaisquer grandezas faltantes (Tensão $V$, Corrente $I$, Resistência $R$ e Potência ativa $P$) a partir de 2 variáveis conhecidas.
+  - Decodificador visual de código de cores de resistores eletrônicos de 4 e 5 faixas com valor nominal em Ohms (kΩ, MΩ) e tolerância aceitável.
+
+### `calc.transfer` — Estimador de Tempo de Download & Transferência
+- **Tipo**: `Tool` (Interativo e Redes de Telecomunicação)
+- **Identificador**: `calc.transfer`
+- **Recursos**:
+  - Conversor e esclarecedor entre Mbps (Megabits por segundo anunciados em planos de internet) e MB/s (Megabytes por segundo de taxa real de download).
+  - Estimativa de tempo total de transferência para arquivos com predefinições práticas (jogos pesados, filmes 4K, ISOs, álbuns).
+  - Consideração de perda de banda por overhead de pacotes de rede TCP/IP.
+  - Tabela comparativa automática projetando o mesmo download em planos comuns do mercado (50 Mbps, 100 Mbps, 300 Mbps, 500 Mbps e 1 Gbps).
+
+### `calc.split_bill` — Calculadora de Divisão de Contas (Restaurante & Eventos)
+- **Tipo**: `Tool` (Interativo e Gestão Compartilhada)
+- **Identificador**: `calc.split_bill`
+- **Recursos**:
+  - Modo Divisão Rápida: rateio igualitário de despesas com inclusão proporcional de taxa de serviço (gorjeta), couvert artístico por pessoa e descontos promocionais.
+  - Modo Divisão Individualizada: cadastro de múltiplos participantes e itens de consumo com discriminação de quem consumiu cada produto (inclusive subgrupos que dividiram porções ou bebidas).
+  - Geração de extrato discriminado por pessoa com a soma de itens particulares, taxa de serviço e couvert já calculados.
+
+### `calc.screen` — Calculadora de Telas & Monitores (PPI & Proporção)
+- **Tipo**: `Tool` (Interativo e Métricas de Display)
+- **Identificador**: `calc.screen`
+- **Recursos**:
+  - Cálculo preciso de densidade de pixels por polegada (PPI - Pixels Per Inch) a partir da resolução e diagonal da tela.
+  - Proporção dimensional de aspecto (Aspect Ratio) com redução matemática simplificada (16:9, 16:10, 21:9 Ultrawide, 32:9 Super Ultrawide, 3:2 Surface).
+  - Cálculo das dimensões físicas reais da área útil de exibição (Largura, Altura em centímetros e Área em $cm^2$).
+  - Recomendação inteligente da porcentagem de escala de interface no Windows (DPI Scaling) para ergonomia visual e nitidez ideal.
+
+### `calc.investments` — Simulador de Investimentos Renda Fixa (CDB, LCI, Poupança, Tesouro)
+- **Tipo**: `Tool` (Interativo e Planejamento Financeiro)
+- **Identificador**: `calc.investments`
+- **Recursos**:
+  - Simulação de juros compostos com aplicação inicial e aportes mensais periódicos.
+  - Comparativo simultâneo lado a lado entre Caderneta de Poupança, CDBs com rentabilidade atrelada ao CDI, LCIs/LCAs isentas de imposto e Tesouro Selic.
+  - Aplicação automática e determinística da tabela regressiva oficial do Imposto de Renda sobre o rendimento (22,5% até 180 dias, 20% até 360 dias, 17,5% até 720 dias e 15% acima de 720 dias).
+  - Indicação em destaque do investimento mais lucrativo no vencimento e comparativo de ganho real em relação à poupança.
+
+
 
 
 

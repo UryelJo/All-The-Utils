@@ -476,16 +476,16 @@ Esta fase consolida a expansão estratégica do All the Utils / WinToolbox, adic
 - [x] **`calc.unit_converter`** (`Tool`): Conversor universal de unidades de medida (comprimento, massa, dados digitais, volume, temperatura, velocidade e pressão) com tabela comparativa completa.
 - [x] **`calc.finance`** (`Tool`): Calculadora financeira completa com juros compostos com aportes, simulação de financiamento (Price e SAC) e cálculo de margem de lucro e markup.
 - [x] **`calc.programmer`** (`Tool`): Calculadora de sistemas numéricos para programadores: conversão simultânea em Hexadecimal, Decimal, Octal e Binário, chaveamento visual de bits individuais (Bit Toggles), operadores bit a bit (AND, OR, XOR, NOT, Shift) e emulação de palavras de 8, 16, 32 e 64 bits.
-- [ ] **`calc.salary_br`** (`Tool`): Calculadora completa da folha de pagamento brasileira: salário líquido, deduções progressivas de INSS e IRRF, alíquota efetiva, FGTS, férias proporcionais com 1/3 e cálculo rescisório com tabelas mantidas em arquivo JSON editável.
-- [ ] **`calc.health`** (`Tool`): Calculadora de parâmetros de saúde e metabolismo: Índice de Massa Corporal (IMC), Taxa Metabólica Basal (TMB), estimativa de gasto calórico diário e ingestão diária recomendada de água.
-- [ ] **`calc.fuel`** (`Tool`): Comparador econômico de abastecimento Etanol vs. Gasolina (regra padrão dos 70% ou fator de eficiência real do motor) e estimador de custos de viagem com combustível e pedágios.
-- [ ] **`calc.statistics`** (`Tool`): Calculadora de estatística descritiva a partir de conjuntos de dados: média aritmética/ponderada, mediana, moda, variância populacional/amostral, desvio padrão, percentis e regressão linear simples.
-- [ ] **`calc.materials`** (`Tool`): Calculadora de materiais de construção e reformas: cálculo de área por m², rendimento e quantidade de latas de tinta, revestimentos cerâmicos/porcelanato com acréscimo de porcentagem de quebra/perda.
-- [ ] **`calc.electrical`** (`Tool`): Calculadora elétrica residencial: consumo de aparelhos em kWh e projeção de custo na fatura de energia, Lei de Ohm e decodificador visual das faixas de cores de resistores eletrônicos.
-- [ ] **`calc.transfer`** (`Tool`): Estimador de tempo de transferência e download de arquivos com base no tamanho do arquivo e velocidade de conexão (com diferenciação clara entre Mbps e MB/s).
-- [ ] **`calc.split_bill`** (`Tool`): Calculadora de divisão de despesas para refeições e eventos com taxa de serviço/gorjeta e rateio de itens com consumo individualizado.
-- [ ] **`calc.screen`** (`Tool`): Calculadora de densidade de pixels (PPI) de telas e monitores, proporção dimensional de aspecto (Aspect Ratio) e escala recomendada de exibição no Windows.
-- [ ] **`calc.investments`** (`Tool`): Simulador comparativo de rendimento de investimentos de renda fixa brasileira (CDB, LCI/LCA, Poupança e títulos do Tesouro Direto) com aplicação da tabela regressiva de alíquotas do Imposto de Renda.
+- [x] **`calc.salary_br`** (`Tool`): Calculadora completa da folha de pagamento brasileira: salário líquido, deduções progressivas de INSS e IRRF, alíquota efetiva, FGTS, férias proporcionais com 1/3 e cálculo rescisório com tabelas mantidas em arquivo JSON editável.
+- [x] **`calc.health`** (`Tool`): Calculadora de parâmetros de saúde e metabolismo: Índice de Massa Corporal (IMC), Taxa Metabólica Basal (TMB), estimativa de gasto calórico diário e ingestão diária recomendada de água.
+- [x] **`calc.fuel`** (`Tool`): Comparador econômico de abastecimento Etanol vs. Gasolina (regra padrão dos 70% ou fator de eficiência real do motor) e estimador de custos de viagem com combustível e pedágios.
+- [x] **`calc.statistics`** (`Tool`): Calculadora de estatística descritiva a partir de conjuntos de dados: média aritmética/ponderada, mediana, moda, variância populacional/amostral, desvio padrão, percentis e regressão linear simples.
+- [x] **`calc.materials`** (`Tool`): Calculadora de materiais de construção e reformas: cálculo de área por m², rendimento e quantidade de latas de tinta, revestimentos cerâmicos/porcelanato com acréscimo de porcentagem de quebra/perda.
+- [x] **`calc.electrical`** (`Tool`): Calculadora elétrica residencial: consumo de aparelhos em kWh e projeção de custo na fatura de energia, Lei de Ohm e decodificador visual das faixas de cores de resistores eletrônicos.
+- [x] **`calc.transfer`** (`Tool`): Estimador de tempo de transferência e download de arquivos com base no tamanho do arquivo e velocidade de conexão (com diferenciação clara entre Mbps e MB/s).
+- [x] **`calc.split_bill`** (`Tool`): Calculadora de divisão de despesas para refeições e eventos com taxa de serviço/gorjeta e rateio de itens com consumo individualizado.
+- [x] **`calc.screen`** (`Tool`): Calculadora de densidade de pixels (PPI) de telas e monitores, proporção dimensional de aspecto (Aspect Ratio) e escala recomendada de exibição no Windows.
+- [x] **`calc.investments`** (`Tool`): Simulador comparativo de rendimento de investimentos de renda fixa brasileira (CDB, LCI/LCA, Poupança e títulos do Tesouro Direto) com aplicação da tabela regressiva de alíquotas do Imposto de Renda.
 
 #### 14. Automação
 - [x] **`automation.macro_runner`** (`Tool`): Gravador e reprodutor de macros de automação: execução em sequência de cliques do mouse, digitação de texto e atalhos de teclado com repetições e persistência JSON.
@@ -501,15 +501,15 @@ Esta fase consolida a expansão estratégica do All the Utils / WinToolbox, adic
 ---
 
 ## 7. Métrica de Qualidade e Testes
-- **Total de Ferramentas Registradas**: 245 ferramentas operacionais em 15 categorias.
-- **Padrão Arquitetural de Lógica Desacoplada**: 100% das 245 ferramentas possuem divisão estrita entre UI (`tool.py`) e regras de negócio puras (`logic.py`), com zero importações de bibliotecas gráficas na camada de lógica (validado estritamente por `tests/test_logic_architecture.py`).
+- **Total de Ferramentas Registradas**: 255 ferramentas operacionais em 15 categorias.
+- **Padrão Arquitetural de Lógica Desacoplada**: 100% das 255 ferramentas possuem divisão estrita entre UI (`tool.py`) e regras de negócio puras (`logic.py`), com zero importações de bibliotecas gráficas na camada de lógica (validado estritamente por `tests/test_logic_architecture.py`).
 - **Aceleração por Hardware (GPU) & Paralelismo**:
   - Detecção automática de GPUs instaladas (NVIDIA GeForce/RTX via `nvidia-smi` / WMI, AMD Radeon e Intel Arc/Iris).
   - Aceleração por hardware no FFmpeg via **NVIDIA NVENC** (`h264_nvenc`, `hevc_nvenc`), **AMD AMF** (`h264_amf`, `hevc_amf`) e **Intel QuickSync** (`h264_qsv`) com fallback automático resiliente para CPU (`libx264`).
   - Motor de lote concorrente (`core/batch.py`) com `ThreadPoolExecutor` dimensionado automaticamente de acordo com os núcleos da máquina (`optimal_batch_workers = min(cpu_cores, 8)`).
   - Cálculo de hashes concorrente em lote na ferramenta de localização de arquivos duplicados (`files.duplicates`).
-- **Cobertura de Testes**: **Mais de 650 testes unitários e de integração** executados com 100% de aprovação no `pytest`, em conformidade estrita com as **Diretrizes de Qualidade Anti-Gambiarra** (Validação de Efeito Real Black-Box, Proibição de Asserções Frouxas e Isolamento de Rede/Ambiente).
-- **Tempo de Execução dos Testes**: Suíte completa executada com sucesso e smoke test validando todas as 245 ferramentas.
+- **Cobertura de Testes**: **Mais de 680 testes unitários e de integração** executados com 100% de aprovação no `pytest`, em conformidade estrita com as **Diretrizes de Qualidade Anti-Gambiarra** (Validação de Efeito Real Black-Box, Proibição de Asserções Frouxas e Isolamento de Rede/Ambiente).
+- **Tempo de Execução dos Testes**: Suíte completa executada com sucesso e smoke test validando todas as 255 ferramentas.
 
 ---
 
