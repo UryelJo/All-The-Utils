@@ -41,6 +41,7 @@ dependencies = [
     "winrt-Windows.Storage.Streams>=3.0.0",
     "reportlab>=4.0.0",
     "py7zr>=0.20.0",
+    "openpyxl>=3.1.0",
 ]
 
 [project.optional-dependencies]

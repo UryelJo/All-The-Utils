@@ -1375,3 +1375,93 @@ Este documento mantém o inventário detalhado de todas as ferramentas disponív
   - Tabela com `DataTableView` contendo cores dinâmicas de status e severidade, busca/filtro instantâneo e painel de impacto detalhado.
   - Exportação completa do relatório de conformidade em formato Markdown (`.md`) ou Texto (`.txt`).
   - Execução assíncrona segura via `TaskRunner` e aviso ético explícito na interface.
+
+---
+
+## 19. Dados e Estruturas (`tools/data/`)
+
+### `data.json_explorer` — Explorador e Visualizador em Árvore de JSON
+- **Tipo**: `Tool` (Interativo e Visualizador Estrutural)
+- **Identificador**: `data.json_explorer`
+- **Recursos**:
+  - Visualização em árvore expansível (`QTreeWidget`) para arquivos JSON complexos e volumosos.
+  - Identificação de tipos e contagem automática em cada nó (objetos, arrays, strings, números, booleanos, nulos).
+  - Busca instantânea inteligente por chaves e valores com tolerância a acentos em português.
+  - Consulta integrada por sintaxe JSONPath (RFC 9535) com realce dos nós encontrados.
+  - Relatório estatístico detalhado: total de nós, chaves únicas, profundidade máxima e contagem por tipo de dado.
+  - Painel de inspeção e visualização formatada do nó selecionado.
+
+### `data.csv_tools` — Utilitário Avançado de Planilhas CSV
+- **Tipo**: `FileTool` (Processamento em Lote)
+- **Identificador**: `data.csv_tools`
+- **Recursos**:
+  - Divisão de arquivos CSV em partes menores por quantidade de linhas configurável, preservando o cabeçalho original em todas as partes geradas.
+  - Conversão universal de delimitadores (vírgula, ponto-e-vírgula, tabulação/TSV e pipe) com detecção automática do delimitador de origem.
+  - Remoção determinística de linhas duplicadas, com suporte a subconjuntos de colunas como chave única.
+  - Fusão de múltiplos arquivos com mesmo cabeçalho em um único arquivo de saída.
+  - Suporte a codificações UTF-8 e Windows-1252 (CP1252 / Excel legado).
+
+### `data.sql_on_files` — Consultas SQL Analíticas em Arquivos (CSV e JSON)
+- **Tipo**: `Tool` (Interativo e Banco de Dados em Memória)
+- **Identificador**: `data.sql_on_files`
+- **Recursos**:
+  - Carregamento de múltiplos arquivos CSV e JSON para um banco SQLite em memória (`:memory:`).
+  - Inferência automática de tipos de dados (INTEGER, REAL, TEXT) e sanitização de identificadores de tabelas e colunas.
+  - Editor SQL com atalhos rápidos (`SELECT * LIMIT 50`, `COUNT(*)`) e execução de consultas de leitura e manipulação com medição de tempo em milissegundos.
+  - Tabela paginada e interativa com visualização dos dados resultantes.
+  - Exportação direta de resultados em formatos CSV, JSON, Markdown e tabelas HTML.
+
+### `data.struct_diff` — Comparador Semântico de Estruturas (JSON / YAML / TOML)
+- **Tipo**: `Tool` (Interativo e Comparador Semântico)
+- **Identificador**: `data.struct_diff`
+- **Recursos**:
+  - Comparação semântica profunda entre dois documentos estruturados (JSON, YAML, TOML), identificando adições, exclusões e modificações.
+  - Imunidade a variações cosméticas: ignora ordenação de chaves em dicionários, espaçamentos e estilos de indentação.
+  - Caminho semântico padronizado (notação de ponto e colchetes estilo JSONPath: `$.banco.porta`, `$.tags[2]`).
+  - Destaque colorido por severidade (+ verde para inclusões, - vermelho para exclusões, ~ laranja para modificações de valor ou tipo).
+  - Sumário estatístico comparativo completo.
+
+### `data.schema_infer` — Inferência de Schemas e Modelos de Tipagem
+- **Tipo**: `Tool` (Interativo e Gerador de Código)
+- **Identificador**: `data.schema_infer`
+- **Recursos**:
+  - Geração automática de modelos e esquemas formais de tipagem a partir de uma amostra de dados JSON.
+  - Suporte a **JSON Schema (Draft 2020-12)** com mapeamento de propriedades e lista de campos obrigatórios (`required`).
+  - Geração de classes de contratos **Pydantic v2** com `BaseModel`, `Field(alias=...)` e tipos nativos de validação.
+  - Geração de código Python **`@dataclass`** com `field(default_factory=list)` e valores padrão.
+  - Geração de interfaces **TypeScript** com tipagem estrita para integração com aplicações web e APIs.
+  - Personalização do nome da classe raiz e cópia rápida para a área de transferência.
+
+### `data.excel_tools` — Ferramentas de Planilhas Excel (.xlsx / .xlsm)
+- **Tipo**: `FileTool` (Processamento em Lote)
+- **Identificador**: `data.excel_tools`
+- **Recursos**:
+  - Manipulação de pastas de trabalho modernas do Microsoft Excel sem necessidade de instalação do Office, via `openpyxl`.
+  - Divisão de abas em arquivos `.xlsx` independentes, preservando títulos e valores.
+  - Consolidação de planilhas em lote: fusão de arquivos como abas separadas ou consolidação de linhas com mesmo cabeçalho em uma aba única.
+  - Exportação em lote de todas as abas de uma planilha para arquivos CSV individuais com delimitador customizável.
+
+### `data.config_convert` — Conversor Universal de Configurações (.env / .ini / .properties / TOML / YAML / JSON)
+- **Tipo**: `Tool` (Interativo e Utilitário de Configuração)
+- **Identificador**: `data.config_convert`
+- **Recursos**:
+  - Conversão bidirecional sem perdas entre os 6 principais formatos de configuração do ecossistema de software:
+    - Variáveis de ambiente (`.env`)
+    - Arquivos de configuração Windows/Linux (`.ini`)
+    - Configurações Java e Spring Boot (`.properties`)
+    - Formato declarativo moderno TOML (`.toml`)
+    - Formato legível para humanos YAML (`.yaml`, `.yml`)
+    - Notação de objetos JavaScript JSON (`.json`)
+  - Suporte a achatamento (flatten) em chaves com notação de ponto (`app.database.port=5432`) ou expansão hierárquica automática (unflatten).
+  - Tratamento inteligente de comentários e aspas.
+
+### `data.log_viewer` — Visualizador e Monitor de Arquivos de Log (Tail e Severidade)
+- **Tipo**: `Tool` (Interativo e Diagnóstico de Sistema)
+- **Identificador**: `data.log_viewer`
+- **Recursos**:
+  - Leitura otimizada sob demanda de arquivos de log volumosos com leitura rápida do final do arquivo (`tail`).
+  - Reconhecimento automático de níveis de severidade (FATAL, ERROR, WARN, INFO, DEBUG, TRACE) e timestamps.
+  - Filtro instantâneo por severidade e pesquisa por texto simples ou expressões regulares (Regex).
+  - Realce visual por cores conforme severidade das mensagens.
+  - Modo "Seguir Final (Tail Automático)" com recarregamento periódico de 2 segundos para monitoramento ao vivo.
+  - Atalho de 1 clique para carregar diretamente o arquivo de log da aplicação (`app.log`).

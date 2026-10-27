@@ -387,14 +387,14 @@ Esta fase consolida a expansão estratégica do All the Utils / WinToolbox, adic
 - [x] **`data.csv_to_db`** (`Tool`): Conversor em lote de arquivos CSV/TSV para bancos físicos SQLite (.db) e scripts SQL DDL/DML com inferência de tipos.
 - [x] **`data.xml_json`** (`Tool`): Conversor bidirecional XML <-> JSON preservando atributos de nós (`@attr`), listas homogêneas e indentação customizada.
 - [x] **`data.regex_extract`** (`Tool`): Extrator de dados em massa por regex com presets integrados (e-mails, URLs, IPs, CPFs, UUIDs) e exportação em CSV/JSON.
-- [ ] **`data.json_explorer`** (`Tool`): Visualizador em árvore expansível e interativo para arquivos JSON complexos, com campo de busca de chaves/valores e suporte a consultas com sintaxe JSONPath.
-- [ ] **`data.csv_tools`** (`FileTool`): Utilitário de manipulação de planilhas CSV em lote: divisão por linhas/colunas, fusão de múltiplos arquivos com mesmo cabeçalho, reordenação de colunas, remoção de duplicatas e conversão de delimitadores (vírgula, ponto-e-vírgula, tabulação).
-- [ ] **`data.sql_on_files`** (`Tool`): Carregador de arquivos tabulares (CSV, JSON, Excel) para um banco SQLite em memória (`:memory:`) com execução de consultas SQL analíticas e exportação de resultados.
-- [ ] **`data.struct_diff`** (`Tool`): Comparador semântico de estruturas de dados (JSON, YAML, TOML) que detecta adições, modificações e exclusões ignorando variações cosméticas de formatação e ordenação de chaves.
-- [ ] **`data.schema_infer`** (`Tool`): Gerador automático de esquemas e modelos de tipagem a partir de um JSON de entrada: JSON Schema, contratos Pydantic v2, Python `dataclass` e interfaces TypeScript.
-- [ ] **`data.excel_tools`** (`FileTool`): Utilitários para arquivos Excel (`.xlsx` via `openpyxl`): dividir abas em pastas de trabalho separadas, consolidar planilhas em uma única aba e extração de intervalos definidos.
-- [ ] **`data.config_convert`** (`Tool`): Conversor universal bidirecional entre formatos de arquivos de configuração: `.env`, `.ini`, `.properties`, TOML, YAML e JSON.
-- [ ] **`data.log_viewer`** (`Tool`): Leitor de arquivos de log volumosos com carregamento sob demanda em chunks, filtragem instantânea por regex e níveis (INFO, WARN, ERROR), realce de cores e modo monitoramento contínuo ("tail").
+- [x] **`data.json_explorer`** (`Tool`): Visualizador em árvore expansível e interativo para arquivos JSON complexos, com campo de busca de chaves/valores e suporte a consultas com sintaxe JSONPath.
+- [x] **`data.csv_tools`** (`FileTool`): Utilitário de manipulação de planilhas CSV em lote: divisão por linhas/colunas, fusão de múltiplos arquivos com mesmo cabeçalho, reordenação de colunas, remoção de duplicatas e conversão de delimitadores (vírgula, ponto-e-vírgula, tabulação).
+- [x] **`data.sql_on_files`** (`Tool`): Carregador de arquivos tabulares (CSV, JSON, Excel) para um banco SQLite em memória (`:memory:`) com execução de consultas SQL analíticas e exportação de resultados.
+- [x] **`data.struct_diff`** (`Tool`): Comparador semântico de estruturas de dados (JSON, YAML, TOML) que detecta adições, modificações e exclusões ignorando variações cosméticas de formatação e ordenação de chaves.
+- [x] **`data.schema_infer`** (`Tool`): Gerador automático de esquemas e modelos de tipagem a partir de um JSON de entrada: JSON Schema, contratos Pydantic v2, Python `dataclass` e interfaces TypeScript.
+- [x] **`data.excel_tools`** (`FileTool`): Utilitários para arquivos Excel (`.xlsx` via `openpyxl`): dividir abas em pastas de trabalho separadas, consolidar planilhas em uma única aba e extração de intervalos definidos.
+- [x] **`data.config_convert`** (`Tool`): Conversor universal bidirecional entre formatos de arquivos de configuração: `.env`, `.ini`, `.properties`, TOML, YAML e JSON.
+- [x] **`data.log_viewer`** (`Tool`): Leitor de arquivos de log volumosos com carregamento sob demanda em chunks, filtragem instantânea por regex e níveis (INFO, WARN, ERROR), realce de cores e modo monitoramento contínuo ("tail").
 
 #### 7. Arquivos e Pastas
 - [x] **`files.folder_diff`** (`Tool`): Comparador diferencial de diretórios recursivo com verificação profunda por hash SHA-256 e categorização (Idênticos, Modificados, Apenas em A, Apenas em B).
@@ -501,15 +501,15 @@ Esta fase consolida a expansão estratégica do All the Utils / WinToolbox, adic
 ---
 
 ## 7. Métrica de Qualidade e Testes
-- **Total de Ferramentas Registradas**: 184 ferramentas operacionais em 15 categorias.
-- **Padrão Arquitetural de Lógica Desacoplada**: 100% das 184 ferramentas possuem divisão estrita entre UI (`tool.py`) e regras de negócio puras (`logic.py`), com zero importações de `PySide6` na camada de lógica (validado estritamente por `tests/test_logic_architecture.py`).
+- **Total de Ferramentas Registradas**: 192 ferramentas operacionais em 15 categorias.
+- **Padrão Arquitetural de Lógica Desacoplada**: 100% das 192 ferramentas possuem divisão estrita entre UI (`tool.py`) e regras de negócio puras (`logic.py`), com zero importações de `PySide6` na camada de lógica (validado estritamente por `tests/test_logic_architecture.py`).
 - **Aceleração por Hardware (GPU) & Paralelismo**:
   - Detecção automática de GPUs instaladas (NVIDIA GeForce/RTX via `nvidia-smi` / WMI, AMD Radeon e Intel Arc/Iris).
   - Aceleração por hardware no FFmpeg via **NVIDIA NVENC** (`h264_nvenc`, `hevc_nvenc`), **AMD AMF** (`h264_amf`, `hevc_amf`) e **Intel QuickSync** (`h264_qsv`) com fallback automático resiliente para CPU (`libx264`).
   - Motor de lote concorrente (`core/batch.py`) com `ThreadPoolExecutor` dimensionado automaticamente de acordo com os núcleos da máquina (`optimal_batch_workers = min(cpu_cores, 8)`).
   - Cálculo de hashes concorrente em lote na ferramenta de localização de arquivos duplicados (`files.duplicates`).
-- **Cobertura de Testes**: **465 testes unitários e de integração** executados com 100% de aprovação no `pytest`, em conformidade estrita com as **Diretrizes de Qualidade Anti-Gambiarra** (Validação de Efeito Real Black-Box, Proibição de Asserções Frouxas e Isolamento de Rede/Ambiente).
-- **Tempo de Execução dos Testes**: ~75s para a suíte global completa (incluindo testes de fumaça de UI e validação de contratos com todas as 184 ferramentas).
+- **Cobertura de Testes**: **500 testes unitários e de integração** executados com 100% de aprovação no `pytest`, em conformidade estrita com as **Diretrizes de Qualidade Anti-Gambiarra** (Validação de Efeito Real Black-Box, Proibição de Asserções Frouxas e Isolamento de Rede/Ambiente).
+- **Tempo de Execução dos Testes**: ~75s para a suíte global completa (incluindo testes de fumaça de UI e validação de contratos com todas as 192 ferramentas).
 
 ---
 
