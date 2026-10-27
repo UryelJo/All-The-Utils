@@ -2090,6 +2090,68 @@ Este documento mantém o inventário detalhado de todas as ferramentas disponív
   - Aplicação automática e determinística da tabela regressiva oficial do Imposto de Renda sobre o rendimento (22,5% até 180 dias, 20% até 360 dias, 17,5% até 720 dias e 15% acima de 720 dias).
   - Indicação em destaque do investimento mais lucrativo no vencimento e comparativo de ganho real em relação à poupança.
 
+---
+
+## 27. Automação Avançada do Sistema (`tools/automation/`)
+
+### `automation.recipes` — Receitas de Automação (Pipelines Multi-Ferramentas)
+- **Tipo**: `Tool` (Interativo e Encadeamento de Tarefas)
+- **Identificador**: `automation.recipes`
+- **Recursos**:
+  - Criação, edição e reordenação de pipelines sequenciais de processamento onde a saída de uma ferramenta torna-se a entrada da próxima.
+  - Editor visual com reordenação dinâmica de etapas (Subir / Descer / Adicionar / Remover).
+  - Execução em lote com barra de progresso, registro de etapas e relatório consolidado de sucesso.
+  - Persistência das receitas customizadas em arquivo JSON (`~/.wintoolbox/recipes.json`).
+
+### `automation.hotkeys` — Atalhos Globais de Teclado (Hotkeys)
+- **Tipo**: `Tool` (Interativo e Acessibilidade do Sistema)
+- **Identificador**: `automation.hotkeys`
+- **Recursos**:
+  - Definição de combinações de teclas globais do Windows (ex: `Ctrl+Alt+S`, `Win+Shift+N`, `Ctrl+Shift+P`) para disparo imediato.
+  - Suporte a múltiplos tipos de ação: abertura de ferramentas específicas do WinToolbox, execução de programas externos, abertura de diretórios no Windows Explorer e navegação para URLs da web.
+  - Chaveamento individual de ativação/desativação de cada atalho e teste de disparo interativo.
+  - Persistência e validação sintática das teclas em formato JSON.
+
+### `automation.device_trigger` — Automação por Dispositivos Removíveis (Gatilhos USB)
+- **Tipo**: `Tool` (Interativo e Monitoramento de Hardware)
+- **Identificador**: `automation.device_trigger`
+- **Recursos**:
+  - Monitoramento contínuo e detecção física da inserção de pendrives, HDs externos e cartões de memória (`DRIVE_REMOVABLE`).
+  - Associação de regras automáticas baseadas no rótulo de volume do dispositivo (ex: pendrive específico de fotos ou backups).
+  - Disparo de ações como abertura da pasta no Explorer, sincronização/cópia de arquivos para pasta de destino ou execução de scripts de backup.
+  - Exibição em tempo real das unidades removíveis conectadas e simulador de inserção de dispositivo.
+
+### `automation.process_watcher` — Sentinela de Processos (Alertas de Execução & Conclusão)
+- **Tipo**: `Tool` (Interativo e Sentinela de Tarefas)
+- **Identificador**: `automation.process_watcher`
+- **Recursos**:
+  - Monitoramento de processos executáveis em segundo plano no Windows (ex: `blender.exe`, `render.exe`, `chrome.exe`).
+  - Detecção de 4 condições de disparo:
+    1. Encerramento do processo (`on_exit`) — ideal para avisos sonoros ao finalizar renderizações ou compilações longas.
+    2. Inicialização do processo (`on_start`).
+    3. Consumo de memória RAM acima do limite em MB configurado.
+    4. Consumo de CPU acima do percentual configurado.
+  - Seletor rápido a partir dos processos ativos no sistema operacional.
+
+### `automation.cli_scheduler` — Agendador de Tarefas Headless (Windows Tasks)
+- **Tipo**: `Tool` (Interativo e Integração com o Sistema Operacional)
+- **Identificador**: `automation.cli_scheduler`
+- **Recursos**:
+  - Ponte de integração nativa com o utilitário `schtasks.exe` do Windows.
+  - Agendamento de rotinas sem interface gráfica (modo headless: `wintoolbox run <tool_id>`).
+  - Suporte a frequências: Diária (com horário configurável), Semanal, Ao Iniciar o Computador e Ao Fazer Logon.
+  - Criação, exclusão, execução forçada de teste e botão direto para abertura do console nativo do Agendador de Tarefas do Windows (`taskschd.msc`).
+
+### `automation.window_rules` — Regras Automáticas para Janelas (Monitor & Snap)
+- **Tipo**: `Tool` (Interativo e Gerenciamento de Janelas)
+- **Identificador**: `automation.window_rules`
+- **Recursos**:
+  - Criação de regras de comportamento e alocação espacial para janelas de softwares específicos ao serem executados.
+  - Seleção do monitor de exibição desejado (Monitor 1 Principal, Monitor 2 Secundário, etc.).
+  - Aplicação de estados de layout automáticos: Maximizado, Metade Esquerda da Tela (Snap Left), Metade Direita da Tela (Snap Right) ou Coordenadas Fixas em pixels ($X, Y, Largura, Altura$).
+  - Aplicação imediata de regras sobre as janelas abertas atualmente no sistema operacional.
+
+
 
 
 

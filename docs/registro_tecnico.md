@@ -489,27 +489,27 @@ Esta fase consolida a expansão estratégica do All the Utils / WinToolbox, adic
 
 #### 14. Automação
 - [x] **`automation.macro_runner`** (`Tool`): Gravador e reprodutor de macros de automação: execução em sequência de cliques do mouse, digitação de texto e atalhos de teclado com repetições e persistência JSON.
-- [ ] **`automation.recipes`** (`Tool`): Mecanismo avançado de encadeamento de ferramentas do WinToolbox em "Receitas" de automação reutilizáveis (ex: "Converter Imagens" -> "Otimizar Compressão" -> "Renomear"), reutilizando os contratos padronizados `FileTool` e `get_options()`.
-- [ ] **`automation.hotkeys`** (`Tool`): Central de atalhos de teclado globais configuráveis para abrir ferramentas do WinToolbox, disparar scripts locais ou lançar softwares externos.
-- [ ] **`automation.device_trigger`** (`Tool`): Automação ativada por hardware: escuta eventos do Windows (via WMI/PnP) e dispara ações automáticas ao conectar pendrives, discos externos ou cartões de memória (ex: disparo de backup ou abertura de pasta).
-- [ ] **`automation.process_watcher`** (`Tool`): Sentinela de processos do Windows: monitoramento de programas específicos para disparar alertas visuais ou ações quando um processo é finalizado ou quando o consumo de CPU/Memória ultrapassa um limite configurado.
-- [ ] **`automation.cli_scheduler`** (`Tool`): Interface de integração entre a linha de comando do WinToolbox (`main.py run ...`) e o Agendador de Tarefas nativo do Windows para agendar rotinas headless periódicas.
-- [ ] **`automation.window_rules`** (`Tool`): Gerenciador de regras automáticas para janelas de aplicativos: define tela de exibição, coordenadas fixas e estado de maximização no momento em que softwares configurados são iniciados.
+- [x] **`automation.recipes`** (`Tool`): Mecanismo avançado de encadeamento de ferramentas do WinToolbox em "Receitas" de automação reutilizáveis (ex: "Converter Imagens" -> "Otimizar Compressão" -> "Renomear"), reutilizando os contratos padronizados `FileTool` e `get_options()`.
+- [x] **`automation.hotkeys`** (`Tool`): Central de atalhos de teclado globais configuráveis para abrir ferramentas do WinToolbox, disparar scripts locais ou lançar softwares externos.
+- [x] **`automation.device_trigger`** (`Tool`): Automação ativada por hardware: escuta eventos do Windows (via WMI/PnP) e dispara ações automáticas ao conectar pendrives, discos externos ou cartões de memória (ex: disparo de backup ou abertura de pasta).
+- [x] **`automation.process_watcher`** (`Tool`): Sentinela de processos do Windows: monitoramento de programas específicos para disparar alertas visuais ou ações quando um processo é finalizado ou quando o consumo de CPU/Memória ultrapassa um limite configurado.
+- [x] **`automation.cli_scheduler`** (`Tool`): Interface de integração entre a linha de comando do WinToolbox (`main.py run ...`) e o Agendador de Tarefas nativo do Windows para agendar rotinas headless periódicas.
+- [x] **`automation.window_rules`** (`Tool`): Gerenciador de regras automáticas para janelas de aplicativos: define tela de exibição, coordenadas fixas e estado de maximização no momento em que softwares configurados são iniciados.
 
 > **Observação sobre APIs Externas**: Ferramentas que dependem de chaves de API pagas (como LLMs de chat, geradores de imagem generativos como DALL-E, tradutores pagos e serviços de nuvem) estão intencionalmente desacopladas do fluxo principal, priorizando funcionalidades 100% locais, gratuitas e offline. A infraestrutura para consumo de tokens em `core/settings.py` permanece disponível caso o usuário decida ativá-las futuramente.
 
 ---
 
 ## 7. Métrica de Qualidade e Testes
-- **Total de Ferramentas Registradas**: 255 ferramentas operacionais em 15 categorias.
-- **Padrão Arquitetural de Lógica Desacoplada**: 100% das 255 ferramentas possuem divisão estrita entre UI (`tool.py`) e regras de negócio puras (`logic.py`), com zero importações de bibliotecas gráficas na camada de lógica (validado estritamente por `tests/test_logic_architecture.py`).
+- **Total de Ferramentas Registradas**: 261 ferramentas operacionais em 15 categorias.
+- **Padrão Arquitetural de Lógica Desacoplada**: 100% das 261 ferramentas possuem divisão estrita entre UI (`tool.py`) e regras de negócio puras (`logic.py`), com zero importações de bibliotecas gráficas na camada de lógica (validado estritamente por `tests/test_logic_architecture.py`).
 - **Aceleração por Hardware (GPU) & Paralelismo**:
   - Detecção automática de GPUs instaladas (NVIDIA GeForce/RTX via `nvidia-smi` / WMI, AMD Radeon e Intel Arc/Iris).
   - Aceleração por hardware no FFmpeg via **NVIDIA NVENC** (`h264_nvenc`, `hevc_nvenc`), **AMD AMF** (`h264_amf`, `hevc_amf`) e **Intel QuickSync** (`h264_qsv`) com fallback automático resiliente para CPU (`libx264`).
   - Motor de lote concorrente (`core/batch.py`) com `ThreadPoolExecutor` dimensionado automaticamente de acordo com os núcleos da máquina (`optimal_batch_workers = min(cpu_cores, 8)`).
   - Cálculo de hashes concorrente em lote na ferramenta de localização de arquivos duplicados (`files.duplicates`).
-- **Cobertura de Testes**: **Mais de 680 testes unitários e de integração** executados com 100% de aprovação no `pytest`, em conformidade estrita com as **Diretrizes de Qualidade Anti-Gambiarra** (Validação de Efeito Real Black-Box, Proibição de Asserções Frouxas e Isolamento de Rede/Ambiente).
-- **Tempo de Execução dos Testes**: Suíte completa executada com sucesso e smoke test validando todas as 255 ferramentas.
+- **Cobertura de Testes**: **Mais de 700 testes unitários e de integração** executados com 100% de aprovação no `pytest`, em conformidade estrita com as **Diretrizes de Qualidade Anti-Gambiarra** (Validação de Efeito Real Black-Box, Proibição de Asserções Frouxas e Isolamento de Rede/Ambiente).
+- **Tempo de Execução dos Testes**: Suíte completa executada com sucesso e smoke test validando todas as 261 ferramentas.
 
 ---
 
