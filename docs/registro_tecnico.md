@@ -375,12 +375,12 @@ Esta fase consolida a expansão estratégica do All the Utils / WinToolbox, adic
 - [x] **`encode.jwt_debugger`** (`Tool`): Depurador e validador de tokens JWT (RFC 7519), verificação de claims temporais (exp/nbf/iat) e validação criptográfica de assinatura HMAC (HS256/384/512).
 - [x] **`encode.hash_advanced`** (`Tool`): Geração e verificação em lote de manifestos de integridade (.sha256, .md5, .sfv/CRC32), hashes criptográficos modernos (BLAKE2b, SHA3) e relatório comparativo.
 - [x] **`encode.html_entities`** (`Tool`): Codificador e decodificador de entidades HTML (nomeadas, numéricas decimais e hexadecimais) com catálogo pesquisável com DataTableView.
-- [ ] **`encode.hmac`** (`Tool`): Gerador de códigos de autenticação de mensagem em hash (HMAC) com SHA-256, SHA-512 e MD5 a partir de chaves em texto ou hexadecimal, para validação de webhooks e assinaturas de APIs.
-- [ ] **`encode.keygen`** (`Tool`): Gerador de pares de chaves criptográficas assimétricas RSA (2048/4096 bits) e Ed25519 em formato OpenSSH e PEM, com visualizador de impressões digitais SHA-256 e MD5 via biblioteca `cryptography`.
-- [ ] **`encode.cert_inspector`** (`FileTool`): Decodificador e conversor de certificados digitais locais nos formatos PEM, CRT, CER, CSR e PFX/PKCS#12 (extração de SANs, emissor, titular, validade e algoritmo).
-- [ ] **`encode.nfe_key`** (`Tool`): Decodificador e validador da chave de acesso de 44 dígitos de documentos fiscais eletrônicos brasileiros (NF-e, NFC-e, CT-e, MDF-e), extraindo UF, ano/mês, CNPJ do emitente, modelo, série, número da nota e dígito verificador.
-- [ ] **`encode.classic_ciphers`** (`Tool`): Decodificador e codificador educativo de cifras clássicas de criptografia: Cifra de César com deslocamento configurável, Vigenère, Código Morse, Cifra Atbash e ROT13/ROT47.
-- [ ] **`encode.punycode_html`** (`Tool`): Conversor bidirecional de domínios internacionalizados IDN/Punycode (`xn--...`) e codificador/decodificador de entidades de caracteres HTML (nomeadas e numéricas).
+- [x] **`encode.hmac`** (`Tool`): Gerador de códigos de autenticação de mensagem em hash (HMAC) com SHA-256, SHA-512 e MD5 a partir de chaves em texto ou hexadecimal, para validação de webhooks e assinaturas de APIs.
+- [x] **`encode.keygen`** (`Tool`): Gerador de pares de chaves criptográficas assimétricas RSA (2048/4096 bits) e Ed25519 em formato OpenSSH e PEM, com visualizador de impressões digitais SHA-256 e MD5 via biblioteca `cryptography`.
+- [x] **`encode.cert_inspector`** (`FileTool`): Decodificador e conversor de certificados digitais locais nos formatos PEM, CRT, CER, CSR e PFX/PKCS#12 (extração de SANs, emissor, titular, validade e algoritmo).
+- [x] **`encode.nfe_key`** (`Tool`): Decodificador e validador da chave de acesso de 44 dígitos de documentos fiscais eletrônicos brasileiros (NF-e, NFC-e, CT-e, MDF-e), extraindo UF, ano/mês, CNPJ do emitente, modelo, série, número da nota e dígito verificador.
+- [x] **`encode.classic_ciphers`** (`Tool`): Decodificador e codificador educativo de cifras clássicas de criptografia: Cifra de César com deslocamento configurável, Vigenère, Código Morse, Cifra Atbash e ROT13/ROT47.
+- [x] **`encode.punycode_html`** (`Tool`): Conversor bidirecional de domínios internacionalizados IDN/Punycode (`xn--...`) e codificador/decodificador de entidades de caracteres HTML (nomeadas e numéricas).
 
 #### 6. Dados e Estruturas
 - [x] **`data.json_path`** (`Tool`): Avaliador de expressões JSONPath (RFC 9535) com recursão profunda `$..chave`, filtros predicados `[?(@.price < 60)]` e realce visual de resultados.
@@ -501,15 +501,15 @@ Esta fase consolida a expansão estratégica do All the Utils / WinToolbox, adic
 ---
 
 ## 7. Métrica de Qualidade e Testes
-- **Total de Ferramentas Registradas**: 178 ferramentas operacionais em 15 categorias.
-- **Padrão Arquitetural de Lógica Desacoplada**: 100% das 178 ferramentas possuem divisão estrita entre UI (`tool.py`) e regras de negócio puras (`logic.py`), com zero importações de `PySide6` na camada de lógica (validado estritamente por `tests/test_logic_architecture.py`).
+- **Total de Ferramentas Registradas**: 184 ferramentas operacionais em 15 categorias.
+- **Padrão Arquitetural de Lógica Desacoplada**: 100% das 184 ferramentas possuem divisão estrita entre UI (`tool.py`) e regras de negócio puras (`logic.py`), com zero importações de `PySide6` na camada de lógica (validado estritamente por `tests/test_logic_architecture.py`).
 - **Aceleração por Hardware (GPU) & Paralelismo**:
   - Detecção automática de GPUs instaladas (NVIDIA GeForce/RTX via `nvidia-smi` / WMI, AMD Radeon e Intel Arc/Iris).
   - Aceleração por hardware no FFmpeg via **NVIDIA NVENC** (`h264_nvenc`, `hevc_nvenc`), **AMD AMF** (`h264_amf`, `hevc_amf`) e **Intel QuickSync** (`h264_qsv`) com fallback automático resiliente para CPU (`libx264`).
   - Motor de lote concorrente (`core/batch.py`) com `ThreadPoolExecutor` dimensionado automaticamente de acordo com os núcleos da máquina (`optimal_batch_workers = min(cpu_cores, 8)`).
   - Cálculo de hashes concorrente em lote na ferramenta de localização de arquivos duplicados (`files.duplicates`).
-- **Cobertura de Testes**: **440 testes unitários e de integração** executados com 100% de aprovação no `pytest`, em conformidade estrita com as **Diretrizes de Qualidade Anti-Gambiarra** (Validação de Efeito Real Black-Box, Proibição de Asserções Frouxas e Isolamento de Rede/Ambiente).
-- **Tempo de Execução dos Testes**: ~72s para a suíte global completa (incluindo testes de fumaça de UI e validação de contratos com todas as 178 ferramentas).
+- **Cobertura de Testes**: **465 testes unitários e de integração** executados com 100% de aprovação no `pytest`, em conformidade estrita com as **Diretrizes de Qualidade Anti-Gambiarra** (Validação de Efeito Real Black-Box, Proibição de Asserções Frouxas e Isolamento de Rede/Ambiente).
+- **Tempo de Execução dos Testes**: ~75s para a suíte global completa (incluindo testes de fumaça de UI e validação de contratos com todas as 184 ferramentas).
 
 ---
 

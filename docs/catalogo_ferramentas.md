@@ -578,8 +578,77 @@ Este documento mantém o inventário detalhado de todas as ferramentas disponív
 - **Tipo**: `Tool`
 - **Recursos**:
   - Conversão bidirecional de Timestamp Unix Epoch (segundos/ms) ↔ Data e Hora Local, UTC e formato ISO 8601.
-  - Seletor de data e hora com calendário para gerar Epoch.
-  - Conversor sincronizado de bases numéricas: Binário (base 2), Octal (base 8), Decimal (base 10) e Hexadecimal (base 16).
+### `encode.base64_file` — Conversor de Arquivos para Base64 / Data URI
+- **Tipo**: `Tool`
+- **Recursos**:
+  - Conversão bidirecional entre arquivos binários de qualquer extensão e representação Base64 / Data URI.
+  - Detecção automática de MIME types através de assinaturas binárias (Magic Bytes).
+  - Prévia de imagens decodificadas e botão para salvar arquivo reconstruído em disco.
+
+### `encode.jwt_debugger` — Depurador e Validador Avançado de JWT
+- **Tipo**: `Tool`
+- **Recursos**:
+  - Decodificação e inspeção profunda de tokens JWT (RFC 7519).
+  - Verificação matemática e temporal de claims (`exp`, `nbf`, `iat`) com indicação de validade.
+  - Validação criptográfica de assinaturas HMAC-SHA (HS256, HS384, HS512) com chave secreta fornecida.
+
+### `encode.hash_advanced` — Hashes Modernos e Verificador de Manifestos
+- **Tipo**: `Tool`
+- **Recursos**:
+  - Geração e verificação em lote de manifestos de integridade (.sha256, .md5, .sfv/CRC32).
+  - Algoritmos criptográficos de última geração: BLAKE2b, BLAKE2s, SHA3-256, SHA3-512 e SHA-512/256.
+  - Relatório comparativo de integridade de arquivos com status visual de arquivos íntegros, modificados ou corrompidos.
+
+### `encode.html_entities` — Catálogo e Codificador de Entidades HTML
+- **Tipo**: `Tool`
+- **Recursos**:
+  - Tabela pesquisável com centenas de entidades HTML oficiais (nomeadas, decimais e hexadecimais).
+  - Codificação e decodificação seletiva apenas de caracteres reservados ou de todos os caracteres não-ASCII.
+
+### `encode.hmac` — Gerador e Validador de HMAC
+- **Tipo**: `Tool`
+- **Recursos**:
+  - Cálculo de assinaturas HMAC com suporte a SHA-256, SHA-512, SHA-384, MD5 e SHA-1.
+  - Suporte a chaves secretas em texto puro (UTF-8) ou decodificadas de hexadecimal.
+  - Verificação de assinaturas (ex: webhooks do GitHub, Stripe, Mercado Pago) em tempo constante (`compare_digest`) prevenindo *timing attacks*.
+  - Gerador integrado de chaves secretas criptograficamente seguras.
+
+### `encode.keygen` — Gerador de Pares de Chaves SSH e Criptográficas
+- **Tipo**: `Tool`
+- **Recursos**:
+  - Geração de pares de chaves assimétricas nos algoritmos: Ed25519 (recomendado), RSA (2048 e 4096 bits) e ECDSA (P-256).
+  - Exportação de chave pública no formato OpenSSH (`authorized_keys`) com comentários personalizados e PEM.
+  - Exportação de chave privada no formato OpenSSH e PEM PKCS#8 com proteção opcional por senha (AES-256).
+  - Cálculo e exibição de impressões digitais (fingerprints) nos formatos SHA-256 (Base64) e MD5 (Hex colons).
+
+### `encode.cert_inspector` — Inspetor e Conversor de Certificados Digitais
+- **Tipo**: `FileTool` (Processamento em Lote)
+- **Extensões Suportadas**: `.crt`, `.cer`, `.pem`, `.pfx`, `.p12`, `.der`
+- **Recursos**:
+  - Decodificação detalhada de certificados X.509 em formato PEM, DER ou pacotes PKCS#12 (com suporte a senha).
+  - Extração de titular (Common Name, Organização), emissor (CA), período de validade (status de expiração e dias restantes), número de série, algoritmo de assinatura, tipo/tamanho da chave pública e Subject Alternative Names (SANs).
+  - Cálculo de Thumbprints (SHA-256 e SHA-1).
+  - Modo conversão automática para formato padronizado `.pem`.
+
+### `encode.nfe_key` — Decodificador e Validador de Chave NF-e
+- **Tipo**: `Tool`
+- **Recursos**:
+  - Validação e decodificação da chave de acesso de 44 dígitos de documentos fiscais (NF-e mod 55, NFC-e mod 65, CT-e mod 57, MDF-e mod 58).
+  - Conferência matemática rigorosa do Dígito Verificador Módulo 11 conforme o padrão oficial da SEFAZ / ENCAT.
+  - Extração automática de UF do emitente, data de emissão (mês e ano), CNPJ do emitente (com máscara), modelo, série, número da nota, tipo de emissão e código numérico.
+
+### `encode.classic_ciphers` — Cifras Clássicas da Criptografia
+- **Tipo**: `Tool`
+- **Recursos**:
+  - Cifragem e decifragem de cifras históricas: Cifra de César, Cifra de Vigenère, Código Morse (ITU), Cifra Atbash e rotações simétricas ROT13 e ROT47.
+  - Módulo Brute-Force da Cifra de César exibindo simultaneamente todos os 25 deslocamentos possíveis para quebra rápida de textos cifrados.
+
+### `encode.punycode_html` — Conversor IDN Punycode e Entidades HTML
+- **Tipo**: `Tool`
+- **Recursos**:
+  - Conversão bidirecional entre domínios internacionalizados com acentos e formato Punycode ASCII compatível (`xn--...`), com suporte a URLs completas.
+  - Codificação de entidades de caracteres HTML em três modalidades: nomeadas (`&copy;`), decimais (`&#169;`) e hexadecimais (`&#xA9;`).
+  - Decodificação de qualquer entidade HTML de volta para caracteres Unicode originais.
 
 ---
 

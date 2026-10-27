@@ -95,6 +95,8 @@ class FileTool(BaseTool):
 
     def build_options(self, parent: Optional[QWidget] = None) -> QWidget:
         """Constrói o formulário de opções da ferramenta."""
+        if hasattr(self, "build_options_widget"):
+            return getattr(self, "build_options_widget")(parent)
         raise NotImplementedError
 
     def get_options(self) -> Dict[str, Any]:
