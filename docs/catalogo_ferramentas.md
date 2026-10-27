@@ -445,7 +445,102 @@ Este documento mantém o inventário detalhado de todas as ferramentas disponív
   - Cálculo matemático do checksum CRC16-CCITT polinomial `0x1021` (início `0xFFFF`).
   - Suporte a todos os tipos de chaves Pix: CPF, CNPJ, E-mail, Telefone celular (`+55...`) e Chave Aleatória EVP.
   - Campos adicionais: Nome do Beneficiário, Cidade, Valor em Reais (opcional) e Identificador de Transação / TxID (opcional).
-  - Renderização instantânea do QR Code na tela, botão para copiar código Copia e Cola e botão para salvar a imagem do QR Code em PNG.
+### `text.diff_visual` — Comparador Visual de Texto (Diff Inline)
+- **Tipo**: `Tool`
+- **Recursos**:
+  - Comparação linha a linha e caractere por caractere (inline diff) estilo GitHub / VS Code.
+  - Modos de visualização lado a lado (Side-by-Side) e unificado (Unified).
+  - Realce sintático e métricas estatísticas: linhas adicionadas, removidas, modificadas e inalteradas.
+
+### `text.regex_tester` — Testador e Depurador de Expressões Regulares
+- **Tipo**: `Tool`
+- **Recursos**:
+  - Teste de regex em tempo real com realce colorido de grupos de captura e posições.
+  - Flags de compilação integradas: `re.IGNORECASE`, `re.MULTILINE`, `re.DOTALL`, `re.VERBOSE`.
+  - Mecanismo dinâmico de substituição com referências numéricas (`\1`, `\2`) e grupos nomeados.
+  - Catálogo de expressões regulares prontas para validação de dados comuns.
+
+### `text.markdown_editor` — Editor Markdown com Prévia Fluent
+- **Tipo**: `Tool`
+- **Recursos**:
+  - Editor de texto Markdown com prévia sincronizada em tempo real renderizada com estilos Fluent Design.
+  - Barra de ferramentas com atalhos rápidos de formatação (títulos, negrito, itálico, código, tabelas, links).
+  - Exportação instantânea para documento HTML estilizado e arquivo `.md`.
+
+### `text.lorem_advanced` — Gerador Avançado de Texto de Preenchimento
+- **Tipo**: `Tool`
+- **Recursos**:
+  - Geração de texto por palavras, frases ou parágrafos.
+  - 4 universos temáticos especializados: Clássico (Cícero / De Finibus), Tecnológico (Dev/DevOps), Jurídico (Direito Civil/Penal brasileiro) e Corporativo (Startup/Business).
+  - Opções de formatação estruturada: Texto puro, HTML com tags `<p>`, `<h1>`, `<ul>` e Markdown.
+
+### `text.case_converter` — Conversor Universal de Caixa Tipográfica
+- **Tipo**: `Tool`
+- **Recursos**:
+  - Conversão em tempo real entre 12 estilos: camelCase, PascalCase, snake_case, CONSTANT_CASE, kebab-case, Title Case, Sentence case, Train-Case, dot.case, path/case, Alternating Case e Invert Case.
+  - Higienização opcional de diacríticos e acentos Unicode para ASCII puro.
+  - Suporte a processamento frase a frase ou linha por linha para listas de identificadores.
+
+### `text.stats` — Analisador Estatístico Textual e Legibilidade
+- **Tipo**: `Tool`
+- **Recursos**:
+  - Contagem precisa de caracteres (com e sem espaços), palavras, linhas, frases e parágrafos.
+  - Estimativa de tempo de leitura silenciosa e tempo de fala/oratória em ritmo natural.
+  - Cálculo de densidade vocabular e palavras mais frequentes com filtro configurável de stopwords em português.
+  - Índice de Legibilidade Flesch-Brás (Martins et al. 1996) e Flesch Reading Ease com classificação de faixa etária/escolaridade recomendada.
+  - Exportação de relatório estatístico formatado para a área de transferência.
+
+### `text.number_words` — Número e Moeda por Extenso (BRL)
+- **Tipo**: `Tool`
+- **Recursos**:
+  - Conversão de números inteiros (até quatrilhões) e valores monetários em Reais (BRL) para extenso.
+  - Conformidade estrita com as regras ortográficas brasileiras: singular/plural ('real'/'reais', 'centavo'/'centavos') e regra gramatical do conectivo 'de' em milhões/bilhões redondos ('dois milhões de reais').
+  - Formato especial protegido para emissão de cheques e recibos (`# ... #` em caixa alta).
+  - Conversão de numerais ordinais masculinos e femininos (1º -> primeiro, 2ª -> segunda).
+
+### `text.template_filler` — Mala Direta e Preenchimento de Modelos
+- **Tipo**: `Tool`
+- **Recursos**:
+  - Preenchimento em lote de documentos a partir de modelos com sintaxe de placeholders `{{campo}}`.
+  - Modificadores de texto integrados: `{{campo | upper}}`, `{{campo | lower}}`, `{{campo | title}}`, `{{campo | capitalize}}`.
+  - Importação de dados tabulares em formato CSV (detecção automática de delimitadores vírgula e ponto-e-vírgula).
+  - Pré-visualização navegável registro por registro.
+  - Geração em lote com salvamento de arquivos individuais nomeados dinamicamente ou arquivo consolidado único.
+
+### `text.unicode_inspector` — Inspetor e Higienizador Unicode
+- **Tipo**: `Tool`
+- **Recursos**:
+  - Detecção de caracteres de largura zero (Zero-Width Space, ZWNJ, ZWJ, BOM `\uFEFF`).
+  - Identificação de espaços especiais Unicode (Non-Breaking Space `\u00A0`, En/Em space).
+  - Detecção e neutralização de homóglifos de alfabetos mistos (cirílico/grego) utilizados em ataques de phishing.
+  - Substituição de aspas tipográficas curvas por aspas ASCII retas.
+  - Normalização canônica Unicode nos formatos padrão NFC, NFD, NFKC e NFKD.
+
+### `text.list_ops` — Operações de Conjuntos entre Listas de Texto
+- **Tipo**: `Tool`
+- **Recursos**:
+  - Operações matemáticas de conjuntos linha por linha: União ($A \cup B$), Interseção ($A \cap B$), Diferença $A - B$, Diferença $B - A$, Diferença Simétrica ($A \Delta B$) e Concatenação.
+  - Opções de sensibilidade a maiúsculas/minúsculas, remoção de espaços em branco (trim) e ignorar linhas vazias.
+  - Ordenação do resultado: Ordem original, alfabética A-Z/Z-A e Ordenação Natural (`item2` antes de `item10`).
+
+### `text.name_formatter` — Formatador de Nomes Próprios e Citações ABNT
+- **Tipo**: `Tool`
+- **Recursos**:
+  - Padronização e capitalização gramatical de nomes próprios em língua portuguesa.
+  - Preservação em minúsculas de partículas conformativas e preposições ('da', 'de', 'do', 'dos', 'das', 'e', 'van', 'von', 'del').
+  - Tratamento correto de nomes com apóstrofo (`D'Ávila`) e hífens (`Jean-Luc`).
+  - Preservação de numerais romanos em maiúsculas (`Dom Pedro II`, `Henrique VIII`).
+  - Geração automática de citações bibliográficas no padrão ABNT (`SILVA, João Carlos da`, `CABRAL NETO, Pedro Álvares`).
+  - Extração de primeiro/último nome e iniciais limpas em lote, com exportação para CSV.
+
+### `text.boleto_parser` — Decodificador e Validador de Boletos FEBRABAN
+- **Tipo**: `Tool`
+- **Recursos**:
+  - Validação e decodificação de boletos de cobrança bancária (47 dígitos linha digitável ou 44 dígitos código de barras) e concessionárias/tributos (iniciados em 8).
+  - Cálculo e conferência dos dígitos verificadores Módulo 10 e Módulo 11 conforme o padrão FEBRABAN.
+  - Identificação automática do banco emissor / instituição financeira.
+  - Extração do valor nominal em Reais e cálculo da data de vencimento exata a partir do fator FEBRABAN (com virada de ciclo pós-2025).
+  - Conversão bidirecional entre linha digitável e código de barras contínuo de 44 dígitos com botões de cópia rápida.
 
 ---
 

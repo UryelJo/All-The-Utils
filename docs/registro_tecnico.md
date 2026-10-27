@@ -362,13 +362,13 @@ Esta fase consolida a expansão estratégica do All the Utils / WinToolbox, adic
 - [x] **`text.markdown_editor`** (`Tool`): Editor de texto Markdown com prévia sincronizada em tempo real renderizada com estilos Fluent Design, atalhos rápidos de formatação e exportação HTML.
 - [x] **`text.lorem_advanced`** (`Tool`): Gerador avançado de texto de preenchimento (Lorem Ipsum, Tecnológico, Jurídico e Corporativo) em palavras, frases ou parágrafos estruturados em Markdown/HTML.
 - [x] **`text.case_converter`** (`Tool`): Conversor e normalizador de caixas de texto com suporte a CamelCase, snake_case, kebab-case, PascalCase, Title Case e remoção de acentos.
-- [ ] **`text.stats`** (`Tool`): Analisador estatístico textual completo: contagem de caracteres, palavras, linhas, frases, tempo estimado de leitura/fala e índices de legibilidade (Flesch-Kincaid e Flesch-Brás adaptado ao português).
-- [ ] **`text.number_words`** (`Tool`): Conversor de valores numéricos e monetários para extenso em reais brasileiros ("R$ 1.234,50" -> "mil duzentos e trinta e quatro reais e cinquenta centavos"), ideal para recibos e documentos fiscais.
-- [ ] **`text.template_filler`** (`Tool`): Mala direta offline inteligente: preenchimento de modelos com sintaxe de placeholders `{{campo}}` combinados com linhas de uma planilha CSV para gerar múltiplos documentos de saída.
-- [ ] **`text.unicode_inspector`** (`Tool`): Detector e limpador de caracteres Unicode problemáticos: caracteres zero-width, caracteres invisíveis, homóglifos de ataque de phishing, normalização de formas canônicas NFC/NFD e substituição de aspas tipográficas.
-- [ ] **`text.list_ops`** (`Tool`): Processador de operações de conjuntos entre duas listas de texto (união, interseção, diferença A-B, diferença simétrica, deduplicação e ordenação natural).
-- [ ] **`text.name_formatter`** (`Tool`): Padronizador e capitalizador gramatical de nomes próprios em português ("JOAO DA SILVA" -> "João da Silva"), preservando partículas de ligação minúsculas ("da", "de", "do", "dos", "das", "e").
-- [ ] **`text.boleto_parser`** (`Tool`): Decodificador e validador de linha digitável e código de barras de boletos de cobrança bancária e concessionárias de serviços (identificação de banco emissor, valor nominal, fator de vencimento e cálculo dos dígitos verificadores módulo 10/11).
+- [x] **`text.stats`** (`Tool`): Analisador estatístico textual completo: contagem de caracteres, palavras, linhas, frases, tempo estimado de leitura/fala e índices de legibilidade (Flesch-Kincaid e Flesch-Brás adaptado ao português).
+- [x] **`text.number_words`** (`Tool`): Conversor de valores numéricos e monetários para extenso em reais brasileiros ("R$ 1.234,50" -> "mil duzentos e trinta e quatro reais e cinquenta centavos"), ideal para recibos e documentos fiscais.
+- [x] **`text.template_filler`** (`Tool`): Mala direta offline inteligente: preenchimento de modelos com sintaxe de placeholders `{{campo}}` combinados com linhas de uma planilha CSV para gerar múltiplos documentos de saída.
+- [x] **`text.unicode_inspector`** (`Tool`): Detector e limpador de caracteres Unicode problemáticos: caracteres zero-width, caracteres invisíveis, homóglifos de ataque de phishing, normalização de formas canônicas NFC/NFD e substituição de aspas tipográficas.
+- [x] **`text.list_ops`** (`Tool`): Processador de operações de conjuntos entre duas listas de texto (união, interseção, diferença A-B, diferença simétrica, deduplicação e ordenação natural).
+- [x] **`text.name_formatter`** (`Tool`): Padronizador e capitalizador gramatical de nomes próprios em português ("JOAO DA SILVA" -> "João da Silva"), preservando partículas de ligação minúsculas ("da", "de", "do", "dos", "das", "e").
+- [x] **`text.boleto_parser`** (`Tool`): Decodificador e validador de linha digitável e código de barras de boletos de cobrança bancária e concessionárias de serviços (identificação de banco emissor, valor nominal, fator de vencimento e cálculo dos dígitos verificadores módulo 10/11).
 
 #### 5. Codificação e Hash
 - [x] **`encode.base64_file`** (`Tool`): Conversor bidirecional entre arquivos físicos de qualquer extensão e Base64 / Data URI com detecção automática de MIME type por magic bytes.
@@ -501,15 +501,15 @@ Esta fase consolida a expansão estratégica do All the Utils / WinToolbox, adic
 ---
 
 ## 7. Métrica de Qualidade e Testes
-- **Total de Ferramentas Registradas**: 171 ferramentas operacionais em 15 categorias.
-- **Padrão Arquitetural de Lógica Desacoplada**: 100% das 171 ferramentas possuem divisão estrita entre UI (`tool.py`) e regras de negócio puras (`logic.py`), com zero importações de `PySide6` na camada de lógica (validado estritamente por `tests/test_logic_architecture.py`).
+- **Total de Ferramentas Registradas**: 178 ferramentas operacionais em 15 categorias.
+- **Padrão Arquitetural de Lógica Desacoplada**: 100% das 178 ferramentas possuem divisão estrita entre UI (`tool.py`) e regras de negócio puras (`logic.py`), com zero importações de `PySide6` na camada de lógica (validado estritamente por `tests/test_logic_architecture.py`).
 - **Aceleração por Hardware (GPU) & Paralelismo**:
   - Detecção automática de GPUs instaladas (NVIDIA GeForce/RTX via `nvidia-smi` / WMI, AMD Radeon e Intel Arc/Iris).
   - Aceleração por hardware no FFmpeg via **NVIDIA NVENC** (`h264_nvenc`, `hevc_nvenc`), **AMD AMF** (`h264_amf`, `hevc_amf`) e **Intel QuickSync** (`h264_qsv`) com fallback automático resiliente para CPU (`libx264`).
   - Motor de lote concorrente (`core/batch.py`) com `ThreadPoolExecutor` dimensionado automaticamente de acordo com os núcleos da máquina (`optimal_batch_workers = min(cpu_cores, 8)`).
   - Cálculo de hashes concorrente em lote na ferramenta de localização de arquivos duplicados (`files.duplicates`).
-- **Cobertura de Testes**: **409 testes unitários e de integração** executados com 100% de aprovação no `pytest`, em conformidade estrita com as **Diretrizes de Qualidade Anti-Gambiarra** (Validação de Efeito Real Black-Box, Proibição de Asserções Frouxas e Isolamento de Rede/Ambiente).
-- **Tempo de Execução dos Testes**: ~57s para a suíte global completa (incluindo testes de fumaça de UI e validação de contratos com todas as 171 ferramentas).
+- **Cobertura de Testes**: **440 testes unitários e de integração** executados com 100% de aprovação no `pytest`, em conformidade estrita com as **Diretrizes de Qualidade Anti-Gambiarra** (Validação de Efeito Real Black-Box, Proibição de Asserções Frouxas e Isolamento de Rede/Ambiente).
+- **Tempo de Execução dos Testes**: ~72s para a suíte global completa (incluindo testes de fumaça de UI e validação de contratos com todas as 178 ferramentas).
 
 ---
 
