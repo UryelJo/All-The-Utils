@@ -1573,3 +1573,57 @@ Este documento mantém o inventário detalhado de todas as ferramentas disponív
   - Exibição de estatísticas de espaço livre disponível e espaço total antes e durante o processo.
   - Alerta explícito de segurança e confirmação antes do disparo da sanitização.
 
+---
+
+## 21. Compactação e Arquivos Comprimidos (`tools/archive/`)
+
+### `archive.batch_extract` — Descompactador em Lote Inteligente
+- **Tipo**: `FileTool` (Processamento em Lote)
+- **Identificador**: `archive.batch_extract`
+- **Recursos**:
+  - Descompactação paralela em lote para múltiplos arquivos de formatos variados (ZIP, TAR, GZ, TGZ, BZ2, XZ, 7Z, RAR).
+  - Criação automática de subpastas individuais com o nome de cada arquivo compactado.
+  - Detecção inteligente de raiz duplicada para prevenir aninhamento desnecessário (ex.: `projeto/projeto/arquivo.txt`).
+  - Opção para exclusão automática do arquivo compactado de origem após extração bem-sucedida.
+  - Suporte a descompressão de arquivos protegidos por senha.
+  - Proteção rigorosa contra ataques de *Zip Slip* e *Path Traversal*.
+
+### `archive.integrity_repair` — Verificador de Integridade e Recuperação de Emergência
+- **Tipo**: `Tool` (Interativo e Diagnóstico Forense de Compactados)
+- **Identificador**: `archive.integrity_repair`
+- **Recursos**:
+  - Teste minucioso de integridade e validação de CRC32 membro a membro de arquivos ZIP e TAR.
+  - Diagnóstico preciso discriminando membros intactos versus membros corrompidos por falhas de gravação ou download incompleto.
+  - Modo de recuperação e salvamento de emergência (*Salvage*): extrai e preserva todos os arquivos saudáveis contidos dentro de arquivos ZIP parcialmente danificados.
+  - Varredura heurística de baixo nível por assinaturas de cabeçalhos locais `PK\x03\x04` para resgate de dados mesmo quando o diretório central (*Central Directory*) foi apagado ou truncado.
+
+### `archive.iso_tools` — Ferramentas de Imagens de Disco ISO, VHD e VHDX
+- **Tipo**: `Tool` (Interativo e Gerenciador de Armazenamento Virtual)
+- **Identificador**: `archive.iso_tools`
+- **Recursos**:
+  - Montagem e desmontagem visual de imagens virtuais no Windows via PowerShell nativo (`Mount-DiskImage` / `Dismount-DiskImage`) com suporte a modo somente-leitura.
+  - Identificação automática da letra da unidade virtual atribuída (ex.: `E:`) e rótulo do volume.
+  - Listagem em tempo real de todas as imagens virtuais montadas no sistema, com botão de desmontagem direta com 1 clique.
+  - Extração direta de imagens ISO sem necessidade de montagem de unidade de disco, utilizando o utilitário nativo `tar.exe` do Windows ou espelhamento resiliente.
+
+### `archive.comic_maker` — Conversor de Quadrinhos Digitais CBZ
+- **Tipo**: `FileTool` (Processamento em Lote)
+- **Identificador**: `archive.comic_maker`
+- **Recursos**:
+  - Conversão bidirecional entre pastas de imagens e arquivos de quadrinhos digitais CBZ (*Comic Book Archive*).
+  - Ordenação natural numérica de páginas (garante que `page_2.jpg` venha antes de `page_10.jpg`).
+  - Geração automática de manifesto de metadados padronizado do setor `ComicInfo.xml` com título, número da edição e contagem de páginas.
+  - Modos de compressão selecionáveis: `DEFLATE` (otimizado para menor tamanho) ou `STORE` (sem compressão para leitura instantânea).
+
+### `archive.multi_volume` — Criador e Juntador de Volumes Múltiplos
+- **Tipo**: `Tool` (Interativo e Divisão/Fusão de Volumes)
+- **Identificador**: `archive.multi_volume`
+- **Recursos**:
+  - Divisão de arquivos volumosos em partes sequenciais com presets populares (10 MB, 25 MB Discord, 50 MB WhatsApp, 100 MB, 700 MB CD, 2 GB/4 GB limites FAT32) ou tamanho em MB personalizado.
+  - Suporte aos dois padrões principais de nomenclatura de mercado:
+    - Extensão numérica pura: `arquivo.zip.001`, `arquivo.zip.002`...
+    - Sufixo de volume: `arquivo.part01.zip`, `arquivo.part02.zip`...
+  - Detecção e agrupamento automático de todas as partes da cadeia sequencial a partir da seleção de qualquer volume.
+  - Reconstrução binária determinística bit a bit do arquivo consolidado original.
+
+

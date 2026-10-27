@@ -412,11 +412,11 @@ Esta fase consolida a expansão estratégica do All the Utils / WinToolbox, adic
 #### 8. Compactação
 - [x] **`archive.multi_extract`** (`Tool`): Extrator em lote de arquivos compactados (ZIP, TAR, GZ) com criação automática de subpastas e proteção estrita contra Path Traversal / Zip Slip.
 - [x] **`archive.creator_advanced`** (`Tool`): Criador avançado de arquivos ZIP com seleção de algoritmos (LZMA, BZIP2, DEFLATE, STORE), nível de compressão e divisão em volumes multipartes (.001, .002).
-- [ ] **`archive.batch_extract`** (`FileTool`): Descompactador em lote para múltiplos arquivos compactados simultâneos (ZIP, RAR, 7Z, TAR), com criação automática de subpastas individuais, opção de deleção do arquivo de origem após sucesso e detecção inteligente de pasta raiz duplicada.
-- [ ] **`archive.integrity_repair`** (`Tool`): Verificador de integridade estrutural de arquivos compactados e extrator de recuperação de emergência, salvando todos os arquivos intactos contidos dentro de arquivos ZIP parcialmente danificados.
-- [ ] **`archive.iso_tools`** (`Tool`): Utilitário visual para montar e desmontar imagens de disco ISO e VHD/VHDX via PowerShell nativo (`Mount-DiskImage` / `Dismount-DiskImage`) e extração direta de seu conteúdo.
-- [ ] **`archive.comic_maker`** (`FileTool`): Conversor especializado entre pastas de imagens e arquivos de história em quadrinhos digitais CBZ (`.cbz`), com ordenação natural numérica das páginas e compressão otimizada.
-- [ ] **`archive.multi_volume`** (`Tool`): Criador e juntador de arquivos compactados divididos em múltiplos volumes numerados (ex: `.7z.001`, `.7z.002` ou `.part1.rar`).
+- [x] **`archive.batch_extract`** (`FileTool`): Descompactador em lote para múltiplos arquivos compactados simultâneos (ZIP, RAR, 7Z, TAR), com criação automática de subpastas individuais, opção de deleção do arquivo de origem após sucesso e detecção inteligente de pasta raiz duplicada.
+- [x] **`archive.integrity_repair`** (`Tool`): Verificador de integridade estrutural de arquivos compactados e extrator de recuperação de emergência, salvando todos os arquivos intactos contidos dentro de arquivos ZIP parcialmente danificados.
+- [x] **`archive.iso_tools`** (`Tool`): Utilitário visual para montar e desmontar imagens de disco ISO e VHD/VHDX via PowerShell nativo (`Mount-DiskImage` / `Dismount-DiskImage`) e extração direta de seu conteúdo.
+- [x] **`archive.comic_maker`** (`FileTool`): Conversor especializado entre pastas de imagens e arquivos de história em quadrinhos digitais CBZ (`.cbz`), com ordenação natural numérica das páginas e compressão otimizada.
+- [x] **`archive.multi_volume`** (`Tool`): Criador e juntador de arquivos compactados divididos em múltiplos volumes numerados (ex: `.7z.001`, `.7z.002` ou `.part1.rar`).
 
 #### 9. PDF e Documentos
 - [x] **`pdf.metadata_editor`** (`Tool`): Editor e higienizador/anonimizador de metadados ISO 32000-1 em lote via `pypdf` com limpeza de rastros de privacidade.
@@ -501,15 +501,15 @@ Esta fase consolida a expansão estratégica do All the Utils / WinToolbox, adic
 ---
 
 ## 7. Métrica de Qualidade e Testes
-- **Total de Ferramentas Registradas**: 201 ferramentas operacionais em 15 categorias.
-- **Padrão Arquitetural de Lógica Desacoplada**: 100% das 201 ferramentas possuem divisão estrita entre UI (`tool.py`) e regras de negócio puras (`logic.py`), com zero importações de bibliotecas gráficas na camada de lógica (validado estritamente por `tests/test_logic_architecture.py`).
+- **Total de Ferramentas Registradas**: 206 ferramentas operacionais em 15 categorias.
+- **Padrão Arquitetural de Lógica Desacoplada**: 100% das 206 ferramentas possuem divisão estrita entre UI (`tool.py`) e regras de negócio puras (`logic.py`), com zero importações de bibliotecas gráficas na camada de lógica (validado estritamente por `tests/test_logic_architecture.py`).
 - **Aceleração por Hardware (GPU) & Paralelismo**:
   - Detecção automática de GPUs instaladas (NVIDIA GeForce/RTX via `nvidia-smi` / WMI, AMD Radeon e Intel Arc/Iris).
   - Aceleração por hardware no FFmpeg via **NVIDIA NVENC** (`h264_nvenc`, `hevc_nvenc`), **AMD AMF** (`h264_amf`, `hevc_amf`) e **Intel QuickSync** (`h264_qsv`) com fallback automático resiliente para CPU (`libx264`).
   - Motor de lote concorrente (`core/batch.py`) com `ThreadPoolExecutor` dimensionado automaticamente de acordo com os núcleos da máquina (`optimal_batch_workers = min(cpu_cores, 8)`).
   - Cálculo de hashes concorrente em lote na ferramenta de localização de arquivos duplicados (`files.duplicates`).
-- **Cobertura de Testes**: **Mais de 525 testes unitários e de integração** executados com 100% de aprovação no `pytest`, em conformidade estrita com as **Diretrizes de Qualidade Anti-Gambiarra** (Validação de Efeito Real Black-Box, Proibição de Asserções Frouxas e Isolamento de Rede/Ambiente).
-- **Tempo de Execução dos Testes**: Suíte completa executada com sucesso e smoke test validando todas as 201 ferramentas.
+- **Cobertura de Testes**: **Mais de 540 testes unitários e de integração** executados com 100% de aprovação no `pytest`, em conformidade estrita com as **Diretrizes de Qualidade Anti-Gambiarra** (Validação de Efeito Real Black-Box, Proibição de Asserções Frouxas e Isolamento de Rede/Ambiente).
+- **Tempo de Execução dos Testes**: Suíte completa executada com sucesso e smoke test validando todas as 206 ferramentas.
 
 ---
 
