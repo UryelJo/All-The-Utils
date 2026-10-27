@@ -1465,3 +1465,111 @@ Este documento mantém o inventário detalhado de todas as ferramentas disponív
   - Realce visual por cores conforme severidade das mensagens.
   - Modo "Seguir Final (Tail Automático)" com recarregamento periódico de 2 segundos para monitoramento ao vivo.
   - Atalho de 1 clique para carregar diretamente o arquivo de log da aplicação (`app.log`).
+
+---
+
+## 20. Arquivos e Pastas (`tools/files/`)
+
+### `files.catalog` — Indexador e Catalogador de Mídias Externas (Snapshots Offline)
+- **Tipo**: `Tool` (Interativo e Catalogação Offline)
+- **Identificador**: `files.catalog`
+- **Recursos**:
+  - Indexação recursiva rápida de diretórios, pendrives, cartões de memória e discos externos USB.
+  - Salvamento de snapshots em formato JSON compacto com metadados completos (caminho relativo, tamanho em bytes, data de modificação e tipo).
+  - Busca instantânea offline por nome de arquivo em todos os catálogos previamente gerados, mesmo com o disco ou pendrive desconectado.
+  - Exportação e importação de arquivos de catálogo `.json` para compartilhamento ou backup de inventário.
+  - Resumo de métricas por catálogo: total de arquivos, total de pastas e tamanho acumulado em KB/MB/GB.
+
+### `files.type_detector` — Identificador de Tipo Real de Arquivo por Assinatura Binária (Magic Bytes)
+- **Tipo**: `FileTool` (Processamento em Lote)
+- **Identificador**: `files.type_detector`
+- **Recursos**:
+  - Inspeção dos bytes de cabeçalho (*Magic Bytes*) para identificação precisa do tipo MIME e formato real do arquivo.
+  - Detecção de discrepâncias entre a extensão declarada no nome e o conteúdo binário real (ex.: executável `.exe` mascarado como `.jpg` ou documento compactado zip renomeado).
+  - Banco de assinaturas abrangente para imagens (PNG, JPEG, GIF, WEBP, BMP, TIFF), documentos (PDF, ZIP/Office docx/xlsx/pptx, RAR, 7Z, GZ, TAR), mídia (MP3, MP4, WAV, FLAC, OGG, AVI, MKV) e executáveis Windows PE (`MZ`).
+  - Opção de correção automática em lote da extensão do arquivo para a extensão recomendada legítima.
+
+### `files.cleanup_finder` — Localizador e Higienizador em Lote de Pastas Vazias e Atalhos Quebrados
+- **Tipo**: `Tool` (Interativo e Limpeza Segura)
+- **Identificador**: `files.cleanup_finder`
+- **Recursos**:
+  - Varredura recursiva de diretórios com detecção refinada de:
+    - Pastas vazias ou pastas contendo apenas arquivos de lixo de sistema (ex.: `Thumbs.db`, `desktop.ini`).
+    - Arquivos de tamanho zero byte (0 B).
+    - Atalhos do Windows (`.lnk`) com alvos inexistentes ou caminhos quebrados.
+  - Modo de simulação (*Dry Run*) para conferência prévia sem modificação física do disco.
+  - Exibição tabular interativa com seleção individual e em massa dos itens detectados.
+  - Higienização segura com remoção física pós-confirmação explícita do usuário.
+
+### `files.links_manager` — Gerenciador Visual de Links Simbólicos, Junções e Hardlinks NTFS
+- **Tipo**: `Tool` (Interativo e Ponteiros de Sistema de Arquivos)
+- **Identificador**: `files.links_manager`
+- **Recursos**:
+  - Auditoria e listagem de ponteiros NTFS existentes em qualquer pasta informada:
+    - Junções de Diretório (*Directory Junctions* / `_winapi.CreateJunction`).
+    - Links Simbólicos de Arquivo e de Pasta (*Symlinks*).
+    - Links Rígidos (*Hardlinks*).
+  - Detecção imediata de status de integridade: aponta se o destino continua existindo ou se o link está quebrado/órfão.
+  - Remoção segura de links quebrados (desconecta o ponteiro sem deletar o arquivo ou diretório de destino original).
+  - Assistente para criação rápida de novas junções e links simbólicos entre diretórios.
+
+### `files.doc_metadata` — Inspetor e Limpador de Metadados de Documentos Office e PDF
+- **Tipo**: `FileTool` (Processamento em Lote)
+- **Identificador**: `files.doc_metadata`
+- **Recursos**:
+  - Inspeção detalhada de metadados de privacidade em documentos do Microsoft Office (Word `.docx`, Excel `.xlsx`, PowerPoint `.pptx`) e arquivos PDF (`.pdf`).
+  - Extração de campos sensíveis: autor, título, assunto, empresa/organização, criador de software, data de criação e data de última modificação.
+  - Remoção completa de metadados em lote (*Sanitize/Clean*):
+    - Documentos Office OpenXML: remoção higiênica de `docProps/core.xml` e `docProps/app.xml`.
+    - Documentos PDF: limpeza estrutural do dicionário `/Info` e do stream de metadados XMP via `pypdf`.
+  - Preservação estrita da integridade de todo o conteúdo textual, fórmulas e imagens do documento original.
+
+### `files.tree_export` — Gerador e Exportador de Árvore de Diretórios
+- **Tipo**: `Tool` (Interativo e Documentação de Estruturas)
+- **Identificador**: `files.tree_export`
+- **Recursos**:
+  - Geração de representações hierárquicas de árvores de arquivos e pastas com profundidade máxima configurável.
+  - Suporte a 4 formatos de exportação estruturada:
+    - **Texto Puro (ASCII / Unicode)** com conectores padrão `├──`, `└──` e `│`.
+    - **Markdown** formatado com blocos de código ideais para documentação e READMEs.
+    - **Tabela CSV** discriminando nível, nome, tipo, caminho absoluto, tamanho e data de modificação.
+    - **Relatório HTML** visual responsivo e moderno com estilos Fluent Design.
+  - Opções para incluir ou ignorar arquivos ocultos e limitar a profundidade da varredura.
+  - Botão de cópia rápida para a área de transferência e botão para salvar arquivo físico em disco.
+
+### `files.hex_viewer` — Visualizador Hexadecimal e ASCII com Rolagem Virtual Paginada
+- **Tipo**: `Tool` (Interativo e Análise Forense de Baixo Nível)
+- **Identificador**: `files.hex_viewer`
+- **Recursos**:
+  - Visualização de arquivos binários de qualquer porte com paginação sob demanda por offset (512 B a 4 KB por página).
+  - Tabela clássica de 3 colunas: Offset Hexadecimal, Grade de 16 bytes em Hex e Coluna de caracteres ASCII legíveis (com substituição de caracteres não-imprimíveis por `.`).
+  - Sistema de busca em tempo real com suporte a padrões em formato Hexadecimal (ex.: `4D 5A` ou `89 50 4E 47`) ou texto puro ASCII.
+  - Navegação precisa com salto direto para offset específico (`Ir para Offset`).
+  - Cópia rápida dos bytes selecionados para a área de transferência.
+
+### `files.robocopy_gui` — Assistente Gráfico de Sincronização e Cópia Robusta Robocopy
+- **Tipo**: `Tool` (Interativo e Cópia em Lote do Windows)
+- **Identificador**: `files.robocopy_gui`
+- **Recursos**:
+  - Interface amigável para o utilitário nativo de cópia e espelhamento de alto desempenho `robocopy.exe` do Windows.
+  - Seleção dos principais modos de sincronização:
+    - Espelhamento completo (`/MIR` - cria cópia idêntica e remove arquivos órfãos no destino).
+    - Cópia recursiva incluindo pastas vazias (`/E`).
+    - Cópia incremental apenas de arquivos mais recentes (`/XO`).
+    - Modo simulação prévia (*Dry Run* / `/L` - lista sem copiar nada).
+    - Modo tolerante a falhas com retomada automática (`/Z`).
+  - Ajuste de threads concorrentes para transferência multi-thread acelerada (`/MT:8`).
+  - Filtros avançados para exclusão de pastas (`/XD`) e arquivos/máscaras (`/XF`).
+  - Visualização em tempo real do console de saída e interpretação precisa da máscara de bits de códigos de saída (exit codes 0 a 7 indicam sucesso no Robocopy).
+
+### `files.free_space_wipe` — Sanitizador Seguro de Espaço Livre em Disco
+- **Tipo**: `Tool` (Interativo e Segurança e Privacidade)
+- **Identificador**: `files.free_space_wipe`
+- **Recursos**:
+  - Sobrescrita de clusters não alocados no disco para impedir a recuperação forense de arquivos excluídos.
+  - Dois modos de operação selecionáveis:
+    - **Automático Nativo do Windows (`cipher /w:caminho`)**: Executa a rotina oficial de 3 passos do Windows (preenchimento com zeros `0x00`, preenchimento com `0xFF` e números pseudorrandômicos).
+    - **Rotina Local Rápida (1 Passo Seguro)**: Criação e preenchimento controlado de arquivo temporário com zeros até esgotar o espaço disponível com posterior liberação e flush de disco.
+  - Exibição de estatísticas de espaço livre disponível e espaço total antes e durante o processo.
+  - Alerta explícito de segurança e confirmação antes do disparo da sanitização.
+

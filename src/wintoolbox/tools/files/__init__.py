@@ -23,3 +23,14 @@ import wintoolbox.tools.files.checksum_manifest
 import wintoolbox.tools.files.junction_mover
 import wintoolbox.tools.files.folder_diff
 import wintoolbox.tools.files.symlink_manager
+
+# Fase 16: Catalogador, Detector de Tipos Reais e Higienizador de Arquivos e Pastas
+import wintoolbox.tools.files.catalog
+import wintoolbox.tools.files.type_detector
+import wintoolbox.tools.files.cleanup_finder
+import wintoolbox.tools.files.links_manager
+import wintoolbox.tools.files.doc_metadata
+import wintoolbox.tools.files.tree_export
+import wintoolbox.tools.files.hex_viewer
+import wintoolbox.tools.files.robocopy_gui
+import wintoolbox.tools.files.free_space_wipe

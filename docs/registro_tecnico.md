@@ -399,15 +399,15 @@ Esta fase consolida a expansão estratégica do All the Utils / WinToolbox, adic
 #### 7. Arquivos e Pastas
 - [x] **`files.folder_diff`** (`Tool`): Comparador diferencial de diretórios recursivo com verificação profunda por hash SHA-256 e categorização (Idênticos, Modificados, Apenas em A, Apenas em B).
 - [x] **`files.symlink_manager`** (`Tool`): Criador e auditor visual de Directory Junctions (`_winapi.CreateJunction`), Symlinks e Hardlinks com detecção de links órfãos e remoção segura sem apagar o alvo.
-- [ ] **`files.catalog`** (`Tool`): Indexador e catalogador de mídias externas (HDs externos, pendrives, NAS) que salva snapshots da estrutura de pastas para busca e localização de arquivos mesmo quando o dispositivo estiver desconectado.
-- [ ] **`files.type_detector`** (`FileTool`): Identificador do tipo real de arquivos baseado em assinaturas binárias (Magic Bytes), identificando arquivos mascarados com extensão incorreta ou corrompidos.
-- [ ] **`files.cleanup_finder`** (`Tool`): Localizador e higienizador em lote de diretórios vazios, arquivos com tamanho 0 byte e atalhos `.lnk` com caminhos quebrados, com modo de simulação (Dry Run).
-- [ ] **`files.links_manager`** (`Tool`): Gerenciador visual de ponteiros de sistema de arquivos NTFS: listagem de links simbólicos, hardlinks e junções (Junctions), detecção de alvos quebrados e criação assistida.
-- [ ] **`files.doc_metadata`** (`FileTool`): Inspetor e limpador de metadados em lote de documentos de escritório (Microsoft Word `.docx`, Excel `.xlsx`, PowerPoint `.pptx` e PDF), removendo autor, empresa, comentários e histórico de revisões.
-- [ ] **`files.tree_export`** (`Tool`): Gerador de representações de árvores de diretórios com exportação para texto puro ASCII, árvore em Markdown, tabela CSV e relatório HTML com tamanhos e metadados.
-- [ ] **`files.hex_viewer`** (`Tool`): Visualizador hexadecimal de arquivos binários com rolagem virtual suave para arquivos de qualquer tamanho, busca por bytes hexadecimais ou strings ASCII e navegação por offset.
-- [ ] **`files.robocopy_gui`** (`Tool`): Interface gráfica simplificada e amigável para o utilitário nativo Robocopy do Windows, com modos de espelhamento, retomada de cópia, limites de banda e geração de relatórios de log.
-- [ ] **`files.free_space_wipe`** (`Tool`): Utilitário de sanitização de segurança para sobrescrever o espaço livre de partições e discos (via automação do utilitário nativo `cipher /w` ou rotina criptográfica), prevenindo a recuperação de arquivos deletados.
+- [x] **`files.catalog`** (`Tool`): Indexador e catalogador de mídias externas (HDs externos, pendrives, NAS) que salva snapshots da estrutura de pastas para busca e localização de arquivos mesmo quando o dispositivo estiver desconectado.
+- [x] **`files.type_detector`** (`FileTool`): Identificador do tipo real de arquivos baseado em assinaturas binárias (Magic Bytes), identificando arquivos mascarados com extensão incorreta ou corrompidos.
+- [x] **`files.cleanup_finder`** (`Tool`): Localizador e higienizador em lote de diretórios vazios, arquivos com tamanho 0 byte e atalhos `.lnk` com caminhos quebrados, com modo de simulação (Dry Run).
+- [x] **`files.links_manager`** (`Tool`): Gerenciador visual de ponteiros de sistema de arquivos NTFS: listagem de links simbólicos, hardlinks e junções (Junctions), detecção de alvos quebrados e criação assistida.
+- [x] **`files.doc_metadata`** (`FileTool`): Inspetor e limpador de metadados em lote de documentos de escritório (Microsoft Word `.docx`, Excel `.xlsx`, PowerPoint `.pptx` e PDF), removendo autor, empresa, comentários e histórico de revisões.
+- [x] **`files.tree_export`** (`Tool`): Gerador de representações de árvores de diretórios com exportação para texto puro ASCII, árvore em Markdown, tabela CSV e relatório HTML com tamanhos e metadados.
+- [x] **`files.hex_viewer`** (`Tool`): Visualizador hexadecimal de arquivos binários com rolagem virtual suave para arquivos de qualquer tamanho, busca por bytes hexadecimais ou strings ASCII e navegação por offset.
+- [x] **`files.robocopy_gui`** (`Tool`): Interface gráfica simplificada e amigável para o utilitário nativo Robocopy do Windows, com modos de espelhamento, retomada de cópia, limites de banda e geração de relatórios de log.
+- [x] **`files.free_space_wipe`** (`Tool`): Utilitário de sanitização de segurança para sobrescrever o espaço livre de partições e discos (via automação do utilitário nativo `cipher /w` ou rotina criptográfica), prevenindo a recuperação de arquivos deletados.
 
 #### 8. Compactação
 - [x] **`archive.multi_extract`** (`Tool`): Extrator em lote de arquivos compactados (ZIP, TAR, GZ) com criação automática de subpastas e proteção estrita contra Path Traversal / Zip Slip.
@@ -501,15 +501,15 @@ Esta fase consolida a expansão estratégica do All the Utils / WinToolbox, adic
 ---
 
 ## 7. Métrica de Qualidade e Testes
-- **Total de Ferramentas Registradas**: 192 ferramentas operacionais em 15 categorias.
-- **Padrão Arquitetural de Lógica Desacoplada**: 100% das 192 ferramentas possuem divisão estrita entre UI (`tool.py`) e regras de negócio puras (`logic.py`), com zero importações de `PySide6` na camada de lógica (validado estritamente por `tests/test_logic_architecture.py`).
+- **Total de Ferramentas Registradas**: 201 ferramentas operacionais em 15 categorias.
+- **Padrão Arquitetural de Lógica Desacoplada**: 100% das 201 ferramentas possuem divisão estrita entre UI (`tool.py`) e regras de negócio puras (`logic.py`), com zero importações de bibliotecas gráficas na camada de lógica (validado estritamente por `tests/test_logic_architecture.py`).
 - **Aceleração por Hardware (GPU) & Paralelismo**:
   - Detecção automática de GPUs instaladas (NVIDIA GeForce/RTX via `nvidia-smi` / WMI, AMD Radeon e Intel Arc/Iris).
   - Aceleração por hardware no FFmpeg via **NVIDIA NVENC** (`h264_nvenc`, `hevc_nvenc`), **AMD AMF** (`h264_amf`, `hevc_amf`) e **Intel QuickSync** (`h264_qsv`) com fallback automático resiliente para CPU (`libx264`).
   - Motor de lote concorrente (`core/batch.py`) com `ThreadPoolExecutor` dimensionado automaticamente de acordo com os núcleos da máquina (`optimal_batch_workers = min(cpu_cores, 8)`).
   - Cálculo de hashes concorrente em lote na ferramenta de localização de arquivos duplicados (`files.duplicates`).
-- **Cobertura de Testes**: **500 testes unitários e de integração** executados com 100% de aprovação no `pytest`, em conformidade estrita com as **Diretrizes de Qualidade Anti-Gambiarra** (Validação de Efeito Real Black-Box, Proibição de Asserções Frouxas e Isolamento de Rede/Ambiente).
-- **Tempo de Execução dos Testes**: ~75s para a suíte global completa (incluindo testes de fumaça de UI e validação de contratos com todas as 192 ferramentas).
+- **Cobertura de Testes**: **Mais de 525 testes unitários e de integração** executados com 100% de aprovação no `pytest`, em conformidade estrita com as **Diretrizes de Qualidade Anti-Gambiarra** (Validação de Efeito Real Black-Box, Proibição de Asserções Frouxas e Isolamento de Rede/Ambiente).
+- **Tempo de Execução dos Testes**: Suíte completa executada com sucesso e smoke test validando todas as 201 ferramentas.
 
 ---
 
