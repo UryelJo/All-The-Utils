@@ -25,7 +25,7 @@ class AutoclickerTool(Tool):
     id = "automation.autoclicker"
     name = "Autoclicker Automático"
     category = "Automação"
-    description = "Simulação contínua e repetitiva de cliques de mouse com intervalos configuráveis e coordenadas fixas"
+    description = "Simulador de cliques automatizados do mouse (botão esquerdo, direito ou meio) com taxa de cliques por segundo (CPS) customizável, repetição contínua ou limitada e tecla de parada global."
     keywords = ["autoclicker", "mouse", "clique", "macro", "repetir", "automacao", "fps"]
 
     def build_view(self, parent: Optional[QWidget] = None) -> QWidget:

@@ -21,6 +21,7 @@ from wintoolbox.tools.files.type_detector.logic import (
 class FilesTypeDetectorTool(FileTool):
     """Utilitário em lote para identificação de assinaturas binárias e detecção de extensões falsas."""
     id = "files.type_detector"
+    name = "Detector de Tipo Real de Arquivo"
     title = "Detector de Tipo Real de Arquivo"
     category = "Arquivos e Pastas"
     description = (

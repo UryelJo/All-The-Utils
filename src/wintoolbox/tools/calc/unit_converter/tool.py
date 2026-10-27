@@ -30,7 +30,7 @@ class UnitConverterTool(Tool):
     id = "calc.unit_converter"
     name = "Conversor de Unidades"
     category = "Calculadoras"
-    description = "Conversão instantânea entre dezenas de unidades métricas, imperiais e digitais"
+    description = "Conversor instantâneo de medidas: comprimento (m, km, milhas, pés), peso/massa (kg, lb, oz), temperatura (°C, °F, K), volume (L, gal), dados digitais (MB, GB, TB) e velocidade."
     keywords = ["unidades", "conversor", "medidas", "metro", "peso", "temperatura", "bytes", "volume", "calculadora"]
 
     def build_view(self, parent: Optional[QWidget] = None) -> QWidget:

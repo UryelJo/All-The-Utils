@@ -33,7 +33,7 @@ class MinifierTool(Tool):
 
     id = "dev.minifier"
     name = "Minificador e Formatador Web (HTML / CSS / JS)"
-    description = "Minifica e embeleza código HTML, CSS e JavaScript offline sem dependências de Node.js."
+    description = "Minificador e formatador de código web: remove espaços e comentários ou adiciona indentação em arquivos HTML, CSS e JavaScript offline."
     category = "Desenvolvimento"
 
     def build_view(self, parent=None) -> QWidget:

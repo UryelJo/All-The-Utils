@@ -30,7 +30,7 @@ from wintoolbox.tools.pdf.compare.logic import compare_pdf_documents
 class PdfCompareTool(Tool):
     id = "pdf.compare"
     name = "Comparador de Documentos PDF"
-    description = "Compara duas versões de um documento PDF destacando alterações de texto, adições e exclusões."
+    description = "Comparador de versões de PDF: analisa dois documentos PDF lado a lado destacando visualmente trechos de texto alterados, adicionados ou excluídos."
     category = "PDF"
 
     def build_view(self, parent=None) -> QWidget:

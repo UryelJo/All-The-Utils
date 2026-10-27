@@ -33,7 +33,7 @@ from wintoolbox.tools.media.spectrogram.logic import (
 class SpectrogramTool(Tool):
     id = "media.spectrogram"
     name = "Espectrograma e Forma de Onda de Áudio"
-    description = "Gera espectrogramas de frequências sonoras e gráficos visuais de ondas acústicas via FFmpeg."
+    description = "Gerador de espectrogramas acústicos: cria representações visuais coloridas das frequências sonoras de um arquivo de áudio para análise técnica."
     category = "Áudio e Vídeo"
 
     def build_view(self, parent=None) -> QWidget:

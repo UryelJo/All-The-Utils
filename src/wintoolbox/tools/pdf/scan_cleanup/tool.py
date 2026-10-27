@@ -23,7 +23,7 @@ from wintoolbox.tools.pdf.scan_cleanup.logic import cleanup_scanned_pdf
 class ScanCleanupTool(FileTool):
     id = "pdf.scan_cleanup"
     name = "Higienizador de Scans e Digitalizações"
-    description = "Melhora scans e digitalizações: aumenta contraste, nitidez e converte para preto e branco puro."
+    description = "Otimizador de digitalizações (Scans): clareia fundos cinzentos, aumenta o contraste e a nitidez do texto escaneado e gera arquivos preto e branco nítidos."
     category = "PDF"
     extensions = [".pdf"]
 

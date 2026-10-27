@@ -32,7 +32,7 @@ class ScriptRunnerTool(Tool):
     id = "automation.script_runner"
     name = "Executor de Scripts"
     category = "Automação"
-    description = "Execução centralizada de scripts PowerShell, Python, Batch e VBS com saída de console em tempo real"
+    description = "Central de execução de scripts de automação (PowerShell, Python, Batch .bat/.cmd e VBS) com saída de console em tempo real, argumentos e histórico."
     keywords = ["script", "powershell", "batch", "cmd", "python", "executar", "console", "runner", "automacao"]
 
     def build_view(self, parent: Optional[QWidget] = None) -> QWidget:

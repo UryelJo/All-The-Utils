@@ -18,7 +18,7 @@ class Id3EditorTool(FileTool):
     id = "media.id3_editor"
     name = "Editor de Tags ID3 (MP3)"
     category = "Áudio e Vídeo"
-    description = "Edite metadados de músicas MP3 em lote (Artista, Álbum, Ano, Gênero e Capa do Álbum)"
+    description = "Editor de tags ID3 de áudio: modifica título, artista, álbum, ano, gênero musical, número da faixa e insere capa do álbum em arquivos MP3."
     keywords = ["mp3", "tags", "id3", "musica", "artista", "album", "capa", "metadados", "lote"]
     accepts = [".mp3"]
     batch_kind = "per_file"

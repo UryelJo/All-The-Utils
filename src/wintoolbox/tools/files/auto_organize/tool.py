@@ -24,7 +24,7 @@ class AutoOrganizeTool(Tool):
     id = "files.auto_organize"
     name = "Organizador Automático de Pastas"
     category = "Arquivos e Pastas"
-    description = "Organize arquivos desordenados por extensão, categoria ou data com simulação prévia"
+    description = "Organização inteligente de arquivos soltos: agrupa automaticamente por tipo (Imagens, Documentos, Vídeos, Áudio, Compactados) ou data de modificação."
     keywords = ["organizar", "pastas", "arquivos", "extensão", "data", "categorias", "limpeza", "downloads"]
 
     def build_view(self, parent: Optional[QWidget] = None) -> QWidget:

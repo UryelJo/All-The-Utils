@@ -31,6 +31,7 @@ from wintoolbox.tools.text.list_ops.logic import (
 class ListOpsTool(Tool):
     """Ferramenta para operações de teoria dos conjuntos entre duas listas de texto."""
     id = "text.list_ops"
+    name = "Operações entre Listas"
     title = "Operações entre Listas"
     category = "Texto e Redação"
     description = (

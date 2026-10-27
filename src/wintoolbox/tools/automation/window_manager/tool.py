@@ -26,7 +26,7 @@ class WindowManagerTool(Tool):
     id = "automation.window_manager"
     name = "Gerenciador de Janelas"
     category = "Automação"
-    description = "Fixação de janelas sempre no topo, controle de transparência e snap de tela no Windows"
+    description = "Gerenciador de janelas do Windows: fixa janelas sempre visíveis no topo (Always on Top), ajusta nível de transparência (Opacidade) e organiza layouts de snap."
     keywords = ["janelas", "always on top", "topo", "transparencia", "snap", "posicionar", "windows", "automacao"]
 
     def build_view(self, parent: Optional[QWidget] = None) -> QWidget:

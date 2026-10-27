@@ -30,7 +30,7 @@ class DateCalculatorTool(Tool):
     id = "calc.date_calculator"
     name = "Calculadora de Datas"
     category = "Calculadoras"
-    description = "Diferença entre datas, contagem e adição de dias úteis considerando feriados nacionais"
+    description = "Calcula o intervalo exato entre datas (anos, meses, dias), soma ou subtrai prazos e conta dias úteis desconsiderando fins de semana e feriados nacionais do Brasil."
     keywords = ["datas", "prazo", "dias uteis", "calendario", "feriados", "calculadora", "tempo"]
 
     def build_view(self, parent: Optional[QWidget] = None) -> QWidget:

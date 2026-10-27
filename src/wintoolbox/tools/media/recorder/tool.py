@@ -21,7 +21,7 @@ class MediaRecorderTool(Tool):
     id = "media.recorder"
     name = "Gravador de Tela"
     category = "Áudio e Vídeo"
-    description = "Grave a tela do Windows em alta definição (MP4) com captura nativa via ffmpeg"
+    description = "Gravador de tela do Windows: grava a tela inteira ou janela em vídeo MP4 de alta definição com áudio do sistema e microfone."
     keywords = ["gravador", "tela", "record", "screen", "captura", "gdigrab", "desktop", "mp4"]
 
     def build_view(self, parent: Optional[QWidget] = None) -> QWidget:

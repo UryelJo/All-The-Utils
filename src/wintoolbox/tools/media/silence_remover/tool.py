@@ -21,7 +21,7 @@ from wintoolbox.tools.media.silence_remover.logic import remove_silence_from_med
 class SilenceRemoverTool(FileTool):
     id = "media.silence_remover"
     name = "Removedor de Silêncios e Pausas"
-    description = "Remove automaticamente trechos de silêncio e pausas mortas em podcasts, gravações de voz e aulas."
+    description = "Removedor de silêncio: detecta e corta automaticamente momentos de pausa e silêncio em podcasts, aulas gravadas e reuniões para economizar tempo."
     category = "Áudio e Vídeo"
     extensions = [
         ".mp3",

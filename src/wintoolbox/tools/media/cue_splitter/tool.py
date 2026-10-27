@@ -38,7 +38,7 @@ class CueSplitterTool(Tool):
 
     id = "media.cue_splitter"
     name = "Divisor de CUE Sheet"
-    description = "Divide imagens de áudio contínuas (FLAC/WAV/APE) em faixas individuais a partir do arquivo .cue."
+    description = "Separador de áudio por arquivo CUE: divide um arquivo contínuo de áudio (FLAC, WAV, APE) em faixas individuais nomeadas conforme a folha CUE."
     category = "Áudio e Vídeo"
 
     def __init__(self):

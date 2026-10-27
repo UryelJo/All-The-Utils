@@ -23,7 +23,7 @@ from wintoolbox.tools.pdf.crop_margins.logic import crop_pdf_document
 class CropMarginsTool(FileTool):
     id = "pdf.crop_margins"
     name = "Recortador de Margens de PDF"
-    description = "Recorta margens vazias de documentos PDF com detecção automática do conteúdo ou valores manuais."
+    description = "Cortador de margens de PDF: apara espaços em branco desnecessários nas bordas de documentos para melhorar a leitura em tablets e e-readers."
     category = "PDF"
     extensions = [".pdf"]
 

@@ -41,7 +41,7 @@ class SubnetCalculatorTool(Tool):
     id = "calc.subnet_calculator"
     name = "Calculadora de Sub-redes IPv4"
     category = "Calculadoras"
-    description = "Cálculo de sub-redes CIDR, faixas de IP, máscaras curinga, hosts utilizáveis e binário"
+    description = "Calculadora de sub-redes IPv4 em notação CIDR (/8 a /32), cálculo de máscara de rede, wildcard, primeiro/último IP utilizável, broadcast e conversão binária."
     keywords = ["subnet", "ip", "cidr", "rede", "mascara", "broadcast", "ipv4", "calculadora"]
 
     def build_view(self, parent: Optional[QWidget] = None) -> QWidget:

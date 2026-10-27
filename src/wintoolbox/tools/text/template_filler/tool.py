@@ -33,6 +33,7 @@ from wintoolbox.tools.text.template_filler.logic import (
 class TemplateFillerTool(Tool):
     """Ferramenta para preenchimento em lote de modelos de texto a partir de planilhas CSV."""
     id = "text.template_filler"
+    name = "Mala Direta e Modelos"
     title = "Mala Direta e Modelos"
     category = "Texto e Redação"
     description = (

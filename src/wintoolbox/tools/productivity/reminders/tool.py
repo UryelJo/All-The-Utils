@@ -30,7 +30,7 @@ class RemindersTool(Tool):
     id = "productivity.reminders"
     name = "Alarmes e Lembretes"
     category = "Produtividade"
-    description = "Agendamento de lembretes e alarmes com notificações nativas na área de trabalho do Windows"
+    description = "Agendador de lembretes e alarmes: exibe notificações nativas do Windows no horário programado para você nunca perder compromissos."
     keywords = ["lembrete", "alarme", "notificacao", "aviso", "compromisso", "agenda", "produtividade"]
 
     def build_view(self, parent: Optional[QWidget] = None) -> QWidget:

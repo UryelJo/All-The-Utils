@@ -34,7 +34,7 @@ from wintoolbox.tools.files.tree_export.logic import (
 class FilesTreeExportTool(Tool):
     id = "files.tree_export"
     name = "Exportador de Árvore de Pastas"
-    description = "Gera árvores de diretórios nos formatos ASCII/Unicode, Markdown, CSV e HTML."
+    description = "Exportador de estrutura de pastas: gera a árvore de diretórios em representação visual ASCII/Unicode, formato Markdown, tabela CSV ou página HTML."
     category = "Arquivos e Pastas"
     icon = "List"
     tags = ["tree", "arvore", "diretorio", "pastas", "ascii", "markdown", "csv", "html"]

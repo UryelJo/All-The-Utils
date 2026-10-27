@@ -21,6 +21,7 @@ from wintoolbox.tools.data.excel_tools.logic import (
 class ExcelToolsTool(FileTool):
     """Utilitário em lote para processamento e divisão de arquivos Excel (.xlsx, .xlsm)."""
     id = "data.excel_tools"
+    name = "Ferramentas de Excel"
     title = "Ferramentas de Excel"
     category = "Dados e Estruturas"
     description = (

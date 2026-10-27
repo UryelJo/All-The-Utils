@@ -22,7 +22,7 @@ class MediaDownloaderTool(Tool):
     id = "media.downloader"
     name = "Downloader de Mídia"
     category = "Áudio e Vídeo"
-    description = "Baixe vídeos e áudios do YouTube, TikTok, Instagram, Twitter/X e dezenas de plataformas via yt-dlp"
+    description = "Baixador universal de mídias: faz download de vídeos e músicas do YouTube, Instagram, TikTok, Twitter/X e dezenas de sites via yt-dlp em MP4 ou MP3."
     keywords = ["video", "download", "youtube", "tiktok", "instagram", "twitter", "yt-dlp", "musica", "mp3", "mp4"]
 
     def build_view(self, parent: Optional[QWidget] = None) -> QWidget:

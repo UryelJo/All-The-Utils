@@ -24,7 +24,7 @@ class FolderBackupTool(Tool):
     id = "files.backup"
     name = "Assistente de Backup Incremental"
     category = "Arquivos e Pastas"
-    description = "Crie backups incrementais e snapshots compactados em ZIP ou pasta espelhada de seus arquivos"
+    description = "Gerenciador de backups locais: cria cópias de segurança incrementais, arquivos compactados em ZIP ou pastas espelho com registro histórico de versões."
     keywords = ["backup", "cópia", "segurança", "incremental", "zip", "snapshot", "restauração", "pastas"]
 
     def build_view(self, parent: Optional[QWidget] = None) -> QWidget:

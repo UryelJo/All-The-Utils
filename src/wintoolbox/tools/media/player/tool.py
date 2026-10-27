@@ -21,7 +21,7 @@ class MediaPlayerTool(Tool):
     id = "media.player"
     name = "Player de Áudio e Vídeo"
     category = "Áudio e Vídeo"
-    description = "Player multimídia leve e nativo com suporte a reprodução de músicas e vídeos em tela cheia"
+    description = "Reprodutor de mídia leve e rápido: player nativo de áudio e vídeo com controle de volume, barra de progresso, repetição e modo tela cheia."
     keywords = ["player", "reprodutor", "video", "audio", "mp4", "mp3", "tocar", "multimedia"]
 
     def build_view(self, parent: Optional[QWidget] = None) -> QWidget:

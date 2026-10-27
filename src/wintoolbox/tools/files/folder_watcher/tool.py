@@ -29,7 +29,7 @@ class FolderWatcherTool(Tool):
     id = "files.folder_watcher"
     name = "Monitor de Pastas em Tempo Real"
     category = "Arquivos e Pastas"
-    description = "Monitore pastas e receba alertas imediatos sobre arquivos criados, alterados ou deletados"
+    description = "Sentinela de diretórios: monitora pastas em segundo plano e emite alertas visuais quando arquivos são criados, modificados, renomeados ou deletados."
     keywords = ["monitor", "watcher", "pasta", "tempo real", "eventos", "alerta", "notificação", "arquivos"]
 
     def build_view(self, parent: Optional[QWidget] = None) -> QWidget:

@@ -24,7 +24,7 @@ class PdfSplitMergeTool(Tool):
     id = "pdf.split_merge"
     name = "Divisor e Juntador de PDF"
     category = "PDF"
-    description = "Junte múltiplos arquivos PDF em ordem personalizada ou divida PDFs por intervalos e páginas"
+    description = "Juntador e divisor de PDFs: combina múltiplos documentos em um único PDF na ordem desejada ou extrai intervalos e páginas específicas."
     keywords = ["pdf", "juntar", "dividir", "split", "merge", "páginas", "unir", "separar", "intervalos"]
 
     def build_view(self, parent: Optional[QWidget] = None) -> QWidget:

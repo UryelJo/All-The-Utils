@@ -33,7 +33,7 @@ from wintoolbox.tools.files.catalog.logic import (
 class FilesCatalogTool(Tool):
     id = "files.catalog"
     name = "Catalogador de Mídias Externas"
-    description = "Indexador de HDs externos e pendrives: salva snapshots da estrutura de pastas para busca offline."
+    description = "Catalogador offline de mídias externas: indexa a árvore completa de pendrives e HDs externos permitindo buscar arquivos mesmo com o drive desconectado."
     category = "Arquivos e Pastas"
     icon = "HardDrive"
     tags = ["catalog", "disco", "hd", "pendrive", "nas", "snapshot", "busca", "offline"]

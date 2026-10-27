@@ -34,7 +34,7 @@ class MacroRunnerTool(Tool):
     id = "automation.macro_runner"
     name = "Executor de Macros"
     category = "Automação"
-    description = "Crie, edite e execute sequências de cliques, teclas e atalhos com repetições configuráveis"
+    description = "Gravador e executor de macros: reproduz sequências de cliques de mouse e teclas de atalho com intervalos configuráveis e repetição programada."
     keywords = ["macro", "automacao", "cliques", "teclado", "sequencia", "repeticao", "hotkey", "tarefas"]
 
     def build_view(self, parent: Optional[QWidget] = None) -> QWidget:

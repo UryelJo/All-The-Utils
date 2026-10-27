@@ -31,6 +31,7 @@ from wintoolbox.tools.encode.punycode_html.logic import (
 class PunycodeHtmlTool(Tool):
     """Ferramenta para conversão de domínios internacionalizados (IDN/Punycode) e entidades HTML."""
     id = "encode.punycode_html"
+    name = "Conversor Punycode e HTML"
     title = "Conversor Punycode e HTML"
     category = "Codificação e Hash"
     description = (

@@ -21,6 +21,7 @@ from wintoolbox.tools.encode.cert_inspector.logic import (
 class CertInspectorTool(FileTool):
     """Ferramenta em lote para inspeção, validação e conversão de certificados digitais."""
     id = "encode.cert_inspector"
+    name = "Inspetor de Certificados"
     title = "Inspetor de Certificados"
     category = "Codificação e Hash"
     description = (

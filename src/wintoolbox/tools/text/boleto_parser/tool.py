@@ -28,6 +28,7 @@ from wintoolbox.tools.text.boleto_parser.logic import (
 class BoletoParserTool(Tool):
     """Ferramenta para decodificação, validação e conversão de boletos de cobrança e concessionárias."""
     id = "text.boleto_parser"
+    name = "Decodificador de Boletos"
     title = "Decodificador de Boletos"
     category = "Texto e Redação"
     description = (

@@ -29,7 +29,7 @@ from wintoolbox.tools.pdf.redact.logic import redact_terms_and_regions
 class RedactTool(Tool):
     id = "pdf.redact"
     name = "Censura e Tarjamento em PDF"
-    description = "Aplica tarjamento permanente (Redaction) sobre termos confidenciais ou áreas sensíveis em PDFs."
+    description = "Tarjador permanente de PDF (Redaction): remove definitivamente dados sensíveis, CPFs, nomes e valores confidenciais com tarjas pretas irrecuperáveis."
     category = "PDF"
 
     def build_view(self, parent=None) -> QWidget:

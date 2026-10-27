@@ -12,6 +12,7 @@ from PySide6.QtWidgets import (
 from rapidfuzz import fuzz
 
 from wintoolbox.core.registry import BaseTool, get_all_tools
+from wintoolbox.core.search import calculate_tool_relevance
 from wintoolbox.core.settings import load_settings
 from wintoolbox.ui.icons import get_category_icon, get_glyph, get_icon_font, make_fluent_icon, normalize_text
 from wintoolbox.ui.theme import get_current_tokens
@@ -117,34 +118,19 @@ class CommandPaletteDialog(QDialog):
             self.list_results.setCurrentRow(0)
 
     def _filter_tools(self, query: str) -> None:
-        q = normalize_text(query)
+        q = query.strip()
         if not q:
             self._populate_default_list()
             return
 
-        scored: List[Tuple[float, BaseTool]] = []
+        scored: List[Tuple[int, BaseTool]] = []
         for t in self._tools:
-            norm_name = normalize_text(t.name)
-            norm_cat = normalize_text(t.category)
-            norm_desc = normalize_text(t.description)
-            norm_id = normalize_text(t.id)
-            norm_kw = " ".join(normalize_text(k) for k in t.keywords)
-
-            # Match direto tem prioridade máxima
-            if q in norm_name or q in norm_id:
-                score = 100.0 + (20.0 if norm_name.startswith(q) else 0.0)
-            elif q in norm_kw or q in norm_cat or q in norm_desc:
-                score = 88.0
-            else:
-                # Busca fuzzy tolerante a erros de digitação
-                s_name = fuzz.partial_ratio(q, norm_name)
-                s_kw = fuzz.partial_ratio(q, norm_kw) if norm_kw else 0.0
-                score = max(s_name, s_kw * 0.95)
-
-            if score >= 68.0:
+            score = calculate_tool_relevance(t, q)
+            if score > 0:
                 scored.append((score, t))
 
-        scored.sort(key=lambda x: x[0], reverse=True)
+        # Prioridade máxima para matches no Nome, seguidos de matches na Descrição
+        scored.sort(key=lambda x: (-x[0], normalize_text(x[1].name)))
         self._render_items([(tool, "") for _, tool in scored])
 
     def _on_item_activated(self, item: QListWidgetItem) -> None:

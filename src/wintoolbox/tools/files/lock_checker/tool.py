@@ -27,7 +27,7 @@ class LockCheckerTool(Tool):
     id = "files.lock_checker"
     name = "Quem Está Usando Este Arquivo?"
     category = "Arquivos e Pastas"
-    description = "Descobre quais programas ou processos estão bloqueando um arquivo no Windows e permite liberá-lo"
+    description = "Verificador de arquivos travados: detecta quais programas ou processos do Windows estão bloqueando a exclusão ou renomeação de um arquivo e permite liberá-lo."
     keywords = ["bloqueado", "trava", "processo", "lock", "fechar", "arquivo", "em uso", "restart manager"]
 
     def build_view(self, parent: Optional[QWidget] = None) -> QWidget:

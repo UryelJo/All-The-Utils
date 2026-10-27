@@ -37,7 +37,7 @@ from wintoolbox.tools.archive.multi_volume.logic import (
 class MultiVolumeTool(Tool):
     id = "archive.multi_volume"
     name = "Divisor e Juntador de Volumes"
-    description = "Divide arquivos compactados em múltiplos volumes numerados (.001 ou .part1) e junta partes."
+    description = "Compactador em múltiplos volumes: divide arquivos grandes em pacotes particionados (.part1.rar, .z01, .001) para transporte fácil em pendrives ou e-mail."
     category = "Compactação"
 
     def build_view(self, parent=None) -> QWidget:

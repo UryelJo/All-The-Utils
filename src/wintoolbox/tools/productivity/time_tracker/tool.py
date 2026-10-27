@@ -33,7 +33,7 @@ class TimeTrackerTool(Tool):
     id = "productivity.time_tracker"
     name = "Registrador de Tempo"
     category = "Produtividade"
-    description = "Controle de tempo e horas trabalhadas por projeto e atividade com cronômetro e exportação"
+    description = "Rastreador de tempo por tarefas: cronometre o tempo investido em cada cliente ou projeto e exporte relatórios consolidados em CSV."
     keywords = ["tempo", "time tracker", "horas", "cronometro", "trabalho", "projeto", "produtividade"]
 
     def build_view(self, parent: Optional[QWidget] = None) -> QWidget:

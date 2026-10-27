@@ -29,7 +29,7 @@ class TimestampEditorTool(Tool):
     id = "files.timestamp_editor"
     name = "Modificador de Datas de Arquivos (Timestamp)"
     category = "Arquivos e Pastas"
-    description = "Altere em lote datas de criação (ctime), modificação (mtime) e acesso (atime) de arquivos"
+    description = "Editor em lote de datas e atributos de arquivos: modifica data e hora de criação (ctime), modificação (mtime) e último acesso (atime)."
     keywords = ["timestamp", "data", "hora", "ctime", "mtime", "atime", "metadados", "arquivos", "modificar"]
 
     def build_view(self, parent: Optional[QWidget] = None) -> QWidget:

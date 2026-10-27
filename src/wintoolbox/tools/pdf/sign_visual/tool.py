@@ -32,7 +32,7 @@ from wintoolbox.tools.pdf.sign_visual.logic import apply_visual_signature
 class SignVisualTool(Tool):
     id = "pdf.sign_visual"
     name = "Assinatura Visual em PDF"
-    description = "Insere assinatura digitalizada (PNG transparente), rubrica e data sobre páginas de PDF."
+    description = "Assinador visual de PDF: insere assinatura manuscrita digitalizada em imagem PNG transparente, rubrica e data sobre as páginas do documento."
     category = "PDF"
 
     def build_view(self, parent=None) -> QWidget:

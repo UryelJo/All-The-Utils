@@ -31,7 +31,7 @@ class VideoWatermarkTool(FileTool):
 
     id = "media.video_watermark"
     name = "Marca d'Água em Vídeo"
-    description = "Insere logotipos PNG transparentes ou textos estilizados sobre vídeos em lote."
+    description = "Inseridor de marca d'água em vídeos: adiciona logotipos transparentes (PNG) ou textos com posição e opacidade personalizadas em lotes de vídeos."
     category = "Áudio e Vídeo"
     extensions = [".mp4", ".mkv", ".mov", ".avi", ".webm"]
 

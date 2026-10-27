@@ -30,7 +30,7 @@ class WorldClockTool(Tool):
     id = "calc.world_clock"
     name = "Relógio Mundial"
     category = "Calculadoras"
-    description = "Horários em tempo real nas principais capitais globais e conversão precisa entre fusos"
+    description = "Relógio mundial em tempo real das principais capitais do mundo, conversor de fusos horários (UTC/GMT), horário de verão e comparativo de jornadas de trabalho."
     keywords = ["relogio", "fuso", "timezone", "hora", "mundial", "utc", "gmt", "calculadora"]
 
     def build_view(self, parent: Optional[QWidget] = None) -> QWidget:

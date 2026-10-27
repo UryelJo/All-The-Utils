@@ -30,7 +30,7 @@ class SubtitlesTool(Tool):
     id = "media.subtitles"
     name = "Editor e Conversor de Legendas (SRT / VTT)"
     category = "Imagens"
-    description = "Converta legendas entre SRT e WebVTT, ajuste o sincronismo de tempo (Time Shift) e edite diálogos"
+    description = "Editor e conversor de legendas: converte entre formatos SRT e WebVTT, ajusta sincronia de tempo com atraso/adiantamento (Time Shift) e edita textos de diálogos."
     keywords = ["legendas", "subtitles", "srt", "vtt", "webvtt", "sincronia", "time shift", "atraso", "filme", "video"]
 
     def build_view(self, parent: Optional[QWidget] = None) -> QWidget:

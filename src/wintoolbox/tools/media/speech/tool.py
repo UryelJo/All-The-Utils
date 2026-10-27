@@ -23,7 +23,7 @@ class MediaSpeechTool(Tool):
     id = "media.speech"
     name = "Texto para Voz (TTS Local)"
     category = "Áudio e Vídeo"
-    description = "Transforme textos em fala com vozes do Windows em áudio reproduzido ou exportado para .wav"
+    description = "Síntese de texto para fala (Text-to-Speech): converte textos em áudio narrado com as vozes nativas instaladas no Windows e salva em arquivo .wav."
     keywords = ["tts", "voz", "texto para fala", "audio", "sapi", "pyttsx3", "narrador", "falar", "offline"]
 
     def build_view(self, parent: Optional[QWidget] = None) -> QWidget:

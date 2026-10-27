@@ -31,6 +31,7 @@ from wintoolbox.tools.text.name_formatter.logic import (
 class NameFormatterTool(Tool):
     """Ferramenta para capitalização gramatical de nomes próprios em português e citações ABNT."""
     id = "text.name_formatter"
+    name = "Formatador de Nomes Próprios"
     title = "Formatador de Nomes Próprios"
     category = "Texto e Redação"
     description = (

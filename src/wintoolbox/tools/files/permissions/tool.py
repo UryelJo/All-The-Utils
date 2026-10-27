@@ -25,7 +25,7 @@ class PermissionsTool(Tool):
     id = "files.permissions"
     name = "Permissões NTFS e Acesso Negado"
     category = "Arquivos e Pastas"
-    description = "Apropriação de posse (takeown) e redefinição de permissões de arquivos ou pastas inacessíveis"
+    description = "Restaurador de permissões NTFS: apropriação de propriedade (takeown) e redefinição de permissões de acesso em pastas ou arquivos corrompidos ou bloqueados."
     keywords = ["permissoes", "acesso negado", "takeown", "icacls", "ntfs", "posse", "bloqueado", "seguranca"]
 
     def build_view(self, parent: Optional[QWidget] = None) -> QWidget:

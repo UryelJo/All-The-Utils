@@ -31,6 +31,7 @@ from wintoolbox.tools.encode.hmac.logic import (
 class HMACTool(Tool):
     """Ferramenta para cálculo e verificação de códigos de autenticação de mensagens (HMAC)."""
     id = "encode.hmac"
+    name = "Gerador e Validador HMAC"
     title = "Gerador e Validador HMAC"
     category = "Codificação e Hash"
     description = (

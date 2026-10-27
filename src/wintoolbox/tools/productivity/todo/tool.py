@@ -28,7 +28,7 @@ class TodoTool(Tool):
     id = "productivity.todo"
     name = "Lista de Tarefas"
     category = "Produtividade"
-    description = "Gerenciamento local e minimalista de afazeres com categorias, prioridades e prazos"
+    description = "Lista de tarefas minimalista: crie afazeres com categorias, níveis de prioridade, prazos de entrega e marcação de conclusão rápida."
     keywords = ["todo", "tarefas", "afazeres", "produtividade", "checklist", "rotina", "metas"]
 
     def build_view(self, parent: Optional[QWidget] = None) -> QWidget:

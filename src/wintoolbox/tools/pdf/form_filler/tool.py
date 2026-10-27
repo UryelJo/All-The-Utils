@@ -34,7 +34,7 @@ from wintoolbox.tools.pdf.form_filler.logic import (
 class FormFillerTool(Tool):
     id = "pdf.form_filler"
     name = "Preenchedor de Formulários PDF"
-    description = "Lê e preenche campos interativos de formulários PDF (AcroForm) com opção de achatamento (flatten)."
+    description = "Preenchedor de formulários PDF: preenche campos interativos AcroForm automaticamente e achata (flatten) o documento para evitar alterações posteriores."
     category = "PDF"
 
     def build_view(self, parent=None) -> QWidget:

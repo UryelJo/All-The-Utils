@@ -34,6 +34,7 @@ from wintoolbox.tools.text.stats.logic import (
 class TextStatsTool(Tool):
     """Ferramenta para análise quantitativa e legibilidade de textos."""
     id = "text.stats"
+    name = "Estatísticas e Legibilidade"
     title = "Estatísticas e Legibilidade"
     category = "Texto e Redação"
     description = "Contador avançado de caracteres, palavras, linhas, tempos de leitura e métricas Flesch-Brás."

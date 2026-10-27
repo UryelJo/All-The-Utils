@@ -14,6 +14,7 @@ from PySide6.QtWidgets import (
 )
 
 from wintoolbox.core.registry import BaseTool, FileTool, get_all_tools, get_categories, get_tool
+from wintoolbox.core.search import calculate_tool_relevance, search_and_rank_tools
 from wintoolbox.core.settings import (
     get_home_layout, is_favorite, load_settings, toggle_favorite, update_home_layout
 )
@@ -620,28 +621,29 @@ class HomePage(QWidget):
         hl = get_home_layout()
         density = hl.get("card_density", "comfortable")
         cols = max(2, self._current_columns)
-        q = self._search_query
+        q = getattr(self, "_search_query", "")
 
         categories = get_categories()
         any_rendered = False
 
-        for cat_name, tools in categories.items():
+        cat_items = list(categories.items())
+        # Quando há busca ativa, ordena as categorias pela relevância máxima das ferramentas encontradas
+        if q:
+            def cat_max_score(cat_tuple):
+                _, tools = cat_tuple
+                scores = [calculate_tool_relevance(t, q) for t in tools]
+                return max(scores) if scores else 0
+            cat_items.sort(key=cat_max_score, reverse=True)
+
+        for cat_name, tools in cat_items:
             if self._selected_category != "ALL" and cat_name != self._selected_category:
                 continue
 
-            filtered_tools: List[BaseTool] = []
-            for t in tools:
-                if not q:
-                    filtered_tools.append(t)
-                else:
-                    haystack = " ".join([
-                        normalize_text(t.name),
-                        normalize_text(t.description),
-                        normalize_text(t.id),
-                        " ".join(normalize_text(k) for k in t.keywords)
-                    ])
-                    if q in haystack:
-                        filtered_tools.append(t)
+            if q:
+                ranked = search_and_rank_tools(tools, q)
+                filtered_tools: List[BaseTool] = [t for t, score in ranked if score > 0]
+            else:
+                filtered_tools = tools
 
             if not filtered_tools:
                 continue
@@ -683,7 +685,7 @@ class HomePage(QWidget):
             empty_card.setProperty("class", "card")
             l_emp = QVBoxLayout(empty_card)
             l_emp.setContentsMargins(24, 24, 24, 24)
-            lbl_emp = QLabel("Nenhuma ferramenta encontrada para o filtro informado.")
+            lbl_emp = QLabel(f"Nenhuma ferramenta encontrada para '{q}'.\nTente buscar pelo nome da ação, tecnologia ou extensão de arquivo.")
             lbl_emp.setProperty("class", "secondary")
             lbl_emp.setAlignment(Qt.AlignCenter)
             l_emp.addWidget(lbl_emp)

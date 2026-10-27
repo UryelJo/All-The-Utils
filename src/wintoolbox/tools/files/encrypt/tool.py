@@ -20,7 +20,7 @@ class FileEncryptTool(Tool):
     id = "files.encrypt"
     name = "Criptografia Local de Arquivos (AES-256)"
     category = "Arquivos e Pastas"
-    description = "Proteja arquivos confidenciais com criptografia AES-256-GCM e derivação de chave scrypt"
+    description = "Criptografia forte de arquivos individuais ou pastas inteiras com algoritmo AES-256-GCM, proteção por senha mestra e derivação segura de chave via scrypt."
     keywords = ["criptografia", "encrypt", "decrypt", "aes", "segurança", "senha", "proteger", "arquivos"]
 
     def build_view(self, parent: Optional[QWidget] = None) -> QWidget:

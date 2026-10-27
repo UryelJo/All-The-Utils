@@ -32,7 +32,7 @@ class DiskUsageTool(Tool):
     id = "files.disk_usage"
     name = "Analisador de Espaço em Disco"
     category = "Arquivos e Pastas"
-    description = "Mapeia as maiores pastas, arquivos pesados e tipos de extensões que mais ocupam espaço"
+    description = "Analisador visual de espaço em disco: mapeia diretórios mais pesados, identifica os maiores arquivos do sistema e classifica o uso de armazenamento por tipo de arquivo."
     keywords = ["disco", "espaco", "tamanho", "pastas", "armazenamento", "windirstat", "analisador"]
 
     def build_view(self, parent: Optional[QWidget] = None) -> QWidget:

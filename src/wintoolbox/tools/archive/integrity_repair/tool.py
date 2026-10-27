@@ -33,7 +33,7 @@ from wintoolbox.tools.archive.integrity_repair.logic import (
 class IntegrityRepairTool(Tool):
     id = "archive.integrity_repair"
     name = "Verificador de Integridade e Recuperação"
-    description = "Testa a integridade estrutural e CRC de arquivos compactados e recupera os arquivos intactos."
+    description = "Testador e reparador de arquivos compactados: verifica a integridade de arquivos ZIP, RAR e 7Z contra corrupção de CRC e extrai conteúdo intacto."
     category = "Compactação"
 
     def build_view(self, parent=None) -> QWidget:

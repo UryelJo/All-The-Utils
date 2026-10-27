@@ -151,7 +151,7 @@ class PageOrganizerTool(Tool):
     id = "pdf.page_organizer"
     name = "Organizador Visual de Páginas PDF"
     category = "PDF"
-    description = "Reorganize, gire e exclua páginas de arquivos PDF visualmente através de miniaturas interativas"
+    description = "Organizador visual de páginas PDF: reordena páginas por arrastar e soltar, gira páginas na orientação correta e remove páginas indesejadas com miniaturas."
     keywords = ["pdf", "organizar", "paginas", "miniaturas", "girar", "reordenar", "excluir", "visual"]
 
     def build_view(self, parent: Optional[QWidget] = None) -> QWidget:

@@ -36,7 +36,7 @@ from wintoolbox.tools.archive.iso_tools.logic import (
 class IsoTools(Tool):
     id = "archive.iso_tools"
     name = "Ferramentas de Imagens ISO e VHD"
-    description = "Monta, desmonta e extrai imagens de disco virtuais (ISO, VHD, VHDX) com suporte nativo do Windows."
+    description = "Gerenciador de imagens de disco: monta, desmonta e extrai o conteúdo de arquivos ISO, VHD e VHDX sem precisar de softwares adicionais."
     category = "Compactação"
 
     def build_view(self, parent=None) -> QWidget:

@@ -29,6 +29,7 @@ from wintoolbox.tools.text.number_words.logic import (
 class NumberWordsTool(Tool):
     """Ferramenta para conversão de numerais e valores monetários para extenso."""
     id = "text.number_words"
+    name = "Número por Extenso"
     title = "Número por Extenso"
     category = "Texto e Redação"
     description = (

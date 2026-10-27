@@ -25,7 +25,7 @@ class SpeedChangerTool(FileTool):
 
     id = "media.speed_changer"
     name = "Alterar Velocidade de Mídia"
-    description = "Acelera ou desacelera áudio e vídeo mantendo ou alterando o tom da voz."
+    description = "Alterador de velocidade de mídia: acelera (1.25x, 1.5x, 2x) ou reduz a velocidade de reprodução de áudio e vídeo com preservação do tom da voz."
     category = "Áudio e Vídeo"
     extensions = [
         ".mp4", ".mkv", ".mov", ".avi", ".webm",

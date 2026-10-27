@@ -20,7 +20,7 @@ class SplitMergeTool(Tool):
     id = "files.split_merge"
     name = "Divisor e Juntador de Arquivos"
     category = "Arquivos e Pastas"
-    description = "Divide arquivos grandes em partes de tamanho fixo e remonta as partes em um único arquivo"
+    description = "Divisor e juntador de arquivos: reparte arquivos grandes em partes de tamanho definido (MB/GB) para envio por e-mail ou nuvem e remonta as partes sem corrupção."
     keywords = ["dividir", "juntar", "split", "merge", "partes", "chunk", "tamanho", "arquivos"]
 
     def build_view(self, parent: Optional[QWidget] = None) -> QWidget:

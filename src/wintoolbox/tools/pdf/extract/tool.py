@@ -24,7 +24,7 @@ class PdfExtractTool(Tool):
     id = "pdf.extract"
     name = "Extrator de Texto e Imagens de PDF"
     category = "PDF"
-    description = "Extraia texto, fotos embutidas ou converta páginas de PDFs em imagens (PNG/JPG/WEBP)"
+    description = "Extrator de conteúdo de PDFs: extrai todas as imagens embutidas em alta resolução, copia textos integrais ou converte páginas inteiras para PNG/JPG."
     keywords = ["pdf", "extrair", "texto", "imagens", "descompactar", "ocr", "figuras", "fotos",
                 "converter", "pdf para imagem", "png", "jpg", "renderizar", "páginas"]
 

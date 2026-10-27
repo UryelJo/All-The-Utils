@@ -25,7 +25,7 @@ class ShredderTool(Tool):
     id = "files.shredder"
     name = "Triturador Seguro de Arquivos"
     category = "Arquivos e Pastas"
-    description = "Destrói permanentemente arquivos com sobrescrita multi-passes impedindo recuperação"
+    description = "Destruidor definitivo de arquivos (File Shredder): sobrescreve os dados com padrões aleatórios (DoD 5220.22-M e Gutmann) impedindo a recuperação forense."
     keywords = ["triturar", "shredder", "apagar", "seguro", "privacidade", "destruir", "wipe", "excluir"]
 
     def build_view(self, parent: Optional[QWidget] = None) -> QWidget:

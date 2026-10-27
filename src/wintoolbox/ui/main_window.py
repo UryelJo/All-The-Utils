@@ -22,6 +22,7 @@ from rapidfuzz import fuzz
 from wintoolbox.core.elevation import is_admin
 from wintoolbox.core.hotkey import GlobalHotkeyManager
 from wintoolbox.core.registry import BaseTool, FileTool, Tool, get_all_tools, get_categories, get_tool
+from wintoolbox.core.search import calculate_tool_relevance
 from wintoolbox.core.settings import (
     add_favorite_tool, add_recent_tool, get_home_layout, is_favorite,
     load_settings, remove_favorite_tool, save_settings
@@ -413,7 +414,8 @@ class MainWindow(QMainWindow):
         return True
 
     def _format_tool_label(self, tool: BaseTool, include_category: bool = False) -> str:
-        parts = [tool.name]
+        tool_name = (getattr(tool, "name", "") or getattr(tool, "title", "") or tool.id).strip()
+        parts = [tool_name]
         if include_category:
             parts.append(f"({tool.category})")
         if isinstance(tool, FileTool):
@@ -513,34 +515,12 @@ class MainWindow(QMainWindow):
                 self.cat_col_layout.addWidget(btn_cat)
 
     def _tool_matches_query(self, tool: BaseTool, q: str) -> bool:
-        """Verifica se a ferramenta corresponde à busca (nome, id, descrição, keywords, extensões ou fuzzy)."""
-        norm_name = normalize_text(tool.name)
-        norm_id = normalize_text(tool.id)
-        norm_cat = normalize_text(tool.category)
-        norm_desc = normalize_text(tool.description)
-        norm_kw = " ".join(normalize_text(k) for k in tool.keywords)
-        norm_exts = " ".join(normalize_text(e) for e in getattr(tool, "accepts", []) or [])
-
-        if (
-            q in norm_name
-            or q in norm_id
-            or q in norm_cat
-            or q in norm_desc
-            or q in norm_kw
-            or q in norm_exts
-        ):
-            return True
-
-        # Busca fuzzy para tolerar pequenos erros de digitação quando q >= 3 letras
-        if len(q) >= 3:
-            if fuzz.partial_ratio(q, norm_name) >= 78 or (norm_kw and fuzz.partial_ratio(q, norm_kw) >= 80):
-                return True
-        return False
+        """Verifica se a ferramenta corresponde à busca com pontuação de relevância."""
+        return calculate_tool_relevance(tool, q) > 0
 
     def _filter_navigation(self, query: str) -> None:
-        """Filtra dinamicamente as ferramentas ignorando acentos e auto-expande categorias com resultados."""
-        q = normalize_text(query)
-        total_all = len(get_all_tools())
+        """Filtra dinamicamente as ferramentas priorizando Nome > Descrição e auto-expande categorias com resultados."""
+        q = query.strip()
 
         if not q:
             self._populate_navigation()
@@ -556,31 +536,32 @@ class MainWindow(QMainWindow):
             if top.childCount() == 0:
                 tid = str(top.data(0, Qt.UserRole) or "")
                 tool = get_tool(tid)
-                matches = self._tool_matches_query(tool, q) if tool else (q in normalize_text(top.text(0)))
+                matches = self._tool_matches_query(tool, q) if tool else (calculate_tool_relevance(tool, q) > 0 if tool else False)
                 top.setHidden(not matches)
                 if matches:
                     matched_count += 1
                 continue
 
             has_matching_children = False
-            cat_match_count = 0
+            children_with_score = []
             for j in range(top.childCount()):
                 child = top.child(j)
                 tid = str(child.data(0, Qt.UserRole) or "")
                 tool = get_tool(tid)
-                matches = self._tool_matches_query(tool, q) if tool else (q in normalize_text(child.text(0)))
+                score = calculate_tool_relevance(tool, q) if tool else 0
+                matches = score > 0
                 child.setHidden(not matches)
                 if matches:
                     has_matching_children = True
-                    cat_match_count += 1
                     matched_count += 1
+                    children_with_score.append((child, score))
 
             top.setHidden(not has_matching_children)
             if has_matching_children:
                 top.setExpanded(True)
 
         if hasattr(self, "lbl_nav_counter"):
-            self.lbl_nav_counter.setText(f"{matched_count} resultado(s) para '{query.strip()}'")
+            self.lbl_nav_counter.setText(f"{matched_count} resultado(s) para '{q}'")
             self.lbl_nav_counter.setVisible(True)
 
     def _activate_first_visible_tool(self) -> None:

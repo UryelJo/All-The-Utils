@@ -30,7 +30,7 @@ from wintoolbox.tools.files.hex_viewer.logic import (
 class FilesHexViewerTool(Tool):
     id = "files.hex_viewer"
     name = "Visualizador Hexadecimal"
-    description = "Visualizador hexadecimal com rolagem virtual suave e busca por hex ou texto ASCII."
+    description = "Visualizador hexadecimal (Hex Viewer): inspeciona bytes brutos de qualquer arquivo com visualização lado a lado em Hex/ASCII, offsets e busca binária."
     category = "Arquivos e Pastas"
     icon = "Code"
     tags = ["hex", "dump", "binario", "offset", "bytes", "visualizador"]

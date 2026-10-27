@@ -27,7 +27,7 @@ class PomodoroTool(Tool):
     id = "productivity.pomodoro"
     name = "Timer Pomodoro"
     category = "Produtividade"
-    description = "Blocos de foco de alta concentração com pausas regenerativas e notificações no Windows"
+    description = "Temporizador Pomodoro de produtividade: gerencia ciclos de foco intenso (25 min) intercalados com pausas curtas e longas com alertas sonoros."
     keywords = ["pomodoro", "timer", "foco", "concentracao", "pausa", "tempo", "produtividade"]
 
     def build_view(self, parent: Optional[QWidget] = None) -> QWidget:

@@ -30,7 +30,7 @@ class FolderRulesTool(Tool):
     id = "automation.folder_rules"
     name = "Automação de Pastas por Regras"
     category = "Automação"
-    description = "Organização automática e contínua de arquivos por tipo, idade e palavras-chave com simulação prévia"
+    description = "Organizador automático de pastas baseado em regras: move, copia ou deleta arquivos por extensão, tamanho ou idade (ex: limpar Downloads periodicamente)."
     keywords = ["organizador", "regras", "gatilho", "pastas", "downloads", "mover", "arquivos", "automacao"]
 
     def build_view(self, parent: Optional[QWidget] = None) -> QWidget:

@@ -23,7 +23,7 @@ class ImagesToPdfTool(Tool):
     id = "pdf.images_to_pdf"
     name = "Imagens para PDF"
     category = "PDF"
-    description = "Converta fotos e imagens em lote para um documento PDF unificado com opções de folha e margens"
+    description = "Conversor de imagens para PDF: transforma fotos e imagens (JPG, PNG, WebP) em documento PDF unificado com opções de orientação, margens e tamanho de folha."
     keywords = ["pdf", "imagens", "fotos", "jpg", "png", "a4", "álbum", "converter", "scan"]
 
     def build_view(self, parent: Optional[QWidget] = None) -> QWidget:

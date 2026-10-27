@@ -21,7 +21,7 @@ class DataBeautifierTool(Tool):
     id = "data.beautifier"
     name = "Formatador e Minificador (JSON/XML/SQL)"
     category = "Dados e Estruturas"
-    description = "Embeleza ou minifica código e estruturas de dados em JSON, XML e SQL"
+    description = "Formata, embeleza com indentação configurável ou minifica arquivos e códigos JSON, XML e SQL, facilitando a leitura de logs e estruturas de dados."
     keywords = ["formatar", "minificar", "json", "xml", "sql", "beautify", "indentar", "compactar"]
 
     def build_view(self, parent: Optional[QWidget] = None) -> QWidget:

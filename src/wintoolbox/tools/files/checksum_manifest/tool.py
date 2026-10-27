@@ -30,7 +30,7 @@ class ChecksumManifestTool(Tool):
     id = "files.checksum_manifest"
     name = "Manifesto de Checksums (.sha256)"
     category = "Arquivos e Pastas"
-    description = "Geração e validação em lote de integridade de pastas inteiras via arquivos de manifesto sha256/md5"
+    description = "Gerador e verificador de manifestos de integridade: cria arquivos de checksum (SHA-256, MD5, SHA-1) para validação periódica de arquivos contra corrupção."
     keywords = ["checksum", "sha256", "md5", "manifesto", "integridade", "hash", "verificar", "sha256sum"]
 
     def build_view(self, parent: Optional[QWidget] = None) -> QWidget:

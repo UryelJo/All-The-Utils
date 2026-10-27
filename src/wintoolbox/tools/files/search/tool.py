@@ -26,7 +26,7 @@ class FileSearchTool(Tool):
     id = "files.search"
     name = "Pesquisa Avançada de Arquivos e Conteúdo"
     category = "Arquivos e Pastas"
-    description = "Localize arquivos instantaneamente por nome, tamanho, datas e busca por conteúdo de texto interno"
+    description = "Buscador rápido de arquivos: pesquisa instantânea por nome, extensão, faixa de tamanho, período de datas e busca por palavras-chave no conteúdo interno dos arquivos."
     keywords = ["busca", "pesquisa", "procurar", "find", "search", "grep", "conteúdo", "texto", "arquivos"]
 
     def build_view(self, parent: Optional[QWidget] = None) -> QWidget:

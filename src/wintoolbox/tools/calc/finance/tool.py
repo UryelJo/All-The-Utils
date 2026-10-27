@@ -28,7 +28,7 @@ class FinanceTool(Tool):
     id = "calc.finance"
     name = "Calculadora Financeira"
     category = "Calculadoras"
-    description = "Simulações de juros compostos com aportes, financiamentos (Price e SAC) e margem/markup"
+    description = "Simulador financeiro completo: cálculo de juros compostos com aportes mensais, amortização de financiamentos pelos sistemas Price e SAC, e cálculo de margem de lucro e markup."
     keywords = ["financeiro", "juros", "compostos", "investimento", "financiamento", "price", "sac", "markup", "margem", "dinheiro"]
 
     def build_view(self, parent: Optional[QWidget] = None) -> QWidget:

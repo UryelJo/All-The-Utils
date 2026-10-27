@@ -21,6 +21,7 @@ from wintoolbox.tools.files.doc_metadata.logic import (
 class FilesDocMetadataTool(FileTool):
     """Utilitário em lote para inspeção e higienização de metadados de documentos Office e PDF."""
     id = "files.doc_metadata"
+    name = "Limpador de Metadados de Documentos"
     title = "Limpador de Metadados de Documentos"
     category = "Arquivos e Pastas"
     description = (

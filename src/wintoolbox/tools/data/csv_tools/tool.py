@@ -24,6 +24,7 @@ from wintoolbox.tools.data.csv_tools.logic import (
 class CsvToolsTool(FileTool):
     """Utilitário em lote para divisão, conversão e higienização de arquivos CSV."""
     id = "data.csv_tools"
+    name = "Ferramentas de CSV"
     title = "Ferramentas de CSV"
     category = "Dados e Estruturas"
     description = (

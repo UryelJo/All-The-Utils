@@ -15,7 +15,7 @@ class OfficeToPdfTool(FileTool):
     id = "pdf.office_convert"
     name = "Conversor de Office para PDF"
     category = "PDF"
-    description = "Converta arquivos Word (.docx), Excel (.xlsx) e PowerPoint (.pptx) para PDF de alta fidelidade"
+    description = "Conversor Office para PDF: transforma documentos do Microsoft Office (.docx, .xlsx, .pptx) em arquivos PDF preservando formatação e fontes."
     keywords = ["office", "word", "excel", "powerpoint", "pdf", "docx", "xlsx", "pptx", "converter", "lote"]
     accepts = [".docx", ".doc", ".xlsx", ".xls", ".pptx", ".ppt"]
     batch_kind = "per_file"

@@ -31,7 +31,7 @@ class DuplicatesTool(Tool):
     id = "files.duplicates"
     name = "Localizador de Arquivos Duplicados"
     category = "Arquivos e Pastas"
-    description = "Encontra arquivos idênticos por tamanho e hash SHA-256 com envio seguro para a Lixeira"
+    description = "Localizador de arquivos duplicados idênticos por tamanho exato e hash criptográfico SHA-256, com pré-visualização e envio seguro para a Lixeira do Windows."
     keywords = ["duplicados", "clones", "espaco", "limpar", "lixeira", "hash", "arquivos", "pastas"]
 
     def build_view(self, parent: Optional[QWidget] = None) -> QWidget:

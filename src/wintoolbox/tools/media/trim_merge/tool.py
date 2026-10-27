@@ -22,7 +22,7 @@ class MediaTrimMergeTool(Tool):
     id = "media.trim_merge"
     name = "Cortador e Juntador de Mídia"
     category = "Áudio e Vídeo"
-    description = "Corte trechos ou junte múltiplos vídeos e músicas sem reencodagem e com velocidade instantânea"
+    description = "Cortador e juntador de vídeos e músicas: corta trechos indesejados ou une múltiplos clipes sem perda de qualidade e sem reencodar via FFmpeg cópia direta."
     keywords = ["video", "audio", "cortar", "trim", "juntar", "concat", "merge", "ffmpeg", "stream copy"]
 
     def build_view(self, parent: Optional[QWidget] = None) -> QWidget:

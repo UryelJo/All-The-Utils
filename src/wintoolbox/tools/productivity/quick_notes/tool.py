@@ -29,7 +29,7 @@ class QuickNotesTool(Tool):
     id = "productivity.quick_notes"
     name = "Bloco de Notas Rápidas"
     category = "Produtividade"
-    description = "Anotações com salvamento automático em tempo real, suporte a notas fixadas e busca instantânea"
+    description = "Bloco de notas rápidas: editor de rascunhos com salvamento instantâneo, abas múltiplas, contagem de caracteres e busca por texto."
     keywords = ["notas", "bloco de notas", "anotacoes", "scratchpad", "rascunho", "texto", "memo"]
 
     def build_view(self, parent: Optional[QWidget] = None) -> QWidget:

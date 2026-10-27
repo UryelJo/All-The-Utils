@@ -21,7 +21,7 @@ class PdfSecurityTool(Tool):
     id = "pdf.security"
     name = "Segurança e Senhas de PDF"
     category = "PDF"
-    description = "Proteja documentos PDF com senha de leitura AES ou remova a proteção de PDFs protegidos"
+    description = "Segurança de PDF: protege arquivos com senha de abertura ou permissões de impressão/cópia com criptografia AES, ou remove senhas de PDFs autorizados."
     keywords = ["pdf", "senha", "criptografia", "proteger", "segurança", "desbloquear", "remover senha", "aes"]
 
     def build_view(self, parent: Optional[QWidget] = None) -> QWidget:

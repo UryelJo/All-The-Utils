@@ -254,11 +254,24 @@ def register(tool_cls: Type[BaseTool]):
     instance = tool_cls()
     if not instance.id:
         raise ValueError(f"Ferramenta {tool_cls.__name__} precisa ter um 'id' único.")
+
+    # Garante coerência entre name e title para exibição na UI
+    if not getattr(instance, "name", "").strip():
+        if getattr(instance, "title", "").strip():
+            instance.name = instance.title.strip()
+        elif hasattr(instance, "tool_name") and getattr(instance, "tool_name", "").strip():
+            instance.name = getattr(instance, "tool_name").strip()
+        else:
+            instance.name = instance.id
+    if not getattr(instance, "title", "").strip():
+        instance.title = instance.name
+
     instance.category = normalize_category(instance.category)
     _TOOLS[instance.id] = instance
     if instance.id not in _CATEGORIES.setdefault(instance.category, []):
         _CATEGORIES[instance.category].append(instance.id)
     return tool_cls
+
 
 
 

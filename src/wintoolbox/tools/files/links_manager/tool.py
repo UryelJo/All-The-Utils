@@ -29,7 +29,7 @@ from wintoolbox.tools.files.links_manager.logic import (
 class FilesLinksManagerTool(Tool):
     id = "files.links_manager"
     name = "Gerenciador de Links NTFS"
-    description = "Auditor de ponteiros de sistema de arquivos NTFS: links simbólicos, junctions e hardlinks."
+    description = "Gerenciador de links do NTFS: cria, lista e inspeciona links simbólicos (symlinks), junções de diretório (junctions) e hard links no Windows."
     category = "Arquivos e Pastas"
     icon = "Link"
     tags = ["link", "symlink", "junction", "hardlink", "ntfs", "quebrado", "ponteiro"]

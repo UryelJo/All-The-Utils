@@ -34,7 +34,7 @@ from wintoolbox.tools.pdf.tables_to_csv.logic import (
 class TablesToCsvTool(Tool):
     id = "pdf.tables_to_csv"
     name = "Extrator de Tabelas de PDF (CSV / Excel)"
-    description = "Extrai tabelas de documentos e relatórios em PDF com conversão para arquivos CSV e planilhas Excel."
+    description = "Extrator de tabelas de PDF: detecta grades e tabelas em relatórios em PDF e exporta os dados estruturados para planilhas CSV e Excel."
     category = "PDF"
 
     def build_view(self, parent=None) -> QWidget:

@@ -30,7 +30,7 @@ class WorkspaceLauncherTool(Tool):
     id = "automation.workspace_launcher"
     name = "Lançador de Ambientes"
     category = "Automação"
-    description = "Abertura simultânea em 1 clique de conjuntos de softwares, pastas e URLs no navegador"
+    description = "Lançador de ambientes de trabalho (Workspaces): abre simultaneamente em um clique múltiplos programas, pastas de projeto e páginas web no navegador padrão."
     keywords = ["workspace", "ambiente", "launcher", "abrir", "urls", "programas", "produtividade", "automacao"]
 
     def build_view(self, parent: Optional[QWidget] = None) -> QWidget:

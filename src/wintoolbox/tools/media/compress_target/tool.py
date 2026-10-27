@@ -23,7 +23,7 @@ from wintoolbox.tools.media.compress_target.logic import compress_to_target_size
 class CompressTargetTool(FileTool):
     id = "media.compress_target"
     name = "Compressor de Vídeo por Meta de Tamanho"
-    description = "Comprime vídeos para atingir um tamanho final exato em MB (ex: 25 MB para Discord ou WhatsApp)."
+    description = "Compressor para tamanho alvo: recalcula o bitrate de vídeo e áudio para atingir exatamente o tamanho desejado (ex: 10 MB para e-mail ou 25 MB para Discord)."
     category = "Áudio e Vídeo"
     extensions = [
         ".mp4",

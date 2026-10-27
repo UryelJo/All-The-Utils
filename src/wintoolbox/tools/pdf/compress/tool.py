@@ -18,7 +18,7 @@ class PdfCompressTool(FileTool):
     id = "pdf.compress"
     name = "Compressor de PDF"
     category = "PDF"
-    description = "Comprima e reduza o tamanho de arquivos PDF em lote através de otimização de fluxos de dados"
+    description = "Compressor de PDF: reduz o tamanho de documentos PDF pesados em lote através da otimização de imagens e streams, ideal para envio por e-mail e peticionamento."
     keywords = ["pdf", "comprimir", "compressor", "reduzir", "otimizar", "tamanho", "leves", "lote"]
     accepts = [".pdf"]
     batch_kind = "per_file"

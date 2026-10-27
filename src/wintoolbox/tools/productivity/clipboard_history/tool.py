@@ -28,7 +28,7 @@ class ClipboardHistoryTool(Tool):
     id = "productivity.clipboard_history"
     name = "Histórico da Área de Transferência"
     category = "Produtividade"
-    description = "Registro contínuo, busca instantânea e favoritos de textos copiados no Windows"
+    description = "Histórico da área de transferência: registra tudo o que você copia (textos, links e trechos de código) com busca instantânea e favoritos fixados."
     keywords = ["clipboard", "area de transferencia", "copiar", "colar", "historico", "favoritos", "texto"]
 
     def build_view(self, parent: Optional[QWidget] = None) -> QWidget:

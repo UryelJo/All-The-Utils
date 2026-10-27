@@ -27,7 +27,7 @@ class CronCalculatorTool(Tool):
     id = "dev.cron_calculator"
     name = "Calculador de Cron"
     category = "Desenvolvimento"
-    description = "Validação, explicação semântica em português e projeção de horários de execuções de expressões Cron"
+    description = "Calculadora e explicador de expressões Cron: descreve em português claro a frequência de execução agendada e calcula as próximas datas de disparo."
     keywords = ["cron", "schedule", "agendamento", "timer", "tarefa", "crontab", "dev", "tempo", "horario"]
 
     def build_view(self, parent: Optional[QWidget] = None) -> QWidget:

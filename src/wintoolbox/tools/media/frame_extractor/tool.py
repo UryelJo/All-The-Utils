@@ -18,7 +18,7 @@ class FrameExtractorTool(FileTool):
     id = "media.frame_extractor"
     name = "Extrator de Frames de Vídeo"
     category = "Áudio e Vídeo"
-    description = "Extraia quadros ou gere mosaicos de miniaturas de vídeos a cada N segundos ou em tempo fixo"
+    description = "Extrator de quadros de vídeo: captura fotos de cenas de vídeos em intervalos regulares ou gera folhas de contato (Storyboards) com miniaturas cronológicas."
     keywords = ["video", "frames", "quadros", "miniaturas", "screenshots", "ffmpeg", "mosaico", "lote"]
     accepts = [".mp4", ".mkv", ".avi", ".mov", ".webm", ".flv", ".wmv"]
     batch_kind = "per_file_multi"

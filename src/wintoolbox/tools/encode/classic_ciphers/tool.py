@@ -39,6 +39,7 @@ from wintoolbox.tools.encode.classic_ciphers.logic import (
 class ClassicCiphersTool(Tool):
     """Ferramenta para cifragem e decifragem de cifras históricas da criptografia."""
     id = "encode.classic_ciphers"
+    name = "Cifras Clássicas"
     title = "Cifras Clássicas"
     category = "Codificação e Hash"
     description = (

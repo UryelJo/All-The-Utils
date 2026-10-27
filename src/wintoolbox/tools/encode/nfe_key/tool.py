@@ -28,6 +28,7 @@ from wintoolbox.tools.encode.nfe_key.logic import (
 class NFeKeyTool(Tool):
     """Ferramenta para validação, decodificação e análise de chaves de documentos fiscais (NF-e, NFC-e, CT-e)."""
     id = "encode.nfe_key"
+    name = "Decodificador de Chave NF-e"
     title = "Decodificador de Chave NF-e"
     category = "Codificação e Hash"
     description = (
