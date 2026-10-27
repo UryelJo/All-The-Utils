@@ -448,16 +448,16 @@ Esta fase consolida a expansão estratégica do All the Utils / WinToolbox, adic
 - [x] **`dev.api_client`** (`Tool`): Cliente HTTP/REST interativo para desenvolvedores com suporte a GET, POST, PUT, DELETE, PATCH, headers e visualizador formatado de respostas.
 - [x] **`dev.sql_formatter`** (`Tool`): Formatador e minificador SQL offline com capitalização de palavras-chave, quebras em cláusulas principais e indentação configurável.
 - [x] **`dev.color_palette_generator`** (`Tool`): Gerador de paletas harmônicas (Complementar, Análoga, Triádica, Monocromática), verificação de contraste WCAG 2.1 (AA/AAA) e exportação CSS.
-- [ ] **`dev.project_cleaner`** (`Tool`): Analisador e limpador em massa de pastas pesadas de compilação de código (`node_modules`, `__pycache__`, `.venv`, `bin/obj`, `target`, `dist`, `.gradle`), exibindo o espaço em disco recuperável e confirmação de limpeza.
-- [ ] **`dev.line_counter`** (`Tool`): Contador de linhas de código-fonte no estilo `cloc`, discriminando linhas de código efetivo, comentários e linhas em branco por linguagem, além de catalogar marcações de `TODO` e `FIXME`.
-- [ ] **`dev.selfsigned_cert`** (`Tool`): Gerador de certificados SSL/TLS autoassinados e Autoridades Certificadoras (CA) locais com suporte a múltiplos Subject Alternative Names (SAN: `localhost`, `127.0.0.1`, `*.local`) para testes de desenvolvimento via `cryptography`.
-- [ ] **`dev.env_compare`** (`Tool`): Comparador entre arquivos `.env` e modelos `.env.example`, apontando chaves ausentes em ambientes de produção com mascaramento de valores sensíveis.
-- [ ] **`dev.reference`** (`Tool`): Tabela de referência técnica offline contendo status HTTP, MIME types comuns, tabela ASCII/Unicode, atalhos de produtividade do Windows e códigos virtuais de teclas.
-- [ ] **`dev.css_toolbox`** (`Tool`): Ferramentas visuais para desenvolvedores web: gerador de gradientes CSS, sombras multicamadas (box-shadow), cálculo da função fluida `clamp()`, conversor de medidas `px ↔ rem` e analisador de taxa de contraste WCAG.
-- [ ] **`dev.minifier`** (`Tool`): Minificador e formatador local de código HTML, CSS e JavaScript sem necessidade de ferramentas baseadas em Node.js.
-- [ ] **`dev.git_overview`** (`Tool`): Painel agregador de múltiplos repositórios Git locais, exibindo branches atuais, status de modificações pendentes, commits à frente da origem e limpeza de branches já integradas.
-- [ ] **`dev.gitignore_license`** (`Tool`): Assistente de geração de arquivos `.gitignore` especializados por linguagem/framework e templates completos de licenças de código aberto (MIT, Apache 2.0, GPL, BSD).
-- [ ] **`dev.mock_server`** (`Tool`): Servidor HTTP local para testes com capacidade de responder rotas mockadas a partir de um esquema JSON ou respostas configuradas diretamente na interface.
+- [x] **`dev.project_cleaner`** (`Tool`): Analisador e limpador em massa de pastas pesadas de compilação de código (`node_modules`, `__pycache__`, `.venv`, `bin/obj`, `target`, `dist`, `.gradle`), exibindo o espaço em disco recuperável e confirmação de limpeza.
+- [x] **`dev.line_counter`** (`Tool`): Contador de linhas de código-fonte no estilo `cloc`, discriminando linhas de código efetivo, comentários e linhas em branco por linguagem, além de catalogar marcações de `TODO` e `FIXME`.
+- [x] **`dev.selfsigned_cert`** (`Tool`): Gerador de certificados SSL/TLS autoassinados e Autoridades Certificadoras (CA) locais com suporte a múltiplos Subject Alternative Names (SAN: `localhost`, `127.0.0.1`, `*.local`) para testes de desenvolvimento via `cryptography`.
+- [x] **`dev.env_compare`** (`Tool`): Comparador entre arquivos `.env` e modelos `.env.example`, apontando chaves ausentes em ambientes de produção com mascaramento de valores sensíveis.
+- [x] **`dev.reference`** (`Tool`): Tabela de referência técnica offline contendo status HTTP, MIME types comuns, tabela ASCII/Unicode, atalhos de produtividade do Windows e códigos virtuais de teclas.
+- [x] **`dev.css_toolbox`** (`Tool`): Ferramentas visuais para desenvolvedores web: gerador de gradientes CSS, sombras multicamadas (box-shadow), cálculo da função fluida `clamp()`, conversor de medidas `px ↔ rem` e analisador de taxa de contraste WCAG.
+- [x] **`dev.minifier`** (`Tool`): Minificador e formatador local de código HTML, CSS e JavaScript sem necessidade de ferramentas baseadas em Node.js.
+- [x] **`dev.git_overview`** (`Tool`): Painel agregador de múltiplos repositórios Git locais, exibindo branches atuais, status de modificações pendentes, commits à frente da origem e limpeza de branches já integradas.
+- [x] **`dev.gitignore_license`** (`Tool`): Assistente de geração de arquivos `.gitignore` especializados por linguagem/framework e templates completos de licenças de código aberto (MIT, Apache 2.0, GPL, BSD).
+- [x] **`dev.mock_server`** (`Tool`): Servidor HTTP local para testes com capacidade de responder rotas mockadas a partir de um esquema JSON ou respostas configuradas diretamente na interface.
 
 #### 12. Produtividade
 - [x] **`productivity.pomodoro`** (`Tool`): Temporizador Pomodoro com transições de estado (foco, pausa curta, pausa longa), contagem de ciclos e visualização gráfica Fluent.
@@ -501,15 +501,15 @@ Esta fase consolida a expansão estratégica do All the Utils / WinToolbox, adic
 ---
 
 ## 7. Métrica de Qualidade e Testes
-- **Total de Ferramentas Registradas**: 225 ferramentas operacionais em 15 categorias.
-- **Padrão Arquitetural de Lógica Desacoplada**: 100% das 225 ferramentas possuem divisão estrita entre UI (`tool.py`) e regras de negócio puras (`logic.py`), com zero importações de bibliotecas gráficas na camada de lógica (validado estritamente por `tests/test_logic_architecture.py`).
+- **Total de Ferramentas Registradas**: 235 ferramentas operacionais em 15 categorias.
+- **Padrão Arquitetural de Lógica Desacoplada**: 100% das 235 ferramentas possuem divisão estrita entre UI (`tool.py`) e regras de negócio puras (`logic.py`), com zero importações de bibliotecas gráficas na camada de lógica (validado estritamente por `tests/test_logic_architecture.py`).
 - **Aceleração por Hardware (GPU) & Paralelismo**:
   - Detecção automática de GPUs instaladas (NVIDIA GeForce/RTX via `nvidia-smi` / WMI, AMD Radeon e Intel Arc/Iris).
   - Aceleração por hardware no FFmpeg via **NVIDIA NVENC** (`h264_nvenc`, `hevc_nvenc`), **AMD AMF** (`h264_amf`, `hevc_amf`) e **Intel QuickSync** (`h264_qsv`) com fallback automático resiliente para CPU (`libx264`).
   - Motor de lote concorrente (`core/batch.py`) com `ThreadPoolExecutor` dimensionado automaticamente de acordo com os núcleos da máquina (`optimal_batch_workers = min(cpu_cores, 8)`).
   - Cálculo de hashes concorrente em lote na ferramenta de localização de arquivos duplicados (`files.duplicates`).
-- **Cobertura de Testes**: **Mais de 581 testes unitários e de integração** executados com 100% de aprovação no `pytest`, em conformidade estrita com as **Diretrizes de Qualidade Anti-Gambiarra** (Validação de Efeito Real Black-Box, Proibição de Asserções Frouxas e Isolamento de Rede/Ambiente).
-- **Tempo de Execução dos Testes**: Suíte completa executada com sucesso e smoke test validando todas as 225 ferramentas.
+- **Cobertura de Testes**: **Mais de 618 testes unitários e de integração** executados com 100% de aprovação no `pytest`, em conformidade estrita com as **Diretrizes de Qualidade Anti-Gambiarra** (Validação de Efeito Real Black-Box, Proibição de Asserções Frouxas e Isolamento de Rede/Ambiente).
+- **Tempo de Execução dos Testes**: Suíte completa executada com sucesso e smoke test validando todas as 235 ferramentas.
 
 ---
 

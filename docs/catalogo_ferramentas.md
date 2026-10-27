@@ -1804,6 +1804,102 @@ Este documento mantém o inventário detalhado de todas as ferramentas disponív
   - Cabeçalho escuro com metadados técnicos (nome, tamanho, resolução, codecs, duração total).
   - Marcação de timecode individual em cada miniatura e botões para salvar ou copiar a imagem para a área de transferência.
 
+---
+
+## 24. Ferramentas para Desenvolvedores (`tools/dev/`)
+
+### `dev.project_cleaner` — Limpador de Projetos de Código (Build Cleaner)
+- **Tipo**: `Tool` (Interativo e Limpeza em Lote)
+- **Identificador**: `dev.project_cleaner`
+- **Recursos**:
+  - Varredura recursiva de diretórios identificando pastas pesadas de compilação e dependências descartáveis.
+  - Mapeamento de ecossistemas: Node.js (`node_modules`, `.next`, `.nuxt`), Python (`__pycache__`, `.venv`, `.pytest_cache`), Rust (`target`), .NET (`bin`, `obj`) e Java/Gradle (`.gradle`).
+  - Cálculo de espaço total recuperável em disco e quantidade de arquivos.
+  - Exclusão seletiva e segura em massa com suporte a arquivos somente leitura no Windows.
+
+### `dev.line_counter` — Contador de Linhas de Código (CLOC)
+- **Tipo**: `Tool` (Interativo e Métricas de Código)
+- **Identificador**: `dev.line_counter`
+- **Recursos**:
+  - Quantificação de linhas de código efetivo (SLOC), linhas de comentários e linhas em branco discriminadas por linguagem.
+  - Suporte a mais de 15 linguagens (Python, JS/TS, C/C++, C#, Java, Rust, Go, HTML, CSS, SQL, Shell, etc.).
+  - Varredura e catálogo automático de anotações técnicas `TODO` e `FIXME` com arquivo e número da linha.
+  - Exportação de relatórios estruturados em formato CSV.
+
+### `dev.selfsigned_cert` — Gerador de Certificados SSL/TLS Autoassinados
+- **Tipo**: `Tool` (Interativo e Criptografia X.509)
+- **Identificador**: `dev.selfsigned_cert`
+- **Recursos**:
+  - Geração de pares de certificados X.509 autoassinados e chaves privadas criptográficas via biblioteca `cryptography`.
+  - Suporte a múltiplos Subject Alternative Names (SANs) para DNS (`localhost`, `*.local`) e IPs (`127.0.0.1`, `::1`).
+  - Modos de emissão: Certificado de Servidor/Cliente ou Autoridade Certificadora Raiz (Root CA).
+  - Algoritmos RSA (2048 e 4096 bits) e Curvas Elípticas ECDSA (P-256 e P-384).
+  - Exportação em arquivos PEM individuais (.crt e .key) ou empacotamento em arquivo PKCS#12 (.pfx/.p12) com senha.
+
+### `dev.env_compare` — Comparador de Ambientes (.env vs .env.example)
+- **Tipo**: `Tool` (Interativo e Auditoria de Configurações)
+- **Identificador**: `dev.env_compare`
+- **Recursos**:
+  - Comparação diferencial entre modelos de variáveis de ambiente (`.env.example`) e arquivos de produção reais (`.env`).
+  - Destaque visual por cores: variáveis ausentes, variáveis declaradas vazias e chaves adicionais não documentadas.
+  - Mascaramento inteligente de segurança para credenciais e segredos (`SECRET`, `PASSWORD`, `KEY`, `TOKEN`).
+  - Geração automática e cópia das chaves faltantes para inclusão no arquivo de destino.
+
+### `dev.reference` — Tabelas de Referência Técnica
+- **Tipo**: `Tool` (Interativo e Consulta Técnica Offline)
+- **Identificador**: `dev.reference`
+- **Recursos**:
+  - Catálogo completo de códigos de status HTTP (1xx, 2xx, 3xx, 4xx, 5xx) com frases padrão e explicações (RFC 9110).
+  - Tabela de tipos MIME comuns por extensão e categoria.
+  - Tabela ASCII completa (caracteres de controle 0-31 e imprimíveis 32-127 com valores Dec, Hex e Bin).
+  - Mapeamento de códigos de teclas virtuais Win32 (Virtual-Key Codes: `VK_*`).
+  - Lista de atalhos globais de produtividade do Windows 10/11 com filtragem em tempo real.
+
+### `dev.css_toolbox` — CSS Developer Toolbox
+- **Tipo**: `Tool` (Interativo e Design Front-End)
+- **Identificador**: `dev.css_toolbox`
+- **Recursos**:
+  - Gerador de tipografia fluida com a função matemática CSS `clamp(min, preferred, max)` proporcional ao viewport.
+  - Conversor bidirecional de unidades `px ↔ rem` com base raiz ajustável.
+  - Auditoria de acessibilidade de cores com cálculo exato de luminância e taxa de contraste WCAG 2.1 (avaliação de conformidade AA e AAA).
+  - Gerador de regras de sombra `box-shadow` com offset X/Y, desfoque, propagação, cor RGBA e opção de sombra interna (*inset*).
+
+### `dev.minifier` — Minificador e Formatador Web (HTML / CSS / JS)
+- **Tipo**: `Tool` (Interativo e Otimização Web)
+- **Identificador**: `dev.minifier`
+- **Recursos**:
+  - Minificação de código HTML, folhas de estilo CSS e scripts JavaScript 100% offline sem necessidade de Node.js.
+  - Remoção de comentários, quebras e espaços desnecessários com métricas de bytes economizados e taxa percentual de redução.
+  - Embelezador e formatador com indentação limpa para depuração de payloads compactados.
+
+### `dev.git_overview` — Painel Agregador de Repositórios Git
+- **Tipo**: `Tool` (Interativo e Monitoramento de Projetos)
+- **Identificador**: `dev.git_overview`
+- **Recursos**:
+  - Varredura de diretórios de código localizando todos os repositórios Git ativos.
+  - Visualização unificada de branches ativas, arquivos pendentes de commit (modificados e não rastreados).
+  - Contador de commits à frente (*ahead*) e atrás (*behind*) em relação ao upstream remoto.
+  - Visualização da data e mensagem do commit mais recente e atalhos para abrir a pasta no Explorer ou no Terminal.
+
+### `dev.gitignore_license` — Gerador de .gitignore e Licenças Open Source
+- **Tipo**: `Tool` (Interativo e Inicialização de Projetos)
+- **Identificador**: `dev.gitignore_license`
+- **Recursos**:
+  - Composição de arquivos `.gitignore` multicamada combinando linguagens e frameworks (Python, Node.js, Rust, Go, .NET, Java/Gradle, SO).
+  - Inclusão de regras personalizadas com seções nomeadas.
+  - Gerador oficial de licenças de código aberto: MIT, Apache 2.0, GNU GPL v3.0, BSD 3-Clause e The Unlicense.
+  - Preenchimento dinâmico de ano e titular dos direitos autorais com salvamento direto no disco.
+
+### `dev.mock_server` — Servidor HTTP Mock Local
+- **Tipo**: `Tool` (Interativo e Teste de APIs)
+- **Identificador**: `dev.mock_server`
+- **Recursos**:
+  - Servidor HTTP leve embutido em segundo plano executando em `127.0.0.1` com porta configurável.
+  - Cadastro de rotas com métodos REST (GET, POST, PUT, DELETE, PATCH, ALL), códigos de status HTTP e payloads JSON customizados.
+  - Simulação de latência de rede ajustável por endpoint.
+  - Tabela de log de requisições recebidas em tempo real exibindo horário, IP de origem, endpoint e código retornado.
+
+
 
 
 
