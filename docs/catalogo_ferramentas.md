@@ -1899,6 +1899,103 @@ Este documento mantém o inventário detalhado de todas as ferramentas disponív
   - Simulação de latência de rede ajustável por endpoint.
   - Tabela de log de requisições recebidas em tempo real exibindo horário, IP de origem, endpoint e código retornado.
 
+---
+
+## 25. Produtividade e Organização Pessoal (`tools/productivity/`)
+
+### `productivity.finance_tracker` — Controle de Finanças Pessoais Offline
+- **Tipo**: `Tool` (Interativo e Gestão Financeira Offline)
+- **Identificador**: `productivity.finance_tracker`
+- **Recursos**:
+  - Importação de extratos bancários brasileiros nos formatos OFX (Open Financial Exchange) e CSV.
+  - Categorização automática de despesas baseada em palavras-chave inteligentes (Alimentação, Transporte, Moradia, Saúde, Lazer, etc.).
+  - Cálculo instantâneo do balanço financeiro mensal: Total de Entradas, Total de Saídas, Saldo Líquido e Distribuição por Categoria.
+  - Tabela de transações com ordenação, filtros por conta e exportação de dados.
+
+### `productivity.recibo_orcamento` — Emissor de Recibos e Orçamentos em PDF
+- **Tipo**: `Tool` (Interativo e Emissão Documental)
+- **Identificador**: `productivity.recibo_orcamento`
+- **Recursos**:
+  - Emissão de recibos comerciais de pagamento diagramados em PDF via ReportLab.
+  - Conversão automatizada de valores monetários em reais para texto por extenso em português.
+  - Elaboração de propostas de orçamento completas com tabela discriminada de itens, quantidades, valores unitários e cálculo automático do total geral.
+  - Campos completos de identificação do prestador e tomador de serviços com CPF/CNPJ e observações de pagamento.
+
+### `productivity.kanban` — Quadro Kanban de Tarefas
+- **Tipo**: `Tool` (Interativo e Gestão Visual de Projetos)
+- **Identificador**: `productivity.kanban`
+- **Recursos**:
+  - Organização ágil de fluxos de trabalho com colunas personalizáveis dinâmicas.
+  - Cartões com checklists interativos com checkboxes, etiquetas coloridas (tags), prazos de entrega e seletor de cores de destaque.
+  - Movimentação rápida de cartões entre colunas e persistência automática em JSON local.
+  - Funções de importação e exportação de quadros Kanban completos em JSON.
+
+### `productivity.snippets` — Expansor de Trechos de Texto (Snippets)
+- **Tipo**: `Tool` (Interativo e Automação de Digitação)
+- **Identificador**: `productivity.snippets`
+- **Recursos**:
+  - Cadastro e organização de atalhos e trechos frequentes de texto categorizados.
+  - Expansão inteligente de variáveis e placeholders dinâmicos: `{date}`, `{time}`, `{datetime}`, `{clipboard}`, `{uuid}`.
+  - Painel de pré-visualização ao vivo do texto resultante com cópia imediata para a área de transferência.
+  - Backup, exportação e importação da coleção de snippets em JSON.
+
+### `productivity.flashcards` — Cartões de Memorização (Flashcards SM-2)
+- **Tipo**: `Tool` (Interativo e Repetição Espaçada)
+- **Identificador**: `productivity.flashcards`
+- **Recursos**:
+  - Implementação exata do algoritmo clássico de repetição espaçada SuperMemo SM-2 com cálculo de fator de facilidade (EF) e intervalos ideais de revisão.
+  - Gestão de múltiplos baralhos de estudo independentes.
+  - Sessão interativa de revisão com frente oculta, botão de revelação e avaliação de retenção (0 a 5).
+  - Importação e exportação de baralhos completos no formato universal CSV.
+
+### `productivity.countdown` — Painel de Contagem Regressiva e Prazos
+- **Tipo**: `Tool` (Interativo e Gerenciamento de Tempo)
+- **Identificador**: `productivity.countdown`
+- **Recursos**:
+  - Painel visual de acompanhamento de prazos, aniversários, datas de lançamento e entregas críticas.
+  - Relógios em tempo real com discriminação de dias, horas, minutos e segundos restantes.
+  - Mini-widget flutuante minimalista sem bordas (*Always on Top*) destacável para fixação direta na área de trabalho.
+  - Cores semânticas customizáveis por evento e suporte a eventos passados (tempo decorrido).
+
+### `productivity.bookmarks` — Gerenciador Local de Links e Favoritos Web
+- **Tipo**: `Tool` (Interativo e Gestão de Referências Web)
+- **Identificador**: `productivity.bookmarks`
+- **Recursos**:
+  - Catálogo de links e referências web categorizados por múltiplas tags e anotações.
+  - Verificador de status HTTP integrado para identificação de links quebrados ou inativos.
+  - Importação de favoritos a partir do formato padrão Netscape Bookmark HTML de qualquer navegador (Chrome, Edge, Firefox, Safari).
+  - Exportação da coleção em HTML universal ou JSON estruturado.
+
+### `productivity.journal` — Diário Pessoal & Registros Diários
+- **Tipo**: `Tool` (Interativo e Escrita Cronológica)
+- **Identificador**: `productivity.journal`
+- **Recursos**:
+  - Navegação cronológica e visual através de calendário interativo integrado.
+  - Registro de pensamentos, atas e anotações com suporte a formatação rica em Markdown.
+  - Seletor de humor e estado mental por dia acompanhado de etiquetas temáticas.
+  - Busca textual rápida e exportação consolidada do diário completo para documento Markdown (`.md`) estruturado.
+
+### `productivity.ics_calendar` — Visualizador de Calendário iCalendar (.ics)
+- **Tipo**: `Tool` (Interativo e Agenda Padrão RFC 5545)
+- **Identificador**: `productivity.ics_calendar`
+- **Recursos**:
+  - Leitura, edição e criação de eventos de calendário no formato padrão iCalendar RFC 5545 (`.ics`).
+  - Navegação diária e mensal com exibição de horários de início e término, locais e descrições.
+  - Compatibilidade com calendários do Microsoft Outlook, Google Calendar e Apple Calendar.
+  - Importação e exportação de agendas completas no padrão `.ics`.
+
+### `productivity.break_reminder` — Assistente de Ergonomia e Pausas Ativas
+- **Tipo**: `Tool` (Interativo e Saúde no Trabalho)
+- **Identificador**: `productivity.break_reminder`
+- **Recursos**:
+  - Monitor ergonômico com 3 trilhas simultâneas de pausas saudáveis:
+    1. Descanso Visual baseado na regra 20-20-20 (a cada 20 minutos, olhar para 6 metros por 20 segundos).
+    2. Alongamento físico e correção postural preventiva (a cada 45-60 minutos).
+    3. Hidratação regular com incentivo ao consumo de água.
+  - Janelas pop-up temporizadas não-bloqueantes contendo exercícios ilustrados e dicas posturais.
+  - Intervalos e notificações totalmente configuráveis e persistidos no perfil do usuário.
+
+
 
 
 

@@ -461,16 +461,16 @@ Esta fase consolida a expansão estratégica do All the Utils / WinToolbox, adic
 
 #### 12. Produtividade
 - [x] **`productivity.pomodoro`** (`Tool`): Temporizador Pomodoro com transições de estado (foco, pausa curta, pausa longa), contagem de ciclos e visualização gráfica Fluent.
-- [ ] **`productivity.finance_tracker`** (`Tool`): Controle de finanças pessoais 100% offline com categorização de despesas, gráficos analíticos e importação de extratos bancários brasileiros nos formatos OFX e CSV.
-- [ ] **`productivity.recibo_orcamento`** (`Tool`): Emissor de recibos de pagamento e propostas de orçamento em formato PDF para profissionais autônomos e prestadores de serviços, com logotipo customizado e conversão de valores monetários por extenso.
-- [ ] **`productivity.kanban`** (`Tool`): Quadro de organização de tarefas estilo Kanban com colunas arrastáveis personalizadas, cartões com checklists, datas de entrega e persistência em banco local.
-- [ ] **`productivity.snippets`** (`Tool`): Gerenciador de atalhos e expansão de trechos de texto frequentes através de abreviações disparadas por atalhos globais do Windows via `RegisterHotKey`.
-- [ ] **`productivity.flashcards`** (`Tool`): Sistema de memorização e estudo baseado no algoritmo de repetição espaçada SuperMemo (SM-2), com decks de cartões de perguntas e respostas e importação de arquivos CSV.
-- [ ] **`productivity.countdown`** (`Tool`): Painel de contagem regressiva para prazos de entrega, lançamentos e aniversários, com opção de widget flutuante minimalista na área de trabalho.
-- [ ] **`productivity.bookmarks`** (`Tool`): Gerenciador local de links e referências web categorizados por tags, com busca instantânea, verificador de links ativos e importação de favoritos de navegadores.
-- [ ] **`productivity.journal`** (`Tool`): Diário de registros pessoais com navegação por calendário, busca textual e exportação dos registros para Markdown estruturado.
-- [ ] **`productivity.ics_calendar`** (`Tool`): Visualizador e gerenciador local de eventos de calendário no formato padrão iCalendar (`.ics`).
-- [ ] **`productivity.break_reminder`** (`Tool`): Assistente de ergonomia no computador para incentivo a pausas ativas regulares: descanso ocular (regra 20-20-20), alongamento físico e hidratação.
+- [x] **`productivity.finance_tracker`** (`Tool`): Controle de finanças pessoais 100% offline com categorização de despesas, gráficos analíticos e importação de extratos bancários brasileiros nos formatos OFX e CSV.
+- [x] **`productivity.recibo_orcamento`** (`Tool`): Emissor de recibos de pagamento e propostas de orçamento em formato PDF para profissionais autônomos e prestadores de serviços, com logotipo customizado e conversão de valores monetários por extenso.
+- [x] **`productivity.kanban`** (`Tool`): Quadro de organização de tarefas estilo Kanban com colunas arrastáveis personalizadas, cartões com checklists, datas de entrega e persistência em banco local.
+- [x] **`productivity.snippets`** (`Tool`): Gerenciador de atalhos e expansão de trechos de texto frequentes através de abreviações disparadas por atalhos globais do Windows via `RegisterHotKey`.
+- [x] **`productivity.flashcards`** (`Tool`): Sistema de memorização e estudo baseado no algoritmo de repetição espaçada SuperMemo (SM-2), com decks de cartões de perguntas e respostas e importação de arquivos CSV.
+- [x] **`productivity.countdown`** (`Tool`): Painel de contagem regressiva para prazos de entrega, lançamentos e aniversários, com opção de widget flutuante minimalista na área de trabalho.
+- [x] **`productivity.bookmarks`** (`Tool`): Gerenciador local de links e referências web categorizados por tags, com busca instantânea, verificador de links ativos e importação de favoritos de navegadores.
+- [x] **`productivity.journal`** (`Tool`): Diário de registros pessoais com navegação por calendário, busca textual e exportação dos registros para Markdown estruturado.
+- [x] **`productivity.ics_calendar`** (`Tool`): Visualizador e gerenciador local de eventos de calendário no formato padrão iCalendar (`.ics`).
+- [x] **`productivity.break_reminder`** (`Tool`): Assistente de ergonomia no computador para incentivo a pausas ativas regulares: descanso ocular (regra 20-20-20), alongamento físico e hidratação.
 
 #### 13. Calculadoras
 - [x] **`calc.unit_converter`** (`Tool`): Conversor universal de unidades de medida (comprimento, massa, dados digitais, volume, temperatura, velocidade e pressão) com tabela comparativa completa.
@@ -501,15 +501,15 @@ Esta fase consolida a expansão estratégica do All the Utils / WinToolbox, adic
 ---
 
 ## 7. Métrica de Qualidade e Testes
-- **Total de Ferramentas Registradas**: 235 ferramentas operacionais em 15 categorias.
-- **Padrão Arquitetural de Lógica Desacoplada**: 100% das 235 ferramentas possuem divisão estrita entre UI (`tool.py`) e regras de negócio puras (`logic.py`), com zero importações de bibliotecas gráficas na camada de lógica (validado estritamente por `tests/test_logic_architecture.py`).
+- **Total de Ferramentas Registradas**: 245 ferramentas operacionais em 15 categorias.
+- **Padrão Arquitetural de Lógica Desacoplada**: 100% das 245 ferramentas possuem divisão estrita entre UI (`tool.py`) e regras de negócio puras (`logic.py`), com zero importações de bibliotecas gráficas na camada de lógica (validado estritamente por `tests/test_logic_architecture.py`).
 - **Aceleração por Hardware (GPU) & Paralelismo**:
   - Detecção automática de GPUs instaladas (NVIDIA GeForce/RTX via `nvidia-smi` / WMI, AMD Radeon e Intel Arc/Iris).
   - Aceleração por hardware no FFmpeg via **NVIDIA NVENC** (`h264_nvenc`, `hevc_nvenc`), **AMD AMF** (`h264_amf`, `hevc_amf`) e **Intel QuickSync** (`h264_qsv`) com fallback automático resiliente para CPU (`libx264`).
   - Motor de lote concorrente (`core/batch.py`) com `ThreadPoolExecutor` dimensionado automaticamente de acordo com os núcleos da máquina (`optimal_batch_workers = min(cpu_cores, 8)`).
   - Cálculo de hashes concorrente em lote na ferramenta de localização de arquivos duplicados (`files.duplicates`).
-- **Cobertura de Testes**: **Mais de 618 testes unitários e de integração** executados com 100% de aprovação no `pytest`, em conformidade estrita com as **Diretrizes de Qualidade Anti-Gambiarra** (Validação de Efeito Real Black-Box, Proibição de Asserções Frouxas e Isolamento de Rede/Ambiente).
-- **Tempo de Execução dos Testes**: Suíte completa executada com sucesso e smoke test validando todas as 235 ferramentas.
+- **Cobertura de Testes**: **Mais de 650 testes unitários e de integração** executados com 100% de aprovação no `pytest`, em conformidade estrita com as **Diretrizes de Qualidade Anti-Gambiarra** (Validação de Efeito Real Black-Box, Proibição de Asserções Frouxas e Isolamento de Rede/Ambiente).
+- **Tempo de Execução dos Testes**: Suíte completa executada com sucesso e smoke test validando todas as 245 ferramentas.
 
 ---
 
