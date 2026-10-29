@@ -1,118 +1,559 @@
-# All the Utils - Caixa de Ferramentas para Windows
+# 🧰 WinToolbox (All the Utils) — Central de Documentação & Catálogo Geral
 
-Caixa de ferramentas completa e moderna para Windows desenvolvida em Python com **PySide6 (Qt)**, arquitetura modular, suporte a processamento em lote nativo e interface com design sóbrio no padrão **Windows 11 Fluent**.
+> **Caixa de ferramentas completa, moderna e 100% offline para Windows.**
+> Desenvolvida em **Python + PySide6 (Qt)** com design sóbrio no padrão **Windows 11 Fluent**, motor assíncrono de processamento em lote nativo e linha de comando integrada.
 
----
-
-## Estrutura do Projeto
-
-O código está estruturado em pacotes modulares dentro de `src/`, garantindo separação estrita entre lógica e interface gráfica:
-
-```
-WinToolbox/
-├── main.py                     # Ponto de entrada rápido da aplicação
-├── pyproject.toml              # Configurações do projeto e empacotamento
-├── requirements.txt            # Dependências gerenciadas
-├── iniciar.bat                 # Atalho de execução rápida
-├── gerar_exe.bat               # Gerador de executável (.exe)
-│
-├── src/wintoolbox/
-│   ├── app.py                  # Ciclo de vida da aplicação PySide6
-│   ├── cli.py                  # Linha de comando para automação e lotes
-│   ├── __main__.py             # Entrypoint executável (python -m wintoolbox)
-│   │
-│   ├── core/                   # Núcleo de serviços e motores da plataforma
-│   │   ├── registry.py         # Registro dinâmico de ferramentas (Tool e FileTool)
-│   │   ├── batch.py            # Motor central de processamento em lote
-│   │   ├── tasks.py            # Gerenciador de threads assíncronas (TaskRunner)
-│   │   ├── shell.py            # Execução de subprocessos e scripts PowerShell
-│   │   ├── elevation.py        # Detecção e solicitação de elevação UAC
-│   │   ├── settings.py         # Preferências do usuário (%APPDATA%/WinToolbox)
-│   │   └── system_info.py      # Coleta de métricas de hardware em tempo real
-│   │
-│   ├── ui/                     # Interface gráfica do usuário
-│   │   ├── theme.py            # Design System Fluent (Segoe UI, Dark/Light mode)
-│   │   ├── main_window.py      # Janela principal com sidebar e barra de status
-│   │   ├── pages/
-│   │   │   └── home_page.py    # Catálogo visual agrupado por categorias
-│   │   └── widgets/
-│   │       ├── batch_input.py  # Tabela com Drag & Drop de arquivos e pastas
-│   │       ├── output_picker.py# Seletor de destino, subpastas e conflitos
-│   │       ├── action_bar.py   # Barra inferior com progresso e atalhos
-│   │       ├── log_panel.py    # Console de logs monoespaçado recolhível
-│   │       ├── tool_page.py    # Template automatizado para FileTools
-│   │       └── command_palette.py # Busca rápida estilo VS Code com Ctrl+K
-│   │
-│   └── tools/                  # Catálogo de ferramentas implementadas
-│       ├── images/
-│       │   └── convert/        # Conversor de imagens em lote
-│       └── system/
-│           ├── tools/          # Ferramentas e manutenção do Windows
-│           └── monitor/        # Monitor de hardware (CPU, RAM, Discos)
-│
-└── tests/                      # Suíte de testes automatizados (pytest e pytest-qt)
-    ├── test_batch.py
-    ├── test_image_convert.py
-    ├── test_registry.py
-    └── test_gui_smoke.py
-```
+![Python](https://img.shields.io/badge/Python-3.10%2B-blue?logo=python) ![Framework](https://img.shields.io/badge/GUI-PySide6%20%2F%20Qt6-brightgreen?logo=qt) ![Design](https://img.shields.io/badge/Design-Windows%2011%20Fluent-informational) ![Ferramentas](https://img.shields.io/badge/Ferramentas-261%20Ativas-success) ![Privacidade](https://img.shields.io/badge/Privacidade-100%25%20Offline-blueviolet) ![Plataforma](https://img.shields.io/badge/Plataforma-Windows%2010%20%2F%2011-lightgrey?logo=windows)
 
 ---
 
-## Funcionalidades da Fase 0 (Fundação)
+## 🧭 Base de Conhecimento do Projeto
 
-1. **Conversor de Imagens em Lote (`images.convert`)**:
-   - Suporte a seleção de arquivos avulsos ou pastas inteiras.
-   - Opção para varredura recursiva de subpastas e espelhamento relativo da árvore de diretórios.
-   - Formatos suportados: `WEBP`, `JPG/JPEG`, `PNG`, `ICO` (multi-resoluções), `BMP`, `TIFF`, `PDF`.
-   - Ajuste de qualidade para compressão lossy (JPEG e WEBP).
-   - Tratamento automático de canal alfa/transparência para formatos sem suporte.
+Este diretório `docs/` constitui a espinha dorsal de governança técnica do ecossistema **WinToolbox**. Cada documento possui um papel específico e complementar:
 
-2. **Ferramentas de Manutenção do Windows (`system.tools`)**:
-   - Desfragmentação e Otimização de Unidade (`defrag C: /O`).
-   - Limpeza de arquivos temporários (`%TEMP%`) com cálculo de espaço liberado.
-   - Verificação e reparo de integridade de arquivos do sistema (`sfc /scannow`).
-   - Limpeza de cache de resolução DNS (`ipconfig /flushdns`).
-   - Detecção de privilégios e elevação UAC sob demanda.
-
-3. **Monitor de Hardware em Tempo Real (`system.monitor`)**:
-   - Consumo de CPU com contagem de núcleos lógicos.
-   - Uso de memória RAM em GB e percentual.
-   - Tabela detalhada de unidades de armazenamento com sistema de arquivos, espaço livre e barras de uso.
-
-4. **Recursos de Plataforma**:
-   - **Busca Rápida com `Ctrl+K`**: Paleta de comandos para abrir qualquer ferramenta instantaneamente.
-   - **Drag & Drop**: Arraste arquivos ou pastas do Windows Explorer direto para dentro do aplicativo.
-   - **Interface sem travamentos**: Todas as tarefas pesadas rodam em segundo plano via `QThreadPool` com sinais Qt thread-safe.
-   - **CLI integrada**: Suporte a execução automatizada via terminal:
-     ```bash
-     python main.py --list
-     python main.py run images.convert "D:\Fotos" -r -f WEBP -d "E:\Fotos_Convertidas"
-     ```
+| Documento | Finalidade & Conteúdo Principal | Público-Alvo |
+| :--- | :--- | :--- |
+| 📑 **[registro_tecnico.md](registro_tecnico.md)** | **Arquitetura & Engenharia de Software**: Separação estrita Core/UI/Tools, contratos dos plugins (`FileTool` e `Tool`), motor `TaskRunner`, concorrência com `QThreadPool`, manipulação de subprocessos PowerShell/Shell e registro de fases. | Desenvolvedores e Arquitetos |
+| 📚 **[catalogo_ferramentas.md](catalogo_ferramentas.md)** | **Inventário Minucioso de Ferramentas**: Especificações técnicas exaustivas de todas as ferramentas, entradas aceitas, formatos de saída, flags de automação e algoritmos matemáticos/criptográficos implementados. | Usuários Técnicos e Desenvolvedores |
+| 💡 **[contexto_para_prompts.md](contexto_para_prompts.md)** | **Guia de Contexto & Diretrizes para Prompts**: Instruções para IAs e novos colaboradores, regras de estilo Fluent (Segoe UI, sem emojis na interface de produção), padrões de código PEP 8 e diretrizes estritas de testes black-box sem gambiarras. | Modelos de IA e Contribuidores |
+| 📂 **[Código-Fonte do Projeto](../src/wintoolbox/)** | **Implementação Real**: Módulos do núcleo (`core/`), componentes de interface (`ui/`) e implementações de todas as ferramentas (`tools/`). | Desenvolvedores |
 
 ---
 
-## Como Executar
+## 📊 Painel Geral de Categorias
 
-### Opção 1: Via atalho
-Dois cliques no arquivo `iniciar.bat`.
+O **WinToolbox** conta atualmente com **261 ferramentas integradas**, distribuídas em **15 categorias temáticas**. Todas contam com execução assíncrona, relatórios de progresso em tempo real e cancelamento seguro sem congelar a interface.
 
-### Opção 2: Via terminal
+| # | Categoria | Ferramentas | Foco & Capacidades Principais | Acesso Rápido |
+| :-: | :--- | :-: | :--- | :-: |
+| 1 | 🖼️ **Imagens e Mídia Visual** | `26` | Conversão, compressão otimizada, redimensionamento com Lanczos, marcas d'água de texto e logo, anotações, paletas de cores, OCR nativo do Windows e geradores de QR Code/Código de Barras. | [Visualizar ➔](#1-imagens-e-midia-visual) |
+| 2 | 📁 **Arquivos, Pastas e Armazenamento** | `29` | Organização inteligente por tipo/data, detecção de duplicados por hash SHA-256, sincronização de diretórios, triturador seguro (DoD/Gutmann), gerenciamento de junções NTFS e analisador visual de espaço em disco. | [Visualizar ➔](#2-arquivos-pastas-e-armazenamento) |
+| 3 | 📄 **PDF e Documentos** | `20` | Manipulação completa de arquivos PDF: divisão, junção, compressão de imagens/streams, censura permanente (redaction), OCR pesquisável, assinaturas visuais com rubrica, carimbos, numeração e extração de tabelas. | [Visualizar ➔](#3-pdf-e-documentos) |
+| 4 | 🎵 **Áudio, Vídeo e Multimídia** | `18` | Processamento audiovisual acelerado via FFmpeg e IA Whisper: normalização de loudness (EBU R128), conversão em lote, transcrição offline de fala em texto, corte sem perdas (stream copy) e download de mídias. | [Visualizar ➔](#4-audio-video-e-multimidia) |
+| 5 | ⚙️ **Sistema Operacional e Manutenção** | `28` | Diagnósticos de hardware em tempo real, reparo de componentes do Windows (SFC, DNS, Fila de Impressão), gerenciamento de inicialização, serviços, variáveis de ambiente (PATH), telemetria e atualizações com Winget. | [Visualizar ➔](#5-sistema-operacional-e-manutencao) |
+| 6 | 🌐 **Rede, Internet e Conexões** | `19` | Diagnóstico completo de conectividade (Ping, MTR, DNS Benchmark), testes de velocidade (Cloudflare), scanner de portas/ARP, servidor web local com QR Code móvel e integrações com APIs públicas brasileiras (BrasilAPI). | [Visualizar ➔](#6-rede-internet-e-conexoes) |
+| 7 | 💻 **Desenvolvimento e Programação** | `19` | Utilitários essenciais para programadores: cliente HTTP/REST completo, limpador de builds pesados (node_modules, target, .venv), gerador de certificados SSL locais, servidor mock, contador de linhas (CLOC) e leitor SQLite. | [Visualizar ➔](#7-desenvolvimento-e-programacao) |
+| 8 | 📊 **Dados, Estruturas e Tabelas** | `15` | Visualização em árvore e conversão multidirecional entre JSON, CSV, Excel, XML e YAML, consultas analíticas com SQL em arquivos locais, comparadores estruturais semânticos e visualizador de logs com tail. | [Visualizar ➔](#8-dados-estruturas-e-tabelas) |
+| 9 | ✍️ **Texto, Redação e Documentos BR** | `16` | Transformações e limpeza de texto, comparador visual de diferenças com realce inline de caracteres, testador de Regex interativo, gerador de Pix oficial BR Code, decodificador de boletos e geradores de documentos BR. | [Visualizar ➔](#9-texto-redacao-e-documentos-br) |
+| 10 | 🧮 **Calculadoras e Conversores Técnicos** | `16` | Simulações financeiras (juros compostos, amortização Price/SAC, investimentos), folha salarial CLT Brasil com alíquotas oficiais, calculadora de sub-redes IPv4/CIDR, programador bitwise e conversor universal de unidades. | [Visualizar ➔](#10-calculadoras-e-conversores-tecnicos) |
+| 11 | ⏱️ **Produtividade e Organização Pessoal** | `16` | Quadro Kanban de tarefas offline, controle financeiro pessoal com importação OFX/CSV, timer Pomodoro, histórico da área de transferência com favoritos, notas rápidas e emissor de orçamentos e recibos em PDF. | [Visualizar ➔](#11-produtividade-e-organizacao-pessoal) |
+| 12 | 🤖 **Automação, Macros e Janelas** | `12` | Autoclicker com taxa CPS configurável, regras de organização automática de pastas, atalhos de teclado globais, gerenciador de janelas do Windows (Always on Top/Transparência) e central de execução de scripts multilinguagem. | [Visualizar ➔](#12-automacao-macros-e-janelas) |
+| 13 | 📦 **Compactação e Arquivos Comprimidos** | `8` | Compactação e extração em lote para ZIP, 7Z, RAR e TAR com proteção estrita Zip Slip, criação de volumes multipartes, verificador de integridade CRC e montagem/extração nativa de imagens ISO e VHD. | [Visualizar ➔](#13-compactacao-e-arquivos-comprimidos) |
+| 14 | 🔑 **Codificação, Criptografia e Hashes** | `15` | Cálculo de hashes modernos (SHA-256, BLAKE2, MD5, CRC32), codificação Base64/URL/HTML, depuração e verificação de assinaturas JWT, gerador de chaves SSH (Ed25519/RSA) e decodificador SEFAZ de chaves de acesso NF-e. | [Visualizar ➔](#14-codificacao-criptografia-e-hashes) |
+| 15 | 🛡️ **Segurança e Auditoria Defensiva** | `4` | Auditoria de segurança defensiva: verificação de senhas vazadas via Have I Been Pwned (k-anonimato seguro), consulta de reputação no VirusTotal, auditoria de cabeçalhos HTTP e validação de assinaturas Authenticode. | [Visualizar ➔](#15-seguranca-e-auditoria-defensiva) |
+
+---
+
+## 🏷️ Tipos de Ferramentas e Convenções
+
+Para facilitar a visualização e automação, cada utilitário é categorizado segundo seu contrato de arquitetura:
+
+- `⚡ Lote (FileTool)`: Utilitário puramente focado em processamento de arquivos e diretórios em massa. Conecta-se automaticamente ao **Motor de Lotes (Batch Engine)**, oferecendo Drag & Drop, controle de concorrência (`process` ou `thread`), seleção de estratégia de conflito (sobrescrever, renomear `(1)`, pular) e espelhamento relativo de subpastas.
+- `🎛️ Interativo (Tool)`: Utilitário que possui interface visual própria e dedicada (dashboards, editores visuais com abas, players, temporizadores, gráficos ou calculadoras com preview dinâmico).
+- `🛡️ Admin`: Ferramenta que necessita de elevação de privilégios de Administrador do Windows (UAC) para realizar modificações no sistema operacional.
+
+---
+
+## <a id="1-imagens-e-midia-visual"></a>1. 🖼️ Imagens e Mídia Visual (26 Ferramentas)
+
+> Conversão, compressão otimizada, redimensionamento com Lanczos, marcas d'água de texto e logo, anotações, paletas de cores, OCR nativo do Windows e geradores de QR Code/Código de Barras.
+
+| Ferramenta & ID | Tipo | Descrição dos Recursos | Código-Fonte | Catálogo |
+| :--- | :---: | :--- | :---: | :---: |
+| **Editor de Anotações**<br>`images.annotate` | 🎛️ Interativo | Anotações sobre imagens com setas, retângulos, numeração de passos, textos e tarjas de desfoque ou pixelização | [`tool.py`](../src/wintoolbox/tools/images/annotate/tool.py) | [Catálogo ➔](catalogo_ferramentas.md) |
+| **Gerador de Código de Barras**<br>`images.barcode` | 🎛️ Interativo | Crie códigos de barras 1D (Code128, EAN-13, EAN-8, ITF, Code 39) com prévia e exportação PNG/SVG | [`tool.py`](../src/wintoolbox/tools/images/barcode/tool.py) | [Catálogo ➔](catalogo_ferramentas.md) |
+| **Bordas e Sombras (Mockup)**<br>`images.border_shadow` | ⚡ Lote | Adicione cantos arredondados, sombra difusa, moldura e fundo decorativo em screenshots | [`tool.py`](../src/wintoolbox/tools/images/border_shadow/tool.py) | [Catálogo ➔](catalogo_ferramentas.md) |
+| **Colagens e Montagens de Fotos**<br>`images.collage` | 🎛️ Interativo | Montagem de várias imagens em grade com controle de colunas, espaçamento, bordas e cor de fundo | [`tool.py`](../src/wintoolbox/tools/images/collage/tool.py) | [Detalhes ➔](catalogo_ferramentas.md#imagescollage-colagens-e-montagens-de-fotos) |
+| **Conta-Gotas de Tela e Seletor de Cores**<br>`images.color_picker` | 🎛️ Interativo | Captura de cores de qualquer pixel na tela sobre qualquer aplicativo (WhatsApp, navegadores, jogos) com lupa flutuante de zoom, captura por Espaço/Clique global e histórico nos formatos HEX, RGB, HSL e CMYK. | [`tool.py`](../src/wintoolbox/tools/images/color_picker/tool.py) | [Detalhes ➔](catalogo_ferramentas.md#imagescolor-picker-conta-gotas-de-tela-e-seletor-de-cores) |
+| **Comparador de Imagens**<br>`images.compare` | 🎛️ Interativo | Compare duas imagens com slider antes/depois, mapa de diferença de pixels e modo piscante para avaliar compressões | [`tool.py`](../src/wintoolbox/tools/images/compare/tool.py) | [Catálogo ➔](catalogo_ferramentas.md) |
+| **Otimizador e Compressor de Imagens**<br>`images.compress` | ⚡ Lote | Comprima e reduza o peso de fotos PNG, JPG e WEBP sem perda perceptível de qualidade | [`tool.py`](../src/wintoolbox/tools/images/compress/tool.py) | [Detalhes ➔](catalogo_ferramentas.md#imagescompress-otimizador-e-compressor-de-imagens) |
+| **Conversor de Imagens**<br>`images.convert` | ⚡ Lote | Conversão de imagens individuais ou pastas completas (WEBP, JPG, PNG, ICO, PDF, etc.) | [`tool.py`](../src/wintoolbox/tools/images/convert/tool.py) | [Detalhes ➔](catalogo_ferramentas.md#imagesconvert-conversão-e-otimização-de-imagens) |
+| **Editor de Recorte e Rotação**<br>`images.crop_editor` | 🎛️ Interativo | Recorte visual com proporções fixas (1:1, 16:9, 4:5, A4), grade de regra dos terços e rotação angular fina | [`tool.py`](../src/wintoolbox/tools/images/crop_editor/tool.py) | [Catálogo ➔](catalogo_ferramentas.md) |
+| **Filtros e Ajustes de Imagem**<br>`images.effects` | ⚡ Lote | Ajuste brilho, contraste, saturação e aplique filtros artísticos (P&B, sépia, desfoque) em fotos | [`tool.py`](../src/wintoolbox/tools/images/effects/tool.py) | [Detalhes ➔](catalogo_ferramentas.md#imageseffects-filtros-e-ajustes-de-imagem) |
+| **Metadados EXIF e Privacidade**<br>`images.exif` | 🎛️ Interativo | Inspecione dados de câmera e localização GPS em fotos e remova metadados em lote para privacidade | [`tool.py`](../src/wintoolbox/tools/images/exif/tool.py) | [Detalhes ➔](catalogo_ferramentas.md#imagesexif-metadados-exif-e-privacidade) |
+| **Gerador de Ícones e Favicons**<br>`images.favicon` | 🎛️ Interativo | Gere arquivos .ico multi-resolução para Windows ou pacote completo de favicons e manifest para web | [`tool.py`](../src/wintoolbox/tools/images/favicon/tool.py) | [Detalhes ➔](catalogo_ferramentas.md#imagesfavicon-gerador-de-ícones-e-favicons) |
+| **Montador e Extrator de GIF**<br>`images.gif_tools` | 🎛️ Interativo | Criação de GIFs animados a partir de fotos com controle de FPS/duração e extração de quadros | [`tool.py`](../src/wintoolbox/tools/images/gif_tools/tool.py) | [Detalhes ➔](catalogo_ferramentas.md#imagesgif-tools-montador-e-extrator-de-gif) |
+| **OCR de Imagem (Reconhecimento de Texto)**<br>`images.ocr` | 🎛️ Interativo | Extração rápida de texto de imagens 100% offline via API nativa do Windows (Windows.Media.Ocr) | [`tool.py`](../src/wintoolbox/tools/images/ocr/tool.py) | [Detalhes ➔](catalogo_ferramentas.md#imagesocr-ocr-de-imagem-reconhecimento-de-texto) |
+| **Extrator de Paleta de Cores**<br>`images.palette` | 🎛️ Interativo | Extraia as cores dominantes de qualquer imagem com códigos HEX, RGB, HSL e exportação para CSS e JSON | [`tool.py`](../src/wintoolbox/tools/images/palette/tool.py) | [Detalhes ➔](catalogo_ferramentas.md#imagespalette-extrator-de-paleta-de-cores-dominantes) |
+| **Gerador e Leitor de QR Code**<br>`images.qrcode` | 🎛️ Interativo | Geração de QR Codes personalizados com cores, cópia direta da imagem e leitura de códigos a partir de fotos | [`tool.py`](../src/wintoolbox/tools/images/qrcode/tool.py) | [Detalhes ➔](catalogo_ferramentas.md#imagesqrcode-gerador-e-leitor-de-qr-code) |
+| **Removedor de Fundo de Imagem**<br>`images.remove_bg` | 🎛️ Interativo | Remoção de fundo sólido, branco ou chroma key com canal alfa transparente para salvar em PNG | [`tool.py`](../src/wintoolbox/tools/images/remove_bg/tool.py) | [Detalhes ➔](catalogo_ferramentas.md#imagesremove-bg-removedor-de-fundo-de-imagem) |
+| **Redimensionador e Cortador de Imagens**<br>`images.resize` | ⚡ Lote | Redimensione, corte, rotacione e espelhe fotos e imagens em lote com alta qualidade | [`tool.py`](../src/wintoolbox/tools/images/resize/tool.py) | [Detalhes ➔](catalogo_ferramentas.md#imagesresize-redimensionador-e-cortador-de-imagens) |
+| **Captura de Tela e Anotações**<br>`images.screenshot` | 🎛️ Interativo | Captura de tela inteira ou janela com temporizador, ferramentas de anotação e cópia direta | [`tool.py`](../src/wintoolbox/tools/images/screenshot/tool.py) | [Detalhes ➔](catalogo_ferramentas.md#imagesscreenshot-captura-de-tela-e-anotações) |
+| **Divisão em Grade (Carrossel)**<br>`images.split_grid` | ⚡ Lote | Divida imagens em grades NxM ou fatias para carrossel do Instagram, posters e sprites | [`tool.py`](../src/wintoolbox/tools/images/split_grid/tool.py) | [Catálogo ➔](catalogo_ferramentas.md) |
+| **Conversor de SVG para PNG e ICO**<br>`images.svg_convert` | ⚡ Lote | Conversão de vetores SVG em lote para imagens PNG em alta resolução e ícones ICO multi-tamanho para Windows | [`tool.py`](../src/wintoolbox/tools/images/svg_convert/tool.py) | [Catálogo ➔](catalogo_ferramentas.md) |
+| **Extrator de Texto de Tela**<br>`images.text_extractor` | 🎛️ Interativo | Capture qualquer região da tela e copie instantaneamente o texto via OCR WinRT para a área de transferência | [`tool.py`](../src/wintoolbox/tools/images/text_extractor/tool.py) | [Catálogo ➔](catalogo_ferramentas.md) |
+| **Aplicador de Marca d'Água**<br>`images.watermark` | ⚡ Lote | Aplique assinaturas de texto ou logos em fotos em lote com controle de transparência e posição | [`tool.py`](../src/wintoolbox/tools/images/watermark/tool.py) | [Detalhes ➔](catalogo_ferramentas.md#imageswatermark-aplicador-de-marca-dágua-em-lote) |
+| **Normalizador de Volume em Lote (Loudnorm)**<br>`media.normalize` | ⚡ Lote | Equalize e normalize o volume de músicas, podcasts e vídeos em lote para o padrão internacional EBU R128 (-14 LUFS) | [`tool.py`](../src/wintoolbox/tools/media/normalize/tool.py) | [Detalhes ➔](catalogo_ferramentas.md#medianormalize-normalização-de-volume-em-lote-ebu-r128-loudnorm) |
+| **Editor e Conversor de Legendas (SRT / VTT)**<br>`media.subtitles` | 🎛️ Interativo | Editor e conversor de legendas: converte entre formatos SRT e WebVTT, ajusta sincronia de tempo com atraso/adiantamento (Time Shift) e edita textos de diálogos. | [`tool.py`](../src/wintoolbox/tools/media/subtitles/tool.py) | [Detalhes ➔](catalogo_ferramentas.md#mediasubtitles-editor-e-conversor-de-legendas-srt-webvtt) |
+| **Transcrição de Áudio Offline (Whisper)**<br>`media.transcribe` | 🎛️ Interativo | Transcreva gravações, podcasts e vídeos para texto ou legendas SRT 100% offline utilizando Inteligência Artificial Whisper | [`tool.py`](../src/wintoolbox/tools/media/transcribe/tool.py) | [Detalhes ➔](catalogo_ferramentas.md#mediatranscribe-transcrição-de-áudio-offline-por-inteligência-artificial) |
+
+---
+
+## <a id="2-arquivos-pastas-e-armazenamento"></a>2. 📁 Arquivos, Pastas e Armazenamento (29 Ferramentas)
+
+> Organização inteligente por tipo/data, detecção de duplicados por hash SHA-256, sincronização de diretórios, triturador seguro (DoD/Gutmann), gerenciamento de junções NTFS e analisador visual de espaço em disco.
+
+| Ferramenta & ID | Tipo | Descrição dos Recursos | Código-Fonte | Catálogo |
+| :--- | :---: | :--- | :---: | :---: |
+| **Organizador Automático de Pastas**<br>`files.auto_organize` | 🎛️ Interativo | Organização inteligente de arquivos soltos: agrupa automaticamente por tipo (Imagens, Documentos, Vídeos, Áudio, Compactados) ou data de modificação. | [`tool.py`](../src/wintoolbox/tools/files/auto_organize/tool.py) | [Detalhes ➔](catalogo_ferramentas.md#filesauto-organize-organizador-automático-de-pastas) |
+| **Assistente de Backup Incremental**<br>`files.backup` | 🎛️ Interativo | Gerenciador de backups locais: cria cópias de segurança incrementais, arquivos compactados em ZIP ou pastas espelho com registro histórico de versões. | [`tool.py`](../src/wintoolbox/tools/files/backup/tool.py) | [Detalhes ➔](catalogo_ferramentas.md#filesbackup-assistente-de-backup-incremental) |
+| **Catalogador de Mídias Externas**<br>`files.catalog` | 🎛️ Interativo | Catalogador offline de mídias externas: indexa a árvore completa de pendrives e HDs externos permitindo buscar arquivos mesmo com o drive desconectado. | [`tool.py`](../src/wintoolbox/tools/files/catalog/tool.py) | [Detalhes ➔](catalogo_ferramentas.md#filescatalog-indexador-e-catalogador-de-mídias-externas-snapshots-offline) |
+| **Manifesto de Checksums (.sha256)**<br>`files.checksum_manifest` | 🎛️ Interativo | Gerador e verificador de manifestos de integridade: cria arquivos de checksum (SHA-256, MD5, SHA-1) para validação periódica de arquivos contra corrupção. | [`tool.py`](../src/wintoolbox/tools/files/checksum_manifest/tool.py) | [Detalhes ➔](catalogo_ferramentas.md#fileschecksum-manifest-manifesto-de-checksums-de-pasta-sha256-md5) |
+| **Higienizador de Arquivos e Pastas**<br>`files.cleanup_finder` | 🎛️ Interativo | Localizador e higienizador de pastas vazias, arquivos de 0 byte e atalhos quebrados com simulação (Dry Run). | [`tool.py`](../src/wintoolbox/tools/files/cleanup_finder/tool.py) | [Detalhes ➔](catalogo_ferramentas.md#filescleanup-finder-localizador-e-higienizador-em-lote-de-pastas-vazias-e-atalhos-quebrados) |
+| **Analisador de Espaço em Disco**<br>`files.disk_usage` | 🎛️ Interativo | Analisador visual de espaço em disco: mapeia diretórios mais pesados, identifica os maiores arquivos do sistema e classifica o uso de armazenamento por tipo de arquivo. | [`tool.py`](../src/wintoolbox/tools/files/disk_usage/tool.py) | [Detalhes ➔](catalogo_ferramentas.md#filesdisk-usage-analisador-de-espaço-em-disco) |
+| **Limpador de Metadados de Documentos**<br>`files.doc_metadata` | ⚡ Lote | Inspetor e limpador em lote de metadados de privacidade em documentos Word (.docx), Excel (.xlsx), PowerPoint (.pptx) e PDF. | [`tool.py`](../src/wintoolbox/tools/files/doc_metadata/tool.py) | [Detalhes ➔](catalogo_ferramentas.md#filesdoc-metadata-inspetor-e-limpador-de-metadados-de-documentos-office-e-pdf) |
+| **Localizador de Arquivos Duplicados**<br>`files.duplicates` | 🎛️ Interativo | Localizador de arquivos duplicados idênticos por tamanho exato e hash criptográfico SHA-256, com pré-visualização e envio seguro para a Lixeira do Windows. | [`tool.py`](../src/wintoolbox/tools/files/duplicates/tool.py) | [Detalhes ➔](catalogo_ferramentas.md#filesduplicates-localizador-de-arquivos-duplicados) |
+| **Conversor de Codificação de Texto**<br>`files.encoding_converter` | ⚡ Lote | Conversão em lote de codificação de arquivos de texto (UTF-8, ANSI, UTF-16) e normalização de quebras de linha (CRLF/LF) | [`tool.py`](../src/wintoolbox/tools/files/encoding_converter/tool.py) | [Detalhes ➔](catalogo_ferramentas.md#filesencoding-converter-conversor-de-codificação-de-texto-e-finais-de-linha) |
+| **Criptografia Local de Arquivos (AES-256)**<br>`files.encrypt` | 🎛️ Interativo | Criptografia forte de arquivos individuais ou pastas inteiras com algoritmo AES-256-GCM, proteção por senha mestra e derivação segura de chave via scrypt. | [`tool.py`](../src/wintoolbox/tools/files/encrypt/tool.py) | [Detalhes ➔](catalogo_ferramentas.md#filesencrypt-criptografia-local-de-arquivos-aes-256) |
+| **Comparador de Pastas**<br>`files.folder_diff` | 🎛️ Interativo | Compara duas árvores de diretórios detalhadamente, identificando arquivos novos, excluídos, modificados e idênticos com suporte a comparação profunda por hash SHA-256. | [`tool.py`](../src/wintoolbox/tools/files/folder_diff/tool.py) | [Catálogo ➔](catalogo_ferramentas.md) |
+| **Monitor de Pastas em Tempo Real**<br>`files.folder_watcher` | 🎛️ Interativo | Sentinela de diretórios: monitora pastas em segundo plano e emite alertas visuais quando arquivos são criados, modificados, renomeados ou deletados. | [`tool.py`](../src/wintoolbox/tools/files/folder_watcher/tool.py) | [Detalhes ➔](catalogo_ferramentas.md#filesfolder-watcher-monitor-de-pastas-em-tempo-real) |
+| **Sanitizador de Espaço Livre**<br>`files.free_space_wipe` | 🎛️ Interativo | Sobrescreve o espaço livre de discos e partições (via cipher /w) para prevenir a recuperação de arquivos deletados. | [`tool.py`](../src/wintoolbox/tools/files/free_space_wipe/tool.py) | [Detalhes ➔](catalogo_ferramentas.md#filesfree-space-wipe-sanitizador-seguro-de-espaço-livre-em-disco) |
+| **Visualizador Hexadecimal**<br>`files.hex_viewer` | 🎛️ Interativo | Visualizador hexadecimal (Hex Viewer): inspeciona bytes brutos de qualquer arquivo com visualização lado a lado em Hex/ASCII, offsets e busca binária. | [`tool.py`](../src/wintoolbox/tools/files/hex_viewer/tool.py) | [Detalhes ➔](catalogo_ferramentas.md#fileshex-viewer-visualizador-hexadecimal-e-ascii-com-rolagem-virtual-paginada) |
+| **Mover Pasta com Junção NTFS**<br>`files.junction_mover` | 🎛️ Interativo | Mova pastas pesadas para outro disco ou partição liberando espaço e mantendo o acesso transparente via Junção NTFS | [`tool.py`](../src/wintoolbox/tools/files/junction_mover/tool.py) | [Detalhes ➔](catalogo_ferramentas.md#filesjunction-mover-mover-pasta-mantendo-junção-ntfs-directory-junction) |
+| **Gerenciador de Links NTFS**<br>`files.links_manager` | 🎛️ Interativo | Gerenciador de links do NTFS: cria, lista e inspeciona links simbólicos (symlinks), junções de diretório (junctions) e hard links no Windows. | [`tool.py`](../src/wintoolbox/tools/files/links_manager/tool.py) | [Detalhes ➔](catalogo_ferramentas.md#fileslinks-manager-gerenciador-visual-de-links-simbólicos-junções-e-hardlinks-ntfs) |
+| **Quem Está Usando Este Arquivo?**<br>`files.lock_checker` | 🎛️ Interativo | Verificador de arquivos travados: detecta quais programas ou processos do Windows estão bloqueando a exclusão ou renomeação de um arquivo e permite liberá-lo. | [`tool.py`](../src/wintoolbox/tools/files/lock_checker/tool.py) | [Detalhes ➔](catalogo_ferramentas.md#fileslock-checker-quem-está-usando-este-arquivo) |
+| **Permissões NTFS e Acesso Negado**<br>`files.permissions` | 🎛️ Interativo | Restaurador de permissões NTFS: apropriação de propriedade (takeown) e redefinição de permissões de acesso em pastas ou arquivos corrompidos ou bloqueados. | [`tool.py`](../src/wintoolbox/tools/files/permissions/tool.py) | [Detalhes ➔](catalogo_ferramentas.md#filespermissions-reparador-de-permissões-ntfs-e-acesso-negado) |
+| **Renomeador de Arquivos em Lote**<br>`files.rename` | 🎛️ Interativo | Renomeia múltiplos arquivos com regras de substituição, numeração, data e prévia em tempo real | [`tool.py`](../src/wintoolbox/tools/files/rename/tool.py) | [Detalhes ➔](catalogo_ferramentas.md#filesrename-renomeador-de-arquivos-em-lote) |
+| **Assistente Robocopy**<br>`files.robocopy_gui` | 🎛️ Interativo | Interface visual para o Robocopy do Windows: espelhamento (/MIR), retomada (/Z), multithread (/MT) e simulação. | [`tool.py`](../src/wintoolbox/tools/files/robocopy_gui/tool.py) | [Detalhes ➔](catalogo_ferramentas.md#filesrobocopy-gui-assistente-gráfico-de-sincronização-e-cópia-robusta-robocopy) |
+| **Pesquisa Avançada de Arquivos e Conteúdo**<br>`files.search` | 🎛️ Interativo | Buscador rápido de arquivos: pesquisa instantânea por nome, extensão, faixa de tamanho, período de datas e busca por palavras-chave no conteúdo interno dos arquivos. | [`tool.py`](../src/wintoolbox/tools/files/search/tool.py) | [Detalhes ➔](catalogo_ferramentas.md#filessearch-pesquisa-avançada-de-arquivos-e-conteúdo) |
+| **Triturador Seguro de Arquivos**<br>`files.shredder` | 🎛️ Interativo | Destruidor definitivo de arquivos (File Shredder): sobrescreve os dados com padrões aleatórios (DoD 5220.22-M e Gutmann) impedindo a recuperação forense. | [`tool.py`](../src/wintoolbox/tools/files/shredder/tool.py) | [Detalhes ➔](catalogo_ferramentas.md#filesshredder-triturador-seguro-de-arquivos) |
+| **Divisor e Juntador de Arquivos**<br>`files.split_merge` | 🎛️ Interativo | Divisor e juntador de arquivos: reparte arquivos grandes em partes de tamanho definido (MB/GB) para envio por e-mail ou nuvem e remonta as partes sem corrupção. | [`tool.py`](../src/wintoolbox/tools/files/split_merge/tool.py) | [Detalhes ➔](catalogo_ferramentas.md#filessplit-merge-divisor-e-juntador-de-arquivos) |
+| **Gerenciador de Symlinks e Junções**<br>`files.symlink_manager` | 🎛️ Interativo | Cria e audita Links Simbólicos, Junções de Diretório (mklink /J) e Hard Links no Windows, com detecção de links órfãos/quebrados e remoção segura sem apagar alvos. | [`tool.py`](../src/wintoolbox/tools/files/symlink_manager/tool.py) | [Catálogo ➔](catalogo_ferramentas.md) |
+| **Comparador e Sincronizador de Pastas**<br>`files.sync` | 🎛️ Interativo | Compare duas pastas, visualize as diferenças e sincronize por espelhamento, atualização ou bidirecional | [`tool.py`](../src/wintoolbox/tools/files/sync/tool.py) | [Detalhes ➔](catalogo_ferramentas.md#filessync-comparador-e-sincronizador-de-pastas) |
+| **Modificador de Datas de Arquivos (Timestamp)**<br>`files.timestamp_editor` | 🎛️ Interativo | Editor em lote de datas e atributos de arquivos: modifica data e hora de criação (ctime), modificação (mtime) e último acesso (atime). | [`tool.py`](../src/wintoolbox/tools/files/timestamp_editor/tool.py) | [Detalhes ➔](catalogo_ferramentas.md#filestimestamp-editor-modificador-de-datas-de-arquivos-timestamp) |
+| **Exportador de Árvore de Pastas**<br>`files.tree_export` | 🎛️ Interativo | Exportador de estrutura de pastas: gera a árvore de diretórios em representação visual ASCII/Unicode, formato Markdown, tabela CSV ou página HTML. | [`tool.py`](../src/wintoolbox/tools/files/tree_export/tool.py) | [Detalhes ➔](catalogo_ferramentas.md#filestree-export-gerador-e-exportador-de-árvore-de-diretórios) |
+| **Detector de Tipo Real de Arquivo**<br>`files.type_detector` | ⚡ Lote | Identifica o tipo real de arquivos baseado em assinaturas binárias (Magic Bytes), detectando extensões mascaradas ou incorretas. | [`tool.py`](../src/wintoolbox/tools/files/type_detector/tool.py) | [Detalhes ➔](catalogo_ferramentas.md#filestype-detector-identificador-de-tipo-real-de-arquivo-por-assinatura-binária-magic-bytes) |
+| **Desbloquear Arquivos (Mark of the Web)**<br>`files.unblock` | ⚡ Lote | Remove em lote a restrição de segurança Zone.Identifier aplicada pelo Windows a arquivos baixados da internet | [`tool.py`](../src/wintoolbox/tools/files/unblock/tool.py) | [Detalhes ➔](catalogo_ferramentas.md#filesunblock-desbloqueador-de-arquivos-em-lote-mark-of-the-web) |
+
+---
+
+## <a id="3-pdf-e-documentos"></a>3. 📄 PDF e Documentos (20 Ferramentas)
+
+> Manipulação completa de arquivos PDF: divisão, junção, compressão de imagens/streams, censura permanente (redaction), OCR pesquisável, assinaturas visuais com rubrica, carimbos, numeração e extração de tabelas.
+
+| Ferramenta & ID | Tipo | Descrição dos Recursos | Código-Fonte | Catálogo |
+| :--- | :---: | :--- | :---: | :---: |
+| **Comparador de Documentos PDF**<br>`pdf.compare` | 🎛️ Interativo | Comparador de versões de PDF: analisa dois documentos PDF lado a lado destacando visualmente trechos de texto alterados, adicionados ou excluídos. | [`tool.py`](../src/wintoolbox/tools/pdf/compare/tool.py) | [Detalhes ➔](catalogo_ferramentas.md#pdfcompare-comparador-de-documentos-pdf) |
+| **Compressor de PDF**<br>`pdf.compress` | ⚡ Lote | Compressor de PDF: reduz o tamanho de documentos PDF pesados em lote através da otimização de imagens e streams, ideal para envio por e-mail e peticionamento. | [`tool.py`](../src/wintoolbox/tools/pdf/compress/tool.py) | [Detalhes ➔](catalogo_ferramentas.md#pdfcompress-compressor-de-pdf) |
+| **Recortador de Margens de PDF**<br>`pdf.crop_margins` | ⚡ Lote | Cortador de margens de PDF: apara espaços em branco desnecessários nas bordas de documentos para melhorar a leitura em tablets e e-readers. | [`tool.py`](../src/wintoolbox/tools/pdf/crop_margins/tool.py) | [Detalhes ➔](catalogo_ferramentas.md#pdfcrop-margins-recortador-de-margens-de-pdf) |
+| **Extrator de Texto e Imagens de PDF**<br>`pdf.extract` | 🎛️ Interativo | Extrator de conteúdo de PDFs: extrai todas as imagens embutidas em alta resolução, copia textos integrais ou converte páginas inteiras para PNG/JPG. | [`tool.py`](../src/wintoolbox/tools/pdf/extract/tool.py) | [Detalhes ➔](catalogo_ferramentas.md#pdfextract-extrator-de-texto-e-imagens-de-pdf) |
+| **Preenchedor de Formulários PDF**<br>`pdf.form_filler` | 🎛️ Interativo | Preenchedor de formulários PDF: preenche campos interativos AcroForm automaticamente e achata (flatten) o documento para evitar alterações posteriores. | [`tool.py`](../src/wintoolbox/tools/pdf/form_filler/tool.py) | [Detalhes ➔](catalogo_ferramentas.md#pdfform-filler-preenchedor-de-formulários-pdf-acroform) |
+| **Imagens para PDF**<br>`pdf.images_to_pdf` | 🎛️ Interativo | Conversor de imagens para PDF: transforma fotos e imagens (JPG, PNG, WebP) em documento PDF unificado com opções de orientação, margens e tamanho de folha. | [`tool.py`](../src/wintoolbox/tools/pdf/images_to_pdf/tool.py) | [Detalhes ➔](catalogo_ferramentas.md#pdfimages-to-pdf-imagens-para-pdf) |
+| **Editor de Metadados e Sumário de PDF**<br>`pdf.metadata_bookmarks` | 🎛️ Interativo | Edita metadados (título, autor, assunto) e gerencia a árvore de marcadores de sumário (bookmarks) de PDFs. | [`tool.py`](../src/wintoolbox/tools/pdf/metadata_bookmarks/tool.py) | [Detalhes ➔](catalogo_ferramentas.md#pdfmetadata-bookmarks-editor-de-metadados-e-sumário-de-pdf) |
+| **Editor e Sanitizador de Metadados PDF**<br>`pdf.metadata_editor` | 🎛️ Interativo | Edite ou remova metadados (Título, Autor, Criador, Palavras-chave) de arquivos PDF. Permite higienização em lote para proteção de privacidade e anonimização. | [`tool.py`](../src/wintoolbox/tools/pdf/metadata_editor/tool.py) | [Catálogo ➔](catalogo_ferramentas.md) |
+| **Reorganizador de Páginas e Livretos (N-Up)**<br>`pdf.nup_booklet` | ⚡ Lote | Imposição de páginas N-Up e livretos: agrupa 2 ou 4 páginas por folha e gera a ordem de páginas para impressão frente e verso e encadernação de apostilas. | [`tool.py`](../src/wintoolbox/tools/pdf/nup_booklet/tool.py) | [Detalhes ➔](catalogo_ferramentas.md#pdfnup-booklet-reorganizador-de-páginas-e-livretos-n-up-booklet) |
+| **Gerador de PDF Pesquisável (OCR)**<br>`pdf.ocr_searchable` | 🎛️ Interativo | Converte PDFs digitalizados (scans) e fotos de documentos em PDFs pesquisáveis (Searchable PDF), injetando camada de texto invisível sobre as imagens para permitir busca (Ctrl+F) e seleção de texto. | [`tool.py`](../src/wintoolbox/tools/pdf/ocr_searchable/tool.py) | [Catálogo ➔](catalogo_ferramentas.md) |
+| **Conversor de Office para PDF**<br>`pdf.office_convert` | ⚡ Lote | Conversor Office para PDF: transforma documentos do Microsoft Office (.docx, .xlsx, .pptx) em arquivos PDF preservando formatação e fontes. | [`tool.py`](../src/wintoolbox/tools/pdf/office_convert/tool.py) | [Detalhes ➔](catalogo_ferramentas.md#pdfoffice-convert-conversor-de-office-para-pdf) |
+| **Organizador Visual de Páginas PDF**<br>`pdf.page_organizer` | 🎛️ Interativo | Organizador visual de páginas PDF: reordena páginas por arrastar e soltar, gira páginas na orientação correta e remove páginas indesejadas com miniaturas. | [`tool.py`](../src/wintoolbox/tools/pdf/page_organizer/tool.py) | [Detalhes ➔](catalogo_ferramentas.md#pdfpage-organizer-organizador-visual-de-páginas-pdf) |
+| **Censura e Tarjamento em PDF**<br>`pdf.redact` | 🎛️ Interativo | Tarjador permanente de PDF (Redaction): remove definitivamente dados sensíveis, CPFs, nomes e valores confidenciais com tarjas pretas irrecuperáveis. | [`tool.py`](../src/wintoolbox/tools/pdf/redact/tool.py) | [Detalhes ➔](catalogo_ferramentas.md#pdfredact-censura-e-tarjamento-permanente-em-pdf) |
+| **Rotacionador de PDF**<br>`pdf.rotate` | ⚡ Lote | Gire páginas de PDFs em 90°, 180° ou 270° em lote, com seleção de todas, ímpares, pares ou intervalos | [`tool.py`](../src/wintoolbox/tools/pdf/rotate/tool.py) | [Detalhes ➔](catalogo_ferramentas.md#pdfrotate-rotacionador-de-pdf) |
+| **Higienizador de Scans e Digitalizações**<br>`pdf.scan_cleanup` | ⚡ Lote | Otimizador de digitalizações (Scans): clareia fundos cinzentos, aumenta o contraste e a nitidez do texto escaneado e gera arquivos preto e branco nítidos. | [`tool.py`](../src/wintoolbox/tools/pdf/scan_cleanup/tool.py) | [Detalhes ➔](catalogo_ferramentas.md#pdfscan-cleanup-higienizador-de-scans-e-digitalizações) |
+| **Segurança e Senhas de PDF**<br>`pdf.security` | 🎛️ Interativo | Segurança de PDF: protege arquivos com senha de abertura ou permissões de impressão/cópia com criptografia AES, ou remove senhas de PDFs autorizados. | [`tool.py`](../src/wintoolbox/tools/pdf/security/tool.py) | [Detalhes ➔](catalogo_ferramentas.md#pdfsecurity-segurança-e-senhas-de-pdf) |
+| **Assinatura Visual em PDF**<br>`pdf.sign_visual` | 🎛️ Interativo | Assinador visual de PDF: insere assinatura manuscrita digitalizada em imagem PNG transparente, rubrica e data sobre as páginas do documento. | [`tool.py`](../src/wintoolbox/tools/pdf/sign_visual/tool.py) | [Detalhes ➔](catalogo_ferramentas.md#pdfsign-visual-assinatura-visual-em-pdf) |
+| **Divisor e Juntador de PDF**<br>`pdf.split_merge` | 🎛️ Interativo | Juntador e divisor de PDFs: combina múltiplos documentos em um único PDF na ordem desejada ou extrai intervalos e páginas específicas. | [`tool.py`](../src/wintoolbox/tools/pdf/split_merge/tool.py) | [Detalhes ➔](catalogo_ferramentas.md#pdfsplit-merge-divisor-e-juntador-de-pdf) |
+| **Carimbos e Numeração em PDF**<br>`pdf.stamp` | 🎛️ Interativo | Numerador e carimbador de PDF: adiciona numeração automática de páginas (ex: Página X de Y), carimbos de texto (Confidencial, Rascunho) ou marcas d'água em arquivos PDF. | [`tool.py`](../src/wintoolbox/tools/pdf/stamp/tool.py) | [Detalhes ➔](catalogo_ferramentas.md#pdfstamp-carimbo-marca-dágua-e-numeração-de-páginas-pdf) |
+| **Extrator de Tabelas de PDF (CSV / Excel)**<br>`pdf.tables_to_csv` | 🎛️ Interativo | Extrator de tabelas de PDF: detecta grades e tabelas em relatórios em PDF e exporta os dados estruturados para planilhas CSV e Excel. | [`tool.py`](../src/wintoolbox/tools/pdf/tables_to_csv/tool.py) | [Detalhes ➔](catalogo_ferramentas.md#pdftables-to-csv-extrator-de-tabelas-de-pdf-csv-excel) |
+
+---
+
+## <a id="4-audio-video-e-multimidia"></a>4. 🎵 Áudio, Vídeo e Multimídia (18 Ferramentas)
+
+> Processamento audiovisual acelerado via FFmpeg e IA Whisper: normalização de loudness (EBU R128), conversão em lote, transcrição offline de fala em texto, corte sem perdas (stream copy) e download de mídias.
+
+| Ferramenta & ID | Tipo | Descrição dos Recursos | Código-Fonte | Catálogo |
+| :--- | :---: | :--- | :---: | :---: |
+| **Gravador de Áudio**<br>`media.audio_recorder` | 🎛️ Interativo | Gravador de voz e áudio: captura gravações do microfone com mostrador de tempo, nível sonoro e exportação para formatos WAV e MP3. | [`tool.py`](../src/wintoolbox/tools/media/audio_recorder/tool.py) | [Detalhes ➔](catalogo_ferramentas.md#mediaaudio-recorder-gravador-de-áudio-dedicado) |
+| **Compressor de Vídeo por Meta de Tamanho**<br>`media.compress_target` | ⚡ Lote | Compressor para tamanho alvo: recalcula o bitrate de vídeo e áudio para atingir exatamente o tamanho desejado (ex: 10 MB para e-mail ou 25 MB para Discord). | [`tool.py`](../src/wintoolbox/tools/media/compress_target/tool.py) | [Detalhes ➔](catalogo_ferramentas.md#mediacompress-target-compressor-de-vídeo-com-meta-de-tamanho-em-mb) |
+| **Folha de Contato de Vídeo**<br>`media.contact_sheet` | 🎛️ Interativo | Gera mosaicos visuais (thumbnails grid) com metadados e timecode para pré-visualização rápida de vídeos. | [`tool.py`](../src/wintoolbox/tools/media/contact_sheet/tool.py) | [Detalhes ➔](catalogo_ferramentas.md#mediacontact-sheet-folha-de-contato-de-vídeo-thumbnail-grid) |
+| **Conversor de Vídeo e Áudio**<br>`media.convert` | ⚡ Lote | Converta vídeos e músicas em lote, extraia áudio de vídeos, gere GIFs animados ou comprima para meta de tamanho | [`tool.py`](../src/wintoolbox/tools/media/convert/tool.py) | [Detalhes ➔](catalogo_ferramentas.md#mediaconvert-conversor-de-vídeo-e-áudio) |
+| **Divisor de CUE Sheet**<br>`media.cue_splitter` | 🎛️ Interativo | Separador de áudio por arquivo CUE: divide um arquivo contínuo de áudio (FLAC, WAV, APE) em faixas individuais nomeadas conforme a folha CUE. | [`tool.py`](../src/wintoolbox/tools/media/cue_splitter/tool.py) | [Detalhes ➔](catalogo_ferramentas.md#mediacue-splitter-divisor-de-cue-sheet) |
+| **Downloader de Mídia**<br>`media.downloader` | 🎛️ Interativo | Baixador universal de mídias: faz download de vídeos e músicas do YouTube, Instagram, TikTok, Twitter/X e dezenas de sites via yt-dlp em MP4 ou MP3. | [`tool.py`](../src/wintoolbox/tools/media/downloader/tool.py) | [Detalhes ➔](catalogo_ferramentas.md#mediadownloader-downloader-de-mídia) |
+| **Extrator de Frames de Vídeo**<br>`media.frame_extractor` | ⚡ Lote | Extrator de quadros de vídeo: captura fotos de cenas de vídeos em intervalos regulares ou gera folhas de contato (Storyboards) com miniaturas cronológicas. | [`tool.py`](../src/wintoolbox/tools/media/frame_extractor/tool.py) | [Detalhes ➔](catalogo_ferramentas.md#mediaframe-extractor-extrator-de-frames-de-vídeo) |
+| **Editor de Tags ID3 (MP3)**<br>`media.id3_editor` | ⚡ Lote | Editor de tags ID3 de áudio: modifica título, artista, álbum, ano, gênero musical, número da faixa e insere capa do álbum em arquivos MP3. | [`tool.py`](../src/wintoolbox/tools/media/id3_editor/tool.py) | [Detalhes ➔](catalogo_ferramentas.md#mediaid3-editor-editor-de-tags-id3-mp3) |
+| **Inspetor Técnico de Mídia (MediaInfo)**<br>`media.inspector` | 🎛️ Interativo | Exibe relatório técnico detalhado de codecs, resolução, bitrates e faixas de áudio/vídeo via FFprobe. | [`tool.py`](../src/wintoolbox/tools/media/inspector/tool.py) | [Detalhes ➔](catalogo_ferramentas.md#mediainspector-inspetor-técnico-de-mídia-mediainfo) |
+| **Player de Áudio e Vídeo**<br>`media.player` | 🎛️ Interativo | Reprodutor de mídia leve e rápido: player nativo de áudio e vídeo com controle de volume, barra de progresso, repetição e modo tela cheia. | [`tool.py`](../src/wintoolbox/tools/media/player/tool.py) | [Detalhes ➔](catalogo_ferramentas.md#mediaplayer-player-de-áudio-e-vídeo) |
+| **Gravador de Tela**<br>`media.recorder` | 🎛️ Interativo | Gravador de tela do Windows: grava a tela inteira ou janela em vídeo MP4 de alta definição com áudio do sistema e microfone. | [`tool.py`](../src/wintoolbox/tools/media/recorder/tool.py) | [Detalhes ➔](catalogo_ferramentas.md#mediarecorder-gravador-de-tela) |
+| **Removedor de Silêncios e Pausas**<br>`media.silence_remover` | ⚡ Lote | Removedor de silêncio: detecta e corta automaticamente momentos de pausa e silêncio em podcasts, aulas gravadas e reuniões para economizar tempo. | [`tool.py`](../src/wintoolbox/tools/media/silence_remover/tool.py) | [Detalhes ➔](catalogo_ferramentas.md#mediasilence-remover-removedor-automático-de-silêncios-e-pausas) |
+| **Espectrograma e Forma de Onda de Áudio**<br>`media.spectrogram` | 🎛️ Interativo | Gerador de espectrogramas acústicos: cria representações visuais coloridas das frequências sonoras de um arquivo de áudio para análise técnica. | [`tool.py`](../src/wintoolbox/tools/media/spectrogram/tool.py) | [Detalhes ➔](catalogo_ferramentas.md#mediaspectrogram-espectrograma-e-forma-de-onda-de-áudio) |
+| **Texto para Voz (TTS Local)**<br>`media.speech` | 🎛️ Interativo | Síntese de texto para fala (Text-to-Speech): converte textos em áudio narrado com as vozes nativas instaladas no Windows e salva em arquivo .wav. | [`tool.py`](../src/wintoolbox/tools/media/speech/tool.py) | [Detalhes ➔](catalogo_ferramentas.md#mediaspeech-texto-para-voz-tts-local) |
+| **Alterar Velocidade de Mídia**<br>`media.speed_changer` | ⚡ Lote | Alterador de velocidade de mídia: acelera (1.25x, 1.5x, 2x) ou reduz a velocidade de reprodução de áudio e vídeo com preservação do tom da voz. | [`tool.py`](../src/wintoolbox/tools/media/speed_changer/tool.py) | [Detalhes ➔](catalogo_ferramentas.md#mediaspeed-changer-alterar-velocidade-de-mídia) |
+| **Gerenciador de Trilhas e Remux**<br>`media.stream_manager` | 🎛️ Interativo | Extrai, remove ou reorganiza faixas de áudio, vídeo e legendas sem perda de qualidade (stream copy). | [`tool.py`](../src/wintoolbox/tools/media/stream_manager/tool.py) | [Detalhes ➔](catalogo_ferramentas.md#mediastream-manager-gerenciador-de-trilhas-e-remux-de-contêineres) |
+| **Cortador e Juntador de Mídia**<br>`media.trim_merge` | 🎛️ Interativo | Cortador e juntador de vídeos e músicas: corta trechos indesejados ou une múltiplos clipes sem perda de qualidade e sem reencodar via FFmpeg cópia direta. | [`tool.py`](../src/wintoolbox/tools/media/trim_merge/tool.py) | [Detalhes ➔](catalogo_ferramentas.md#mediatrim-merge-cortador-e-juntador-de-mídia) |
+| **Marca d'Água em Vídeo**<br>`media.video_watermark` | ⚡ Lote | Inseridor de marca d'água em vídeos: adiciona logotipos transparentes (PNG) ou textos com posição e opacidade personalizadas em lotes de vídeos. | [`tool.py`](../src/wintoolbox/tools/media/video_watermark/tool.py) | [Detalhes ➔](catalogo_ferramentas.md#mediavideo-watermark-marca-dágua-em-vídeo) |
+
+---
+
+## <a id="5-sistema-operacional-e-manutencao"></a>5. ⚙️ Sistema Operacional e Manutenção (28 Ferramentas)
+
+> Diagnósticos de hardware em tempo real, reparo de componentes do Windows (SFC, DNS, Fila de Impressão), gerenciamento de inicialização, serviços, variáveis de ambiente (PATH), telemetria e atualizações com Winget.
+
+| Ferramenta & ID | Tipo | Descrição dos Recursos | Código-Fonte | Catálogo |
+| :--- | :---: | :--- | :---: | :---: |
+| **Analisador de Inicialização (Boot)**<br>`system.boot_analyzer` | 🎛️ Interativo | Analise o tempo de inicialização do Windows (Event ID 100), tempo até tela de login e histórico | [`tool.py`](../src/wintoolbox/tools/system/boot_analyzer/tool.py) | [Catálogo ➔](catalogo_ferramentas.md) |
+| **Menu de Contexto do Windows 11**<br>`system.context_menu` | 🎛️ Interativo | Restaura o menu de contexto clássico completo do botão direito sem precisar clicar em 'Mostrar mais opções' | [`tool.py`](../src/wintoolbox/tools/system/context_menu/tool.py) | [Detalhes ➔](catalogo_ferramentas.md#systemcontext-menu-restaurador-do-menu-de-contexto-clássico) |
+| **Analisador de Travamentos e BSODs**<br>`system.crash_analyzer` | 🎛️ Interativo | Investigação de desligamentos inesperados (evento 41), telas azuis, erros WHEA e arquivos Minidump | [`tool.py`](../src/wintoolbox/tools/system/crash_analyzer/tool.py) | [Detalhes ➔](catalogo_ferramentas.md#systemcrash-analyzer-analisador-de-falhas-e-telas-azuis-bsod) |
+| **Diagnóstico de Dispositivos (PnP e USB)**<br>`system.devices` | 🎛️ Interativo | Identifique dispositivos com erros de driver (Código 43, 10) e histórico de periféricos USB | [`tool.py`](../src/wintoolbox/tools/system/devices/tool.py) | [Catálogo ➔](catalogo_ferramentas.md) |
+| **Saúde do Disco e SSD (SMART)**<br>`system.disk_health` | 🎛️ Interativo | Diagnóstico detalhado de integridade, temperatura, desgaste de SSD e contadores de erro | [`tool.py`](../src/wintoolbox/tools/system/disk_health/tool.py) | [Detalhes ➔](catalogo_ferramentas.md#systemdisk-health-diagnóstico-de-saúde-de-discos-e-ssds-smart) |
+| **Backup de Drivers do Windows**<br>`system.driver_backup` | 🎛️ Interativo | Exportação e backup completo de drivers de terceiros instalados (DISM / pnputil) | [`tool.py`](../src/wintoolbox/tools/system/driver_backup/tool.py) | [Detalhes ➔](catalogo_ferramentas.md#systemdriver-backup-backup-de-drivers-do-windows) |
+| **Variáveis de Ambiente e PATH**<br>`system.env_editor` | 🎛️ Interativo | Gerenciamento de variáveis de ambiente do Usuário e Sistema com editor visual e validação do PATH | [`tool.py`](../src/wintoolbox/tools/system/env_editor/tool.py) | [Detalhes ➔](catalogo_ferramentas.md#systemenv-editor-variáveis-de-ambiente-e-path) |
+| **Visualizador de Eventos**<br>`system.event_viewer` | 🎛️ Interativo | Consulte e filtre falhas, erros e avisos recentes do Windows (System e Application) com exportação CSV | [`tool.py`](../src/wintoolbox/tools/system/event_viewer/tool.py) | [Catálogo ➔](catalogo_ferramentas.md) |
+| **Gerenciador de Fontes**<br>`system.fonts_manager` | 🎛️ Interativo | Instale fontes TTF/OTF no perfil do usuário sem admin e visualize amostras tipográficas | [`tool.py`](../src/wintoolbox/tools/system/fonts_manager/tool.py) | [Catálogo ➔](catalogo_ferramentas.md) |
+| **Informações de Hardware**<br>`system.hardware_info` | 🎛️ Interativo | Inventário completo de CPU, GPU, pentes de memória RAM por slot, placa-mãe, BIOS e bateria | [`tool.py`](../src/wintoolbox/tools/system/hardware_info/tool.py) | [Catálogo ➔](catalogo_ferramentas.md) |
+| **Editor do Arquivo Hosts**<br>`system.hosts_editor` | 🎛️ Interativo | Editor seguro do arquivo hosts do Windows com backup automático, alternância de hosts e Flush DNS | [`tool.py`](../src/wintoolbox/tools/system/hosts_editor/tool.py) | [Detalhes ➔](catalogo_ferramentas.md#systemhosts-editor-editor-do-arquivo-hosts) |
+| **Manter Sistema Acordado**<br>`system.keep_awake` | 🎛️ Interativo | Impede suspensão automática e desligamento de tela durante apresentações, downloads e tarefas longas | [`tool.py`](../src/wintoolbox/tools/system/keep_awake/tool.py) | [Catálogo ➔](catalogo_ferramentas.md) |
+| **Chave de Produto e Ativação do Windows**<br>`system.license_info` | 🎛️ Interativo | Consulta da chave OEM gravada na placa-mãe (BIOS/UEFI) e status oficial de ativação do sistema | [`tool.py`](../src/wintoolbox/tools/system/license_info/tool.py) | [Detalhes ➔](catalogo_ferramentas.md#systemlicense-info-informações-de-licença-e-chave-oem-da-bios) |
+| **Monitor de Hardware**<br>`system.monitor` | 🎛️ Interativo | Acompanhamento em tempo real do consumo de processador, memória RAM e discos | [`tool.py`](../src/wintoolbox/tools/system/monitor/tool.py) | [Detalhes ➔](catalogo_ferramentas.md#systemmonitor-monitor-de-recursos-em-tempo-real) |
+| **Planos de Energia e Desligamento**<br>`system.power_manager` | 🎛️ Interativo | Gerenciamento de esquemas de energia do Windows, monitor de bateria e agendador de desligamento/reinício | [`tool.py`](../src/wintoolbox/tools/system/power_manager/tool.py) | [Detalhes ➔](catalogo_ferramentas.md#systempower-manager-planos-de-energia-e-desligamento) |
+| **Privacidade e Debloat do Windows**<br>`system.privacy` | 🎛️ Interativo | Desativação de telemetria diagnóstica, anúncios, sugestões do sistema, Copilot e análise de IA | [`tool.py`](../src/wintoolbox/tools/system/privacy/tool.py) | [Detalhes ➔](catalogo_ferramentas.md#systemprivacy-otimizador-de-privacidade-e-telemetria) |
+| **Gerenciador de Processos**<br>`system.process_manager` | 🎛️ Interativo | Monitoramento de processos em execução, consumo de CPU/RAM e finalização de tarefas | [`tool.py`](../src/wintoolbox/tools/system/process_manager/tool.py) | [Detalhes ➔](catalogo_ferramentas.md#systemprocess-manager-gerenciador-de-processos) |
+| **Ajustes Rápidos do Windows**<br>`system.quick_tweaks` | 🎛️ Interativo | Alternância em 1 clique de arquivos ocultos, extensões de arquivos, modo escuro e ícones do sistema | [`tool.py`](../src/wintoolbox/tools/system/quick_tweaks/tool.py) | [Detalhes ➔](catalogo_ferramentas.md#systemquick-tweaks-ajustes-rápidos-do-windows) |
+| **Central de Reparos do Windows**<br>`system.repair_center` | 🎛️ Interativo | Correção rápida de fila de impressão travada, cache de ícones, Windows Update e rede | [`tool.py`](../src/wintoolbox/tools/system/repair_center/tool.py) | [Detalhes ➔](catalogo_ferramentas.md#systemrepair-center-central-de-reparos-rápidos-do-windows) |
+| **Pontos de Restauração do Windows**<br>`system.restore_points` | 🎛️ Interativo | Consulta, criação rápida e inicialização do assistente de restauração do sistema | [`tool.py`](../src/wintoolbox/tools/system/restore_points/tool.py) | [Detalhes ➔](catalogo_ferramentas.md#systemrestore-points-pontos-de-restauração-do-windows) |
+| **Gerenciador de Serviços**<br>`system.services_manager` | 🎛️ Interativo | Visualização e controle de serviços do Windows (iniciar, parar, reiniciar e tipo de boot) | [`tool.py`](../src/wintoolbox/tools/system/services_manager/tool.py) | [Detalhes ➔](catalogo_ferramentas.md#systemservices-manager-gerenciador-de-serviços) |
+| **Gerenciador de Inicialização**<br>`system.startup_manager` | 🎛️ Interativo | Gerenciamento de programas que iniciam automaticamente com o Windows (Registro e Startup) | [`tool.py`](../src/wintoolbox/tools/system/startup_manager/tool.py) | [Detalhes ➔](catalogo_ferramentas.md#systemstartup-manager-gerenciador-de-inicialização) |
+| **Tarefas Agendadas do Windows**<br>`system.task_scheduler` | 🎛️ Interativo | Visualização e controle rápido de tarefas agendadas do Windows (executar agora, ativar e desativar) | [`tool.py`](../src/wintoolbox/tools/system/task_scheduler/tool.py) | [Detalhes ➔](catalogo_ferramentas.md#systemtask-scheduler-tarefas-agendadas-do-windows) |
+| **Ferramentas do Windows**<br>`system.tools` | 🎛️ Interativo | Diagnóstico, reparo, limpeza de cache DNS, integridade (SFC) e otimização de disco | [`tool.py`](../src/wintoolbox/tools/system/tools/tool.py) | [Detalhes ➔](catalogo_ferramentas.md#systemtools-ferramentas-e-manutenção-do-windows) |
+| **Programas Instalados e Desinstalador**<br>`system.uninstaller` | 🎛️ Interativo | Visualização de todos os aplicativos instalados no Windows, tamanho em disco e desinstalação | [`tool.py`](../src/wintoolbox/tools/system/uninstaller/tool.py) | [Detalhes ➔](catalogo_ferramentas.md#systemuninstaller-programas-instalados-e-desinstalador) |
+| **Recursos do Windows**<br>`system.windows_features` | 🎛️ Interativo | Ative ou desative recursos opcionais do sistema operacional (Hyper-V, Sandbox, WSL, Telnet, SMB 1.0) | [`tool.py`](../src/wintoolbox/tools/system/windows_features/tool.py) | [Catálogo ➔](catalogo_ferramentas.md) |
+| **Gerenciador e Atualizador Winget**<br>`system.winget` | 🎛️ Interativo | Instalação de programas e atualização de todos os softwares do Windows via winget | [`tool.py`](../src/wintoolbox/tools/system/winget/tool.py) | [Detalhes ➔](catalogo_ferramentas.md#systemwinget-gerenciador-de-pacotes-e-programas-winget) |
+| **Gerenciador do WSL (Linux)**<br>`system.wsl_manager` | 🎛️ Interativo | Controle distribuições WSL, exporte backups tar e configure limites de RAM/CPU via .wslconfig | [`tool.py`](../src/wintoolbox/tools/system/wsl_manager/tool.py) | [Catálogo ➔](catalogo_ferramentas.md) |
+
+---
+
+## <a id="6-rede-internet-e-conexoes"></a>6. 🌐 Rede, Internet e Conexões (19 Ferramentas)
+
+> Diagnóstico completo de conectividade (Ping, MTR, DNS Benchmark), testes de velocidade (Cloudflare), scanner de portas/ARP, servidor web local com QR Code móvel e integrações com APIs públicas brasileiras (BrasilAPI).
+
+| Ferramenta & ID | Tipo | Descrição dos Recursos | Código-Fonte | Catálogo |
+| :--- | :---: | :--- | :---: | :---: |
+| **Testador de API (Mini Postman)**<br>`network.api_tester` | 🎛️ Interativo | Envio de requisições HTTP (GET, POST, PUT, DELETE), cabeçalhos customizados e inspeção de respostas | [`tool.py`](../src/wintoolbox/tools/network/api_tester/tool.py) | [Detalhes ➔](catalogo_ferramentas.md#networkapi-tester-testador-de-api-mini-postman) |
+| **Monitor de Tráfego de Rede**<br>`network.bandwidth_monitor` | 🎛️ Interativo | Monitore em tempo real as velocidades de download e upload por interface com gráfico de linha | [`tool.py`](../src/wintoolbox/tools/network/bandwidth_monitor/tool.py) | [Catálogo ➔](catalogo_ferramentas.md) |
+| **Conexões de Rede por Processo**<br>`network.connections` | 🎛️ Interativo | Monitoramento ao vivo de portas abertas, sockets e conexões ativas associadas a cada processo (TCPView) | [`tool.py`](../src/wintoolbox/tools/network/connections/tool.py) | [Detalhes ➔](catalogo_ferramentas.md#networkconnections-monitor-de-conexões-de-rede-por-processo) |
+| **Diagnóstico de Rede e Domínios**<br>`network.diagnostics` | 🎛️ Interativo | Ping, Traceroute, Nslookup, Whois, Verificador de Site Online e Certificado SSL | [`tool.py`](../src/wintoolbox/tools/network/diagnostics/tool.py) | [Detalhes ➔](catalogo_ferramentas.md#networkdiagnostics-diagnóstico-completo-de-conexão) |
+| **Benchmark de Servidores DNS**<br>`network.dns_benchmark` | 🎛️ Interativo | Compare a latência e tempo de resposta de servidores DNS públicos (Cloudflare, Google, Quad9, OpenDNS) | [`tool.py`](../src/wintoolbox/tools/network/dns_benchmark/tool.py) | [Catálogo ➔](catalogo_ferramentas.md) |
+| **Troca de DNS e Reset de Rede**<br>`network.dns_manager` | 🎛️ Interativo | Troca rápida de servidores DNS (Cloudflare, Google, Quad9) e restauração da pilha de rede (Flush DNS, Winsock) | [`tool.py`](../src/wintoolbox/tools/network/dns_manager/tool.py) | [Detalhes ➔](catalogo_ferramentas.md#networkdns-manager-gerenciador-de-dns-e-reset-de-rede) |
+| **Regras do Firewall do Windows**<br>`network.firewall` | 🎛️ Interativo | Consulta de regras ativas e bloqueio rápido de acesso à internet para executáveis específicos | [`tool.py`](../src/wintoolbox/tools/network/firewall/tool.py) | [Detalhes ➔](catalogo_ferramentas.md#networkfirewall-gerenciador-de-regras-do-firewall-do-windows) |
+| **Cliente FTP / SFTP Simples**<br>`network.ftp_client` | 🎛️ Interativo | Conexão e gerenciamento de arquivos em servidores remotos FTP e SFTP (SSH) | [`tool.py`](../src/wintoolbox/tools/network/ftp_client/tool.py) | [Detalhes ➔](catalogo_ferramentas.md#networkftp-client-cliente-ftp-sftp-simples) |
+| **Servidor Web Local e Compartilhamento**<br>`network.http_server` | 🎛️ Interativo | Compartilhe pastas na rede local com servidor HTTP embutido e QR Code para celular | [`tool.py`](../src/wintoolbox/tools/network/http_server/tool.py) | [Detalhes ➔](catalogo_ferramentas.md#networkhttp-server-servidor-web-local-e-compartilhamento-de-arquivos) |
+| **Informações de IP e Monitor de Rede**<br>`network.ip_info` | 🎛️ Interativo | Consulta de IP local e público, adaptadores de rede e velocidade de tráfego em tempo real | [`tool.py`](../src/wintoolbox/tools/network/ip_info/tool.py) | [Detalhes ➔](catalogo_ferramentas.md#networkip-info-verificador-de-ip-e-monitor-de-rede) |
+| **Monitor de Latência e Jitter de Rede**<br>`network.latency_monitor` | 🎛️ Interativo | Monitoramento contínuo de ping, cálculo de jitter (RFC 3550) e taxa de perda de pacotes | [`tool.py`](../src/wintoolbox/tools/network/latency_monitor/tool.py) | [Detalhes ➔](catalogo_ferramentas.md#networklatency-monitor-monitor-contínuo-de-latência-e-jitter) |
+| **Consultas Públicas e BrasilAPI**<br>`network.public_apis` | 🎛️ Interativo | Consulta de CEP, CNPJ, DDD, Bancos autorizados, Feriados Nacionais, Tabela FIPE e Cotações em tempo real | [`tool.py`](../src/wintoolbox/tools/network/public_apis/tool.py) | [Detalhes ➔](catalogo_ferramentas.md#networkpublic-apis-consultas-públicas-cep-cnpj-cotações) |
+| **Scanner de Portas e Dispositivos**<br>`network.scanner` | 🎛️ Interativo | Varredura de portas abertas (TCP) e descoberta de dispositivos na rede local (ARP) | [`tool.py`](../src/wintoolbox/tools/network/scanner/tool.py) | [Detalhes ➔](catalogo_ferramentas.md#networkscanner-scanners-de-rede-portas-e-dispositivos-arp) |
+| **Teste de Velocidade de Internet**<br>`network.speedtest` | 🎛️ Interativo | Mede ping, jitter, download e upload da conexão nos servidores da Cloudflare | [`tool.py`](../src/wintoolbox/tools/network/speedtest/tool.py) | [Detalhes ➔](catalogo_ferramentas.md#networkspeedtest-teste-de-velocidade-de-internet) |
+| **Calculadora de Sub-rede IPv4**<br>`network.subnet_calc` | 🎛️ Interativo | Calcule sub-redes CIDR, faixas de hosts utilizáveis, broadcast, wildcard e binário | [`tool.py`](../src/wintoolbox/tools/network/subnet_calc/tool.py) | [Catálogo ➔](catalogo_ferramentas.md) |
+| **Utilitários de Rede e Conexão**<br>`network.utilities` | 🎛️ Interativo | Wake-on-LAN (ligar PC pela rede), expansor de links encurtados e download com retomada | [`tool.py`](../src/wintoolbox/tools/network/utilities/tool.py) | [Detalhes ➔](catalogo_ferramentas.md#networkutilities-utilitários-de-conexão) |
+| **Wake-on-LAN (WOL)**<br>`network.wake_on_lan` | 🎛️ Interativo | Envie Magic Packets para ligar computadores e servidores na rede local com lista de favoritos | [`tool.py`](../src/wintoolbox/tools/network/wake_on_lan/tool.py) | [Catálogo ➔](catalogo_ferramentas.md) |
+| **Consulta WHOIS de Domínios**<br>`network.whois` | 🎛️ Interativo | Consulte titularidade, registrador, datas de criação e expiração de domínios de internet e IPs | [`tool.py`](../src/wintoolbox/tools/network/whois/tool.py) | [Catálogo ➔](catalogo_ferramentas.md) |
+| **Senhas Wi-Fi e QR Code**<br>`network.wifi` | 🎛️ Interativo | Visualização de senhas de redes Wi-Fi salvas e gerador de QR Code para conexão móvel | [`tool.py`](../src/wintoolbox/tools/network/wifi/tool.py) | [Detalhes ➔](catalogo_ferramentas.md#networkwifi-senhas-wi-fi-e-gerador-de-qr-code) |
+
+---
+
+## <a id="7-desenvolvimento-e-programacao"></a>7. 💻 Desenvolvimento e Programação (19 Ferramentas)
+
+> Utilitários essenciais para programadores: cliente HTTP/REST completo, limpador de builds pesados (node_modules, target, .venv), gerador de certificados SSL locais, servidor mock, contador de linhas (CLOC) e leitor SQLite.
+
+| Ferramenta & ID | Tipo | Descrição dos Recursos | Código-Fonte | Catálogo |
+| :--- | :---: | :--- | :---: | :---: |
+| **Cliente HTTP / REST para Desenvolvedores**<br>`dev.api_client` | 🎛️ Interativo | Cliente de requisições HTTP e REST completo para testar APIs locais e externas, com suporte a headers customizados, body JSON, medição de latência e formatação de respostas. | [`tool.py`](../src/wintoolbox/tools/dev/api_client/tool.py) | [Catálogo ➔](catalogo_ferramentas.md) |
+| **Conversor de Cores**<br>`dev.color_converter` | 🎛️ Interativo | Conversão instantânea entre HEX, RGB, HSL, HSV, CMYK, snippets de código dev e análise de contraste WCAG | [`tool.py`](../src/wintoolbox/tools/dev/color_converter/tool.py) | [Detalhes ➔](catalogo_ferramentas.md#devcolor-converter-conversor-de-cores) |
+| **Gerador de Paletas Harmônicas e WCAG**<br>`dev.color_palette_generator` | 🎛️ Interativo | Gera paletas de cores harmônicas (Complementar, Análoga, Triádica, Monocromática) com teste de contraste e acessibilidade WCAG 2.1 e exportação de variáveis CSS. | [`tool.py`](../src/wintoolbox/tools/dev/color_palette_generator/tool.py) | [Catálogo ➔](catalogo_ferramentas.md) |
+| **Calculador de Cron**<br>`dev.cron_calculator` | 🎛️ Interativo | Calculadora e explicador de expressões Cron: descreve em português claro a frequência de execução agendada e calcula as próximas datas de disparo. | [`tool.py`](../src/wintoolbox/tools/dev/cron_calculator/tool.py) | [Detalhes ➔](catalogo_ferramentas.md#devcron-calculator-calculador-de-cron) |
+| **CSS Developer Toolbox**<br>`dev.css_toolbox` | 🎛️ Interativo | Gerador visual de gradientes, sombras multicamadas (box-shadow), cálculo de clamp() fluido, conversor px/rem e contraste WCAG. | [`tool.py`](../src/wintoolbox/tools/dev/css_toolbox/tool.py) | [Detalhes ➔](catalogo_ferramentas.md#devcss-toolbox-css-developer-toolbox) |
+| **Comparador de Ambientes (.env vs .env.example)**<br>`dev.env_compare` | 🎛️ Interativo | Compara arquivos .env reais contra modelos de exemplo, alertando sobre variáveis ausentes com mascaramento de segredos. | [`tool.py`](../src/wintoolbox/tools/dev/env_compare/tool.py) | [Detalhes ➔](catalogo_ferramentas.md#devenv-compare-comparador-de-ambientes-env-vs-envexample) |
+| **Gerador de Dados Fictícios**<br>`dev.fake_data` | 🎛️ Interativo | Geração em lote de dados sintéticos para testes (CPF, CNPJ, nomes, endereços, e-mails) e Lorem Ipsum | [`tool.py`](../src/wintoolbox/tools/dev/fake_data/tool.py) | [Detalhes ➔](catalogo_ferramentas.md#devfake-data-gerador-de-dados-fictícios) |
+| **Painel Agregador de Repositórios Git**<br>`dev.git_overview` | 🎛️ Interativo | Visão panorâmica de múltiplos repositórios Git locais: branches ativas, arquivos modificados e sincronização remota. | [`tool.py`](../src/wintoolbox/tools/dev/git_overview/tool.py) | [Detalhes ➔](catalogo_ferramentas.md#devgit-overview-painel-agregador-de-repositórios-git) |
+| **Gerador de .gitignore e Licenças Open Source**<br>`dev.gitignore_license` | 🎛️ Interativo | Cria arquivos .gitignore combinados por tecnologia e templates oficiais de licenças (MIT, Apache, GPL, BSD). | [`tool.py`](../src/wintoolbox/tools/dev/gitignore_license/tool.py) | [Detalhes ➔](catalogo_ferramentas.md#devgitignore-license-gerador-de-gitignore-e-licenças-open-source) |
+| **Contador de Linhas de Código (CLOC)**<br>`dev.line_counter` | 🎛️ Interativo | Analisa repositórios de código quantificando linhas efetivas, comentários, linhas vazias e marcações TODO/FIXME por linguagem. | [`tool.py`](../src/wintoolbox/tools/dev/line_counter/tool.py) | [Detalhes ➔](catalogo_ferramentas.md#devline-counter-contador-de-linhas-de-código-cloc) |
+| **Minificador e Formatador Web (HTML / CSS / JS)**<br>`dev.minifier` | 🎛️ Interativo | Minificador e formatador de código web: remove espaços e comentários ou adiciona indentação em arquivos HTML, CSS e JavaScript offline. | [`tool.py`](../src/wintoolbox/tools/dev/minifier/tool.py) | [Detalhes ➔](catalogo_ferramentas.md#devminifier-minificador-e-formatador-web-html-css-js) |
+| **Servidor HTTP Mock Local**<br>`dev.mock_server` | 🎛️ Interativo | Servidor web embutido para testes de APIs locais com rotas mockadas, latência simulada e inspeção de requisições. | [`tool.py`](../src/wintoolbox/tools/dev/mock_server/tool.py) | [Detalhes ➔](catalogo_ferramentas.md#devmock-server-servidor-http-mock-local) |
+| **Limpador de Projetos de Código**<br>`dev.project_cleaner` | 🎛️ Interativo | Localiza e remove em massa pastas pesadas de compilação (node_modules, target, __pycache__, bin/obj, .venv) liberando espaço em disco. | [`tool.py`](../src/wintoolbox/tools/dev/project_cleaner/tool.py) | [Detalhes ➔](catalogo_ferramentas.md#devproject-cleaner-limpador-de-projetos-de-código-build-cleaner) |
+| **Scaffold de Projetos**<br>`dev.project_scaffold` | 🎛️ Interativo | Geração de estruturas iniciais de repositórios: .gitignore, licenças (MIT, Apache, GPL), README e .editorconfig | [`tool.py`](../src/wintoolbox/tools/dev/project_scaffold/tool.py) | [Detalhes ➔](catalogo_ferramentas.md#devproject-scaffold-scaffold-de-projetos) |
+| **Gerador de Executáveis**<br>`dev.pyinstaller_wrapper` | 🎛️ Interativo | Configuração e compilação de scripts Python em executáveis .exe nativos via PyInstaller com logs em tempo real | [`tool.py`](../src/wintoolbox/tools/dev/pyinstaller_wrapper/tool.py) | [Detalhes ➔](catalogo_ferramentas.md#devpyinstaller-wrapper-gerador-de-executáveis) |
+| **Tabelas de Referência Técnica**<br>`dev.reference` | 🎛️ Interativo | Guia de consulta offline de status HTTP, tipos MIME, tabela ASCII/Hex, teclas virtuais VK e atalhos do Windows. | [`tool.py`](../src/wintoolbox/tools/dev/reference/tool.py) | [Detalhes ➔](catalogo_ferramentas.md#devreference-tabelas-de-referência-técnica) |
+| **Gerador de Certificados SSL/TLS (Self-Signed)**<br>`dev.selfsigned_cert` | 🎛️ Interativo | Cria certificados SSL/TLS autoassinados e CAs locais com SANs customizados (localhost, IPs) para testes e desenvolvimento. | [`tool.py`](../src/wintoolbox/tools/dev/selfsigned_cert/tool.py) | [Detalhes ➔](catalogo_ferramentas.md#devselfsigned-cert-gerador-de-certificados-ssltls-autoassinados) |
+| **Formatador e Embelezador SQL**<br>`dev.sql_formatter` | 🎛️ Interativo | Formata, embeleza e minifica consultas e scripts SQL (SELECT, JOIN, WHERE, GROUP BY, INSERT), com palavras-chave em maiúsculas e preservação de comentários e literais. | [`tool.py`](../src/wintoolbox/tools/dev/sql_formatter/tool.py) | [Catálogo ➔](catalogo_ferramentas.md) |
+| **Visualizador de SQLite**<br>`dev.sqlite_viewer` | 🎛️ Interativo | Inspeção somente-leitura de bancos SQLite locais, visualização de tabelas e executor de consultas SQL | [`tool.py`](../src/wintoolbox/tools/dev/sqlite_viewer/tool.py) | [Detalhes ➔](catalogo_ferramentas.md#devsqlite-viewer-visualizador-de-bancos-sqlite) |
+
+---
+
+## <a id="8-dados-estruturas-e-tabelas"></a>8. 📊 Dados, Estruturas e Tabelas (15 Ferramentas)
+
+> Visualização em árvore e conversão multidirecional entre JSON, CSV, Excel, XML e YAML, consultas analíticas com SQL em arquivos locais, comparadores estruturais semânticos e visualizador de logs com tail.
+
+| Ferramenta & ID | Tipo | Descrição dos Recursos | Código-Fonte | Catálogo |
+| :--- | :---: | :--- | :---: | :---: |
+| **Formatador e Minificador (JSON/XML/SQL)**<br>`data.beautifier` | 🎛️ Interativo | Formata, embeleza com indentação configurável ou minifica arquivos e códigos JSON, XML e SQL, facilitando a leitura de logs e estruturas de dados. | [`tool.py`](../src/wintoolbox/tools/data/beautifier/tool.py) | [Detalhes ➔](catalogo_ferramentas.md#databeautifier-formatador-e-minificador-jsonxmlsql) |
+| **Conversor de Configurações**<br>`data.config_convert` | 🎛️ Interativo | Conversor universal entre arquivos de configuração: .env, .ini, .properties, TOML, YAML e JSON. | [`tool.py`](../src/wintoolbox/tools/data/config_convert/tool.py) | [Detalhes ➔](catalogo_ferramentas.md#dataconfig-convert-conversor-universal-de-configurações-env-ini-properties-toml-yaml-json) |
+| **Conversor de Dados em Lote**<br>`data.converter` | ⚡ Lote | Converte arquivos de dados entre JSON, YAML, CSV e XML em lote com recursão | [`tool.py`](../src/wintoolbox/tools/data/converter/tool.py) | [Detalhes ➔](catalogo_ferramentas.md#dataconverter-conversor-de-dados-em-lote) |
+| **Conversor de CSV para Banco SQLite e SQL**<br>`data.csv_to_db` | 🎛️ Interativo | Converte arquivos CSV/TSV para bancos de dados SQLite físicos e gera scripts SQL de migração com inferência automática de tipos de dados (INTEGER, REAL, DATE, TEXT). | [`tool.py`](../src/wintoolbox/tools/data/csv_to_db/tool.py) | [Catálogo ➔](catalogo_ferramentas.md) |
+| **Ferramentas de CSV**<br>`data.csv_tools` | ⚡ Lote | Utilitário de manipulação de planilhas CSV em lote: divisão por linhas, fusão de múltiplos arquivos com mesmo cabeçalho, conversão de delimitadores e remoção de duplicatas. | [`tool.py`](../src/wintoolbox/tools/data/csv_tools/tool.py) | [Detalhes ➔](catalogo_ferramentas.md#datacsv-tools-utilitário-avançado-de-planilhas-csv) |
+| **Conversor de Markdown e HTML para PDF**<br>`data.doc_converter` | 🎛️ Interativo | Edite, visualize e converta documentos Markdown (.md) em páginas HTML e documentos PDF profissionais via QTextDocument | [`tool.py`](../src/wintoolbox/tools/data/doc_converter/tool.py) | [Detalhes ➔](catalogo_ferramentas.md#datadoc-converter-conversor-de-markdown-para-html) |
+| **Ferramentas de Excel**<br>`data.excel_tools` | ⚡ Lote | Utilitários para arquivos Excel: dividir abas em pastas de trabalho separadas, consolidar planilhas e exportar abas para formato CSV. | [`tool.py`](../src/wintoolbox/tools/data/excel_tools/tool.py) | [Detalhes ➔](catalogo_ferramentas.md#dataexcel-tools-ferramentas-de-planilhas-excel-xlsx-xlsm) |
+| **Avaliador e Extrator JSONPath**<br>`data.json_path` | 🎛️ Interativo | Avalia e extrai dados de estruturas JSON complexas usando expressões JSONPath (curingas, descida recursiva, fatiamentos e filtros de predicados). | [`tool.py`](../src/wintoolbox/tools/data/json_path/tool.py) | [Catálogo ➔](catalogo_ferramentas.md) |
+| **Visualizador de Logs**<br>`data.log_viewer` | 🎛️ Interativo | Leitor de arquivos de log com filtro por severidade (INFO, WARN, ERROR), busca por regex e modo tail. | [`tool.py`](../src/wintoolbox/tools/data/log_viewer/tool.py) | [Detalhes ➔](catalogo_ferramentas.md#datalog-viewer-visualizador-e-monitor-de-arquivos-de-log-tail-e-severidade) |
+| **Extrator de Dados com Regex**<br>`data.regex_extract` | 🎛️ Interativo | Extrai em massa e-mails, URLs, IPs, CPFs, UUIDs, datas, telefones e expressões regulares personalizadas a partir de textos brutos, gerando listas e tabelas exportáveis. | [`tool.py`](../src/wintoolbox/tools/data/regex_extract/tool.py) | [Catálogo ➔](catalogo_ferramentas.md) |
+| **Inferência de Schemas e Modelos**<br>`data.schema_infer` | 🎛️ Interativo | Gera automaticamente JSON Schema, modelos Pydantic v2, Python Dataclasses e TypeScript a partir de JSON. | [`tool.py`](../src/wintoolbox/tools/data/schema_infer/tool.py) | [Detalhes ➔](catalogo_ferramentas.md#dataschema-infer-inferência-de-schemas-e-modelos-de-tipagem) |
+| **SQL em Arquivos**<br>`data.sql_on_files` | 🎛️ Interativo | Carregue arquivos CSV e JSON para um banco SQLite em memória e execute consultas SQL analíticas. | [`tool.py`](../src/wintoolbox/tools/data/sql_on_files/tool.py) | [Detalhes ➔](catalogo_ferramentas.md#datasql-on-files-consultas-sql-analíticas-em-arquivos-csv-e-json) |
+| **Comparador Estrutural (JSON/YAML/TOML)**<br>`data.struct_diff` | 🎛️ Interativo | Compara semanticamente estruturas de dados detectando adições, exclusões e alterações semânticas. | [`tool.py`](../src/wintoolbox/tools/data/struct_diff/tool.py) | [Detalhes ➔](catalogo_ferramentas.md#datastruct-diff-comparador-semântico-de-estruturas-json-yaml-toml) |
+| **Conversor XML e JSON**<br>`data.xml_json` | 🎛️ Interativo | Conversão bidirecional entre XML e JSON preservando atributos (@), hierarquias aninhadas, listas de elementos e texto semântico. | [`tool.py`](../src/wintoolbox/tools/data/xml_json/tool.py) | [Catálogo ➔](catalogo_ferramentas.md) |
+| **Explorador de JSON**<br>`json_explorer` | 🎛️ Interativo | Visualizador em árvore interativo para arquivos JSON complexos, com busca e consultas JSONPath. | [`tool.py`](../src/wintoolbox/tools/data/json_explorer/tool.py) | [Catálogo ➔](catalogo_ferramentas.md) |
+
+---
+
+## <a id="9-texto-redacao-e-documentos-br"></a>9. ✍️ Texto, Redação e Documentos BR (16 Ferramentas)
+
+> Transformações e limpeza de texto, comparador visual de diferenças com realce inline de caracteres, testador de Regex interativo, gerador de Pix oficial BR Code, decodificador de boletos e geradores de documentos BR.
+
+| Ferramenta & ID | Tipo | Descrição dos Recursos | Código-Fonte | Catálogo |
+| :--- | :---: | :--- | :---: | :---: |
+| **Decodificador de Boletos**<br>`text.boleto_parser` | 🎛️ Interativo | Valida e decodifica linha digitável e código de barras de boletos bancários (FEBRABAN) e concessionárias: identifica banco, valor, data de vencimento e converte entre formatos. | [`tool.py`](../src/wintoolbox/tools/text/boleto_parser/tool.py) | [Detalhes ➔](catalogo_ferramentas.md#textboleto-parser-decodificador-e-validador-de-boletos-febraban) |
+| **Comparador de Textos (Diff)**<br>`text.diff` | 🎛️ Interativo | Compara dois blocos de texto ou código lado a lado com realce visual de alterações | [`tool.py`](../src/wintoolbox/tools/text/diff/tool.py) | [Detalhes ➔](catalogo_ferramentas.md#textdiff-comparador-de-textos-diff-visual) |
+| **Comparador Visual com Realce Inline**<br>`text.diff_visual` | 🎛️ Interativo | Compare dois textos ou códigos lado a lado com realce visual detalhado de caracteres inseridos e removidos | [`tool.py`](../src/wintoolbox/tools/text/diff_visual/tool.py) | [Detalhes ➔](catalogo_ferramentas.md#textdiff-visual-comparador-visual-de-texto-diff-inline) |
+| **Operações entre Listas**<br>`text.list_ops` | 🎛️ Interativo | Compara e combina listas de texto: união, interseção, diferença (A - B e B - A), diferença simétrica, deduplicação e ordenação natural. | [`tool.py`](../src/wintoolbox/tools/text/list_ops/tool.py) | [Detalhes ➔](catalogo_ferramentas.md#textlist-ops-operações-de-conjuntos-entre-listas-de-texto) |
+| **Gerador de Textos Fictícios (Lorem Temático)**<br>`text.lorem_advanced` | 🎛️ Interativo | Gere textos fictícios e mockups em diversos temas (Corporativo, Jurídico, Gastronomia, Sci-Fi e Latim) | [`tool.py`](../src/wintoolbox/tools/text/lorem_advanced/tool.py) | [Detalhes ➔](catalogo_ferramentas.md#textlorem-advanced-gerador-avançado-de-texto-de-preenchimento) |
+| **Editor de Markdown**<br>`text.markdown_editor` | 🎛️ Interativo | Editor de Markdown em duas colunas com pré-visualização HTML em tempo real e exportação | [`tool.py`](../src/wintoolbox/tools/text/markdown_editor/tool.py) | [Detalhes ➔](catalogo_ferramentas.md#textmarkdown-editor-editor-markdown-com-prévia-fluent) |
+| **Formatador de Nomes Próprios**<br>`text.name_formatter` | 🎛️ Interativo | Padroniza e capitaliza nomes próprios conforme a gramática brasileira: mantém partículas de ligação minúsculas ('da', 'de', 'dos', 'e'), numerais romanos e gera citações ABNT em lote. | [`tool.py`](../src/wintoolbox/tools/text/name_formatter/tool.py) | [Detalhes ➔](catalogo_ferramentas.md#textname-formatter-formatador-de-nomes-próprios-e-citações-abnt) |
+| **Número por Extenso**<br>`text.number_words` | 🎛️ Interativo | Converte valores numéricos e monetários (BRL) para extenso em português do Brasil, com formatação especial para cheques, recibos e numerais ordinais. | [`tool.py`](../src/wintoolbox/tools/text/number_words/tool.py) | [Detalhes ➔](catalogo_ferramentas.md#textnumber-words-número-e-moeda-por-extenso-brl) |
+| **Gerador de Pix (Copia e Cola e QR Code)**<br>`text.pix_generator` | 🎛️ Interativo | Geração de códigos Pix no padrão oficial BR Code (Banco Central / EMVCo) com valor opcional e QR Code | [`tool.py`](../src/wintoolbox/tools/text/pix_generator/tool.py) | [Detalhes ➔](catalogo_ferramentas.md#textpix-generator-gerador-de-cobrança-pix-e-qr-code-br-code) |
+| **Testador de Expressões Regulares (Regex)**<br>`text.regex` | 🎛️ Interativo | Testa expressões regulares em tempo real com grupos de captura, substituição e flags | [`tool.py`](../src/wintoolbox/tools/text/regex/tool.py) | [Detalhes ➔](catalogo_ferramentas.md#textregex-testador-de-expressões-regulares-regex) |
+| **Testador de Expressões Regulares (RegEx)**<br>`text.regex_tester` | 🎛️ Interativo | Teste padrões regex em tempo real, inspecione grupos de captura, substituições e catálogo de padrões | [`tool.py`](../src/wintoolbox/tools/text/regex_tester/tool.py) | [Detalhes ➔](catalogo_ferramentas.md#textregex-tester-testador-e-depurador-de-expressões-regulares) |
+| **Estatísticas e Legibilidade**<br>`text.stats` | 🎛️ Interativo | Contador avançado de caracteres, palavras, linhas, tempos de leitura e métricas Flesch-Brás. | [`tool.py`](../src/wintoolbox/tools/text/stats/tool.py) | [Detalhes ➔](catalogo_ferramentas.md#textstats-analisador-estatístico-textual-e-legibilidade) |
+| **Mala Direta e Modelos**<br>`text.template_filler` | 🎛️ Interativo | Preenchedor offline de modelos com sintaxe {{campo}} combinados com dados de planilhas CSV para geração em massa de contratos, certificados, mensagens e relatórios. | [`tool.py`](../src/wintoolbox/tools/text/template_filler/tool.py) | [Detalhes ➔](catalogo_ferramentas.md#texttemplate-filler-mala-direta-e-preenchimento-de-modelos) |
+| **Transformações de Texto e Linhas**<br>`text.transform` | 🎛️ Interativo | Altera caixa de texto, remove acentos, formata casos de código, ordena e limpa linhas | [`tool.py`](../src/wintoolbox/tools/text/transform/tool.py) | [Detalhes ➔](catalogo_ferramentas.md#texttransform-transformações-de-texto-e-linhas) |
+| **Inspetor Unicode e Homóglifos**<br>`text.unicode_inspector` | 🎛️ Interativo | Detecta e higieniza caracteres Unicode problemáticos: largura zero (Zero-Width), espaços especiais (NBSP), homóglifos cirílicos de phishing, aspas tipográficas e normalização canônica. | [`tool.py`](../src/wintoolbox/tools/text/unicode_inspector/tool.py) | [Detalhes ➔](catalogo_ferramentas.md#textunicode-inspector-inspetor-e-higienizador-unicode) |
+| **Validador e Gerador de Documentos BR**<br>`text.validators_br` | 🎛️ Interativo | Validação oficial e geração de CPF, CNPJ e documentos brasileiros para testes | [`tool.py`](../src/wintoolbox/tools/text/validators_br/tool.py) | [Detalhes ➔](catalogo_ferramentas.md#textvalidators-br-validador-e-gerador-de-documentos-br) |
+
+---
+
+## <a id="10-calculadoras-e-conversores-tecnicos"></a>10. 🧮 Calculadoras e Conversores Técnicos (16 Ferramentas)
+
+> Simulações financeiras (juros compostos, amortização Price/SAC, investimentos), folha salarial CLT Brasil com alíquotas oficiais, calculadora de sub-redes IPv4/CIDR, programador bitwise e conversor universal de unidades.
+
+| Ferramenta & ID | Tipo | Descrição dos Recursos | Código-Fonte | Catálogo |
+| :--- | :---: | :--- | :---: | :---: |
+| **Calculadora de Datas**<br>`calc.date_calculator` | 🎛️ Interativo | Calcula o intervalo exato entre datas (anos, meses, dias), soma ou subtrai prazos e conta dias úteis desconsiderando fins de semana e feriados nacionais do Brasil. | [`tool.py`](../src/wintoolbox/tools/calc/date_calculator/tool.py) | [Detalhes ➔](catalogo_ferramentas.md#calcdate-calculator-calculadora-de-datas-e-prazos) |
+| **Calculadora Elétrica Residencial (Consumo, Ohm & Resistores)**<br>`calc.electrical` | 🎛️ Interativo | Estime custos em kWh na conta de luz, resolva circuitos com a Lei de Ohm e decodifique faixas de cores de resistores. | [`tool.py`](../src/wintoolbox/tools/calc/electrical/tool.py) | [Detalhes ➔](catalogo_ferramentas.md#calcelectrical-calculadora-elétrica-residencial-consumo-ohm-resistores) |
+| **Calculadora Financeira**<br>`calc.finance` | 🎛️ Interativo | Simulador financeiro completo: cálculo de juros compostos com aportes mensais, amortização de financiamentos pelos sistemas Price e SAC, e cálculo de margem de lucro e markup. | [`tool.py`](../src/wintoolbox/tools/calc/finance/tool.py) | [Detalhes ➔](catalogo_ferramentas.md#calcfinance-calculadora-financeira) |
+| **Calculadora de Combustível (Etanol vs. Gasolina)**<br>`calc.fuel` | 🎛️ Interativo | Descubra qual combustível é mais econômico para seu carro e calcule os custos totais e rateio de viagens. | [`tool.py`](../src/wintoolbox/tools/calc/fuel/tool.py) | [Detalhes ➔](catalogo_ferramentas.md#calcfuel-calculadora-de-combustível-etanol-vs-gasolina) |
+| **Calculadora de Saúde & Metabolismo (IMC / TMB)**<br>`calc.health` | 🎛️ Interativo | Calcule IMC com classificação OMS, gasto calórico diário (TDEE), metas nutricionais e ingestão de água. | [`tool.py`](../src/wintoolbox/tools/calc/health/tool.py) | [Detalhes ➔](catalogo_ferramentas.md#calchealth-calculadora-de-saúde-metabolismo-imc-tmb) |
+| **Simulador de Investimentos Renda Fixa (CDB, LCI, Poupança, Tesouro)**<br>`calc.investments` | 🎛️ Interativo | Compare rendimentos líquidos reais de CDB, LCI/LCA, Poupança e Tesouro Direto com alíquotas regressivas do Imposto de Renda. | [`tool.py`](../src/wintoolbox/tools/calc/investments/tool.py) | [Detalhes ➔](catalogo_ferramentas.md#calcinvestments-simulador-de-investimentos-renda-fixa-cdb-lci-poupança-tesouro) |
+| **Calculadora de Materiais de Construção & Reforma**<br>`calc.materials` | 🎛️ Interativo | Estime quantidades exatas de tinta, caixas de piso/porcelanato com perda, argamassa, rejunte e volume de concreto. | [`tool.py`](../src/wintoolbox/tools/calc/materials/tool.py) | [Detalhes ➔](catalogo_ferramentas.md#calcmaterials-calculadora-de-materiais-de-construção-reforma) |
+| **Calculadora do Programador**<br>`calc.programmer` | 🎛️ Interativo | Conversão em tempo real entre Hexadecimal, Decimal, Octal e Binário, operações bitwise e manipulador de bits | [`tool.py`](../src/wintoolbox/tools/calc/programmer/tool.py) | [Detalhes ➔](catalogo_ferramentas.md#calcprogrammer-calculadora-do-programador-e-manipulador-de-bits) |
+| **Calculadora Salarial CLT (Folha de Pagamento)**<br>`calc.salary_br` | 🎛️ Interativo | Calcule salário líquido, deduções progressivas de INSS e IRRF, alíquota efetiva, FGTS, férias e rescisão trabalhista. | [`tool.py`](../src/wintoolbox/tools/calc/salary_br/tool.py) | [Detalhes ➔](catalogo_ferramentas.md#calcsalary-br-calculadora-salarial-clt-folha-de-pagamento) |
+| **Calculadora de Telas & Monitores (PPI & Proporção)**<br>`calc.screen` | 🎛️ Interativo | Calcule densidade de pixels (PPI), proporção dimensional (Aspect Ratio), tamanho físico em cm e escala ideal do Windows. | [`tool.py`](../src/wintoolbox/tools/calc/screen/tool.py) | [Detalhes ➔](catalogo_ferramentas.md#calcscreen-calculadora-de-telas-monitores-ppi-proporção) |
+| **Calculadora de Divisão de Contas (Restaurante & Eventos)**<br>`calc.split_bill` | 🎛️ Interativo | Divida contas de restaurante igualitariamente ou por consumo individualizado com taxa de serviço e couvert. | [`tool.py`](../src/wintoolbox/tools/calc/split_bill/tool.py) | [Detalhes ➔](catalogo_ferramentas.md#calcsplit-bill-calculadora-de-divisão-de-contas-restaurante-eventos) |
+| **Calculadora Estatística (Descritiva & Regressão)**<br>`calc.statistics` | 🎛️ Interativo | Analise conjuntos de dados com média, mediana, desvio padrão, variância, quartis e regressão linear simples. | [`tool.py`](../src/wintoolbox/tools/calc/statistics/tool.py) | [Detalhes ➔](catalogo_ferramentas.md#calcstatistics-calculadora-estatística-descritiva-regressão) |
+| **Calculadora de Sub-redes IPv4**<br>`calc.subnet_calculator` | 🎛️ Interativo | Calculadora de sub-redes IPv4 em notação CIDR (/8 a /32), cálculo de máscara de rede, wildcard, primeiro/último IP utilizável, broadcast e conversão binária. | [`tool.py`](../src/wintoolbox/tools/calc/subnet_calculator/tool.py) | [Detalhes ➔](catalogo_ferramentas.md#calcsubnet-calculator-calculadora-de-sub-redes-ipv4-cidr) |
+| **Estimador de Tempo de Download & Transferência**<br>`calc.transfer` | 🎛️ Interativo | Calcule o tempo exato para baixar ou transferir arquivos e converta Mbps de planos de internet para MB/s reais. | [`tool.py`](../src/wintoolbox/tools/calc/transfer/tool.py) | [Detalhes ➔](catalogo_ferramentas.md#calctransfer-estimador-de-tempo-de-download-transferência) |
+| **Conversor de Unidades**<br>`calc.unit_converter` | 🎛️ Interativo | Conversor instantâneo de medidas: comprimento (m, km, milhas, pés), peso/massa (kg, lb, oz), temperatura (°C, °F, K), volume (L, gal), dados digitais (MB, GB, TB) e velocidade. | [`tool.py`](../src/wintoolbox/tools/calc/unit_converter/tool.py) | [Detalhes ➔](catalogo_ferramentas.md#calcunit-converter-conversor-de-unidades) |
+| **Relógio Mundial**<br>`calc.world_clock` | 🎛️ Interativo | Relógio mundial em tempo real das principais capitais do mundo, conversor de fusos horários (UTC/GMT), horário de verão e comparativo de jornadas de trabalho. | [`tool.py`](../src/wintoolbox/tools/calc/world_clock/tool.py) | [Detalhes ➔](catalogo_ferramentas.md#calcworld-clock-relógio-mundial-e-fusos-horários) |
+
+---
+
+## <a id="11-produtividade-e-organizacao-pessoal"></a>11. ⏱️ Produtividade e Organização Pessoal (16 Ferramentas)
+
+> Quadro Kanban de tarefas offline, controle financeiro pessoal com importação OFX/CSV, timer Pomodoro, histórico da área de transferência com favoritos, notas rápidas e emissor de orçamentos e recibos em PDF.
+
+| Ferramenta & ID | Tipo | Descrição dos Recursos | Código-Fonte | Catálogo |
+| :--- | :---: | :--- | :---: | :---: |
+| **Gerenciador de Links e Favoritos**<br>`productivity.bookmarks` | 🎛️ Interativo | Organize seus links e artigos salvos com tags, busca rápida, verificador de links quebrados e importação de navegadores. | [`tool.py`](../src/wintoolbox/tools/productivity/bookmarks/tool.py) | [Detalhes ➔](catalogo_ferramentas.md#productivitybookmarks-gerenciador-local-de-links-e-favoritos-web) |
+| **Assistente de Ergonomia e Pausas Ativas**<br>`productivity.break_reminder` | 🎛️ Interativo | Assistente de pausas ergonômicas: lembra você de descansar os olhos (regra 20-20-20), fazer alongamentos posturais e beber água regularmente. | [`tool.py`](../src/wintoolbox/tools/productivity/break_reminder/tool.py) | [Detalhes ➔](catalogo_ferramentas.md#productivitybreak-reminder-assistente-de-ergonomia-e-pausas-ativas) |
+| **Histórico da Área de Transferência**<br>`productivity.clipboard_history` | 🎛️ Interativo | Histórico da área de transferência: registra tudo o que você copia (textos, links e trechos de código) com busca instantânea e favoritos fixados. | [`tool.py`](../src/wintoolbox/tools/productivity/clipboard_history/tool.py) | [Detalhes ➔](catalogo_ferramentas.md#productivityclipboard-history-histórico-da-área-de-transferência) |
+| **Painel de Contagem Regressiva**<br>`productivity.countdown` | 🎛️ Interativo | Monitore prazos de entrega, lançamentos e aniversários com relógios visuais e widget flutuante minimalista. | [`tool.py`](../src/wintoolbox/tools/productivity/countdown/tool.py) | [Detalhes ➔](catalogo_ferramentas.md#productivitycountdown-painel-de-contagem-regressiva-e-prazos) |
+| **Controle de Finanças Pessoais**<br>`productivity.finance_tracker` | 🎛️ Interativo | Controle financeiro pessoal offline: importa extratos bancários nos formatos OFX e CSV, categoriza gastos automaticamente e calcula balanço mensal. | [`tool.py`](../src/wintoolbox/tools/productivity/finance_tracker/tool.py) | [Detalhes ➔](catalogo_ferramentas.md#productivityfinance-tracker-controle-de-finanças-pessoais-offline) |
+| **Cartões de Memorização (Flashcards SM-2)**<br>`productivity.flashcards` | 🎛️ Interativo | Aumente sua retenção de conteúdo com repetição espaçada inteligente, gestão de baralhos e importação CSV. | [`tool.py`](../src/wintoolbox/tools/productivity/flashcards/tool.py) | [Detalhes ➔](catalogo_ferramentas.md#productivityflashcards-cartões-de-memorização-flashcards-sm-2) |
+| **Visualizador de Calendário iCalendar (.ics)**<br>`productivity.ics_calendar` | 🎛️ Interativo | Abra, edite e crie compromissos no formato universal iCalendar (.ics) compatível com Outlook, Google e Apple Calendar. | [`tool.py`](../src/wintoolbox/tools/productivity/ics_calendar/tool.py) | [Detalhes ➔](catalogo_ferramentas.md#productivityics-calendar-visualizador-de-calendário-icalendar-ics) |
+| **Diário Pessoal & Registros Diários**<br>`productivity.journal` | 🎛️ Interativo | Registre reflexões, memórias e progresso diário com calendário, categorização de humor e exportação Markdown. | [`tool.py`](../src/wintoolbox/tools/productivity/journal/tool.py) | [Detalhes ➔](catalogo_ferramentas.md#productivityjournal-diário-pessoal-registros-diários) |
+| **Quadro Kanban de Tarefas**<br>`productivity.kanban` | 🎛️ Interativo | Organize seus projetos visualmente em colunas com cartões, checklists, tags e prazos de entrega 100% offline. | [`tool.py`](../src/wintoolbox/tools/productivity/kanban/tool.py) | [Detalhes ➔](catalogo_ferramentas.md#productivitykanban-quadro-kanban-de-tarefas) |
+| **Timer Pomodoro**<br>`productivity.pomodoro` | 🎛️ Interativo | Temporizador Pomodoro de produtividade: gerencia ciclos de foco intenso (25 min) intercalados com pausas curtas e longas com alertas sonoros. | [`tool.py`](../src/wintoolbox/tools/productivity/pomodoro/tool.py) | [Detalhes ➔](catalogo_ferramentas.md#productivitypomodoro-timer-pomodoro-de-foco) |
+| **Bloco de Notas Rápidas**<br>`productivity.quick_notes` | 🎛️ Interativo | Bloco de notas rápidas: editor de rascunhos com salvamento instantâneo, abas múltiplas, contagem de caracteres e busca por texto. | [`tool.py`](../src/wintoolbox/tools/productivity/quick_notes/tool.py) | [Detalhes ➔](catalogo_ferramentas.md#productivityquick-notes-bloco-de-notas-rápidas) |
+| **Emissor de Recibos e Orçamentos**<br>`productivity.recibo_orcamento` | 🎛️ Interativo | Gere recibos de pagamento e propostas de orçamento em PDF com conversão automática de valores por extenso. | [`tool.py`](../src/wintoolbox/tools/productivity/recibo_orcamento/tool.py) | [Detalhes ➔](catalogo_ferramentas.md#productivityrecibo-orcamento-emissor-de-recibos-e-orçamentos-em-pdf) |
+| **Alarmes e Lembretes**<br>`productivity.reminders` | 🎛️ Interativo | Agendador de lembretes e alarmes: exibe notificações nativas do Windows no horário programado para você nunca perder compromissos. | [`tool.py`](../src/wintoolbox/tools/productivity/reminders/tool.py) | [Detalhes ➔](catalogo_ferramentas.md#productivityreminders-alarmes-e-lembretes) |
+| **Expansor de Texto (Snippets)**<br>`productivity.snippets` | 🎛️ Interativo | Armazene e expanda trechos de texto frequentes, modelos de e-mail e atas com substituição dinâmica de datas e variáveis. | [`tool.py`](../src/wintoolbox/tools/productivity/snippets/tool.py) | [Detalhes ➔](catalogo_ferramentas.md#productivitysnippets-expansor-de-trechos-de-texto-snippets) |
+| **Registrador de Tempo**<br>`productivity.time_tracker` | 🎛️ Interativo | Rastreador de tempo por tarefas: cronometre o tempo investido em cada cliente ou projeto e exporte relatórios consolidados em CSV. | [`tool.py`](../src/wintoolbox/tools/productivity/time_tracker/tool.py) | [Detalhes ➔](catalogo_ferramentas.md#productivitytime-tracker-registrador-de-tempo-time-tracker) |
+| **Lista de Tarefas**<br>`productivity.todo` | 🎛️ Interativo | Lista de tarefas minimalista: crie afazeres com categorias, níveis de prioridade, prazos de entrega e marcação de conclusão rápida. | [`tool.py`](../src/wintoolbox/tools/productivity/todo/tool.py) | [Detalhes ➔](catalogo_ferramentas.md#productivitytodo-lista-de-tarefas-to-do) |
+
+---
+
+## <a id="12-automacao-macros-e-janelas"></a>12. 🤖 Automação, Macros e Janelas (12 Ferramentas)
+
+> Autoclicker com taxa CPS configurável, regras de organização automática de pastas, atalhos de teclado globais, gerenciador de janelas do Windows (Always on Top/Transparência) e central de execução de scripts multilinguagem.
+
+| Ferramenta & ID | Tipo | Descrição dos Recursos | Código-Fonte | Catálogo |
+| :--- | :---: | :--- | :---: | :---: |
+| **Autoclicker Automático**<br>`automation.autoclicker` | 🎛️ Interativo | Simulador de cliques automatizados do mouse (botão esquerdo, direito ou meio) com taxa de cliques por segundo (CPS) customizável, repetição contínua ou limitada e tecla de parada global. | [`tool.py`](../src/wintoolbox/tools/automation/autoclicker/tool.py) | [Detalhes ➔](catalogo_ferramentas.md#automationautoclicker-auto-clicker) |
+| **Agendador de Tarefas Headless (Windows Tasks)**<br>`automation.cli_scheduler` | 🎛️ Interativo | Agende execuções automáticas e periódicas de ferramentas do WinToolbox através do Agendador nativo do Windows. | [`tool.py`](../src/wintoolbox/tools/automation/cli_scheduler/tool.py) | [Detalhes ➔](catalogo_ferramentas.md#automationcli-scheduler-agendador-de-tarefas-headless-windows-tasks) |
+| **Automação por Dispositivos Removíveis (Gatilhos USB)**<br>`automation.device_trigger` | 🎛️ Interativo | Execute ações automáticas como backups ou abertura de pastas ao conectar pendrives ou cartões de memória. | [`tool.py`](../src/wintoolbox/tools/automation/device_trigger/tool.py) | [Detalhes ➔](catalogo_ferramentas.md#automationdevice-trigger-automação-por-dispositivos-removíveis-gatilhos-usb) |
+| **Automação de Pastas por Regras**<br>`automation.folder_rules` | 🎛️ Interativo | Organizador automático de pastas baseado em regras: move, copia ou deleta arquivos por extensão, tamanho ou idade (ex: limpar Downloads periodicamente). | [`tool.py`](../src/wintoolbox/tools/automation/folder_rules/tool.py) | [Detalhes ➔](catalogo_ferramentas.md#automationfolder-rules-automação-de-pastas-por-regras) |
+| **Atalhos Globais de Teclado (Hotkeys)**<br>`automation.hotkeys` | 🎛️ Interativo | Configure teclas de atalho globais do Windows para abrir rapidamente ferramentas do WinToolbox ou executar rotinas. | [`tool.py`](../src/wintoolbox/tools/automation/hotkeys/tool.py) | [Detalhes ➔](catalogo_ferramentas.md#automationhotkeys-atalhos-globais-de-teclado-hotkeys) |
+| **Executor de Macros**<br>`automation.macro_runner` | 🎛️ Interativo | Gravador e executor de macros: reproduz sequências de cliques de mouse e teclas de atalho com intervalos configuráveis e repetição programada. | [`tool.py`](../src/wintoolbox/tools/automation/macro_runner/tool.py) | [Detalhes ➔](catalogo_ferramentas.md#automationmacro-runner-executor-e-gravador-de-macros) |
+| **Sentinela de Processos (Alertas de Execução & Conclusão)**<br>`automation.process_watcher` | 🎛️ Interativo | Monitore processos do Windows e receba avisos sonoros ou notificações quando renderizações ou programas terminarem. | [`tool.py`](../src/wintoolbox/tools/automation/process_watcher/tool.py) | [Detalhes ➔](catalogo_ferramentas.md#automationprocess-watcher-sentinela-de-processos-alertas-de-execução-conclusão) |
+| **Receitas de Automação (Pipelines Multi-Ferramentas)**<br>`automation.recipes` | 🎛️ Interativo | Crie pipelines reutilizáveis encadeando múltiplas ferramentas (ex: Converter -> Otimizar -> Renomear). | [`tool.py`](../src/wintoolbox/tools/automation/recipes/tool.py) | [Detalhes ➔](catalogo_ferramentas.md#automationrecipes-receitas-de-automação-pipelines-multi-ferramentas) |
+| **Executor de Scripts**<br>`automation.script_runner` | 🎛️ Interativo | Central de execução de scripts de automação (PowerShell, Python, Batch .bat/.cmd e VBS) com saída de console em tempo real, argumentos e histórico. | [`tool.py`](../src/wintoolbox/tools/automation/script_runner/tool.py) | [Detalhes ➔](catalogo_ferramentas.md#automationscript-runner-executor-de-scripts) |
+| **Gerenciador de Janelas**<br>`automation.window_manager` | 🎛️ Interativo | Gerenciador de janelas do Windows: fixa janelas sempre visíveis no topo (Always on Top), ajusta nível de transparência (Opacidade) e organiza layouts de snap. | [`tool.py`](../src/wintoolbox/tools/automation/window_manager/tool.py) | [Detalhes ➔](catalogo_ferramentas.md#automationwindow-manager-gerenciador-de-janelas-do-windows) |
+| **Regras Automáticas para Janelas (Monitor & Snap)**<br>`automation.window_rules` | 🎛️ Interativo | Defina monitor de exibição, coordenadas fixas e estado de maximização automático para seus programas ao abrir. | [`tool.py`](../src/wintoolbox/tools/automation/window_rules/tool.py) | [Detalhes ➔](catalogo_ferramentas.md#automationwindow-rules-regras-automáticas-para-janelas-monitor-snap) |
+| **Lançador de Ambientes**<br>`automation.workspace_launcher` | 🎛️ Interativo | Lançador de ambientes de trabalho (Workspaces): abre simultaneamente em um clique múltiplos programas, pastas de projeto e páginas web no navegador padrão. | [`tool.py`](../src/wintoolbox/tools/automation/workspace_launcher/tool.py) | [Detalhes ➔](catalogo_ferramentas.md#automationworkspace-launcher-lançador-de-ambientes-de-trabalho-workspaces) |
+
+---
+
+## <a id="13-compactacao-e-arquivos-comprimidos"></a>13. 📦 Compactação e Arquivos Comprimidos (8 Ferramentas)
+
+> Compactação e extração em lote para ZIP, 7Z, RAR e TAR com proteção estrita Zip Slip, criação de volumes multipartes, verificador de integridade CRC e montagem/extração nativa de imagens ISO e VHD.
+
+| Ferramenta & ID | Tipo | Descrição dos Recursos | Código-Fonte | Catálogo |
+| :--- | :---: | :--- | :---: | :---: |
+| **Descompactador em Lote**<br>`archive.batch_extract` | ⚡ Lote | Descompacta múltiplos arquivos compactados simultâneos (ZIP, TAR, 7Z, RAR) com subpastas organizadas. | [`tool.py`](../src/wintoolbox/tools/archive/batch_extract/tool.py) | [Detalhes ➔](catalogo_ferramentas.md#archivebatch-extract-descompactador-em-lote-inteligente) |
+| **Conversor de Quadrinhos CBZ**<br>`archive.comic_maker` | ⚡ Lote | Converte pastas de imagens para quadrinhos CBZ com ordenação numérica natural e extrai CBZ para imagens. | [`tool.py`](../src/wintoolbox/tools/archive/comic_maker/tool.py) | [Detalhes ➔](catalogo_ferramentas.md#archivecomic-maker-conversor-de-quadrinhos-digitais-cbz) |
+| **Criador Avançado de Compactados**<br>`archive.creator_advanced` | 🎛️ Interativo | Cria arquivos compactados com algoritmos modernos (LZMA, BZIP2, DEFLATE), divisão em volumes multipartes (.001, .002) e cálculo de taxa de economia de espaço. | [`tool.py`](../src/wintoolbox/tools/archive/creator_advanced/tool.py) | [Catálogo ➔](catalogo_ferramentas.md) |
+| **Verificador de Integridade e Recuperação**<br>`archive.integrity_repair` | 🎛️ Interativo | Testador e reparador de arquivos compactados: verifica a integridade de arquivos ZIP, RAR e 7Z contra corrupção de CRC e extrai conteúdo intacto. | [`tool.py`](../src/wintoolbox/tools/archive/integrity_repair/tool.py) | [Detalhes ➔](catalogo_ferramentas.md#archiveintegrity-repair-verificador-de-integridade-e-recuperação-de-emergência) |
+| **Ferramentas de Imagens ISO e VHD**<br>`archive.iso_tools` | 🎛️ Interativo | Gerenciador de imagens de disco: monta, desmonta e extrai o conteúdo de arquivos ISO, VHD e VHDX sem precisar de softwares adicionais. | [`tool.py`](../src/wintoolbox/tools/archive/iso_tools/tool.py) | [Detalhes ➔](catalogo_ferramentas.md#archiveiso-tools-ferramentas-de-imagens-de-disco-iso-vhd-e-vhdx) |
+| **Compactador e Extrator de Arquivos**<br>`archive.manager` | 🎛️ Interativo | Compacte arquivos e pastas em ZIP/TAR, extraia pacotes (ZIP, TAR, 7Z, RAR) e inspecione conteúdo interno | [`tool.py`](../src/wintoolbox/tools/archive/manager/tool.py) | [Detalhes ➔](catalogo_ferramentas.md#archivemanager-compactador-e-extrator-de-arquivos) |
+| **Extrator em Lote de Arquivos**<br>`archive.multi_extract` | 🎛️ Interativo | Descompacta múltiplos pacotes ZIP, TAR, TAR.GZ e TAR.BZ2 de forma simultânea, com organização em subpastas automáticas e proteção estrita contra ataques Zip Slip. | [`tool.py`](../src/wintoolbox/tools/archive/multi_extract/tool.py) | [Catálogo ➔](catalogo_ferramentas.md) |
+| **Divisor e Juntador de Volumes**<br>`archive.multi_volume` | 🎛️ Interativo | Compactador em múltiplos volumes: divide arquivos grandes em pacotes particionados (.part1.rar, .z01, .001) para transporte fácil em pendrives ou e-mail. | [`tool.py`](../src/wintoolbox/tools/archive/multi_volume/tool.py) | [Detalhes ➔](catalogo_ferramentas.md#archivemulti-volume-criador-e-juntador-de-volumes-múltiplos) |
+
+---
+
+## <a id="14-codificacao-criptografia-e-hashes"></a>14. 🔑 Codificação, Criptografia e Hashes (15 Ferramentas)
+
+> Cálculo de hashes modernos (SHA-256, BLAKE2, MD5, CRC32), codificação Base64/URL/HTML, depuração e verificação de assinaturas JWT, gerador de chaves SSH (Ed25519/RSA) e decodificador SEFAZ de chaves de acesso NF-e.
+
+| Ferramenta & ID | Tipo | Descrição dos Recursos | Código-Fonte | Catálogo |
+| :--- | :---: | :--- | :---: | :---: |
+| **Conversor de Arquivos em Base64**<br>`encode.base64_file` | 🎛️ Interativo | Converte arquivos para Base64 e Data URI e restaura arquivos físicos a partir de Base64 | [`tool.py`](../src/wintoolbox/tools/encode/base64_file/tool.py) | [Detalhes ➔](catalogo_ferramentas.md#encodebase64-file-conversor-de-arquivos-para-base64-data-uri) |
+| **Inspetor de Certificados**<br>`encode.cert_inspector` | ⚡ Lote | Inspeciona, decodifica e converte certificados digitais nos formatos PEM, DER, CRT, CER, PFX e P12, extraindo titular, emissor, SANs, período de validade e impressões digitais. | [`tool.py`](../src/wintoolbox/tools/encode/cert_inspector/tool.py) | [Detalhes ➔](catalogo_ferramentas.md#encodecert-inspector-inspetor-e-conversor-de-certificados-digitais) |
+| **Cifras Clássicas**<br>`encode.classic_ciphers` | 🎛️ Interativo | Criptografa e decifra mensagens utilizando métodos históricos clássicos: Cifra de César com brute-force, Vigenère com chave, Código Morse, Cifra Atbash e ROT13/ROT47. | [`tool.py`](../src/wintoolbox/tools/encode/classic_ciphers/tool.py) | [Detalhes ➔](catalogo_ferramentas.md#encodeclassic-ciphers-cifras-clássicas-da-criptografia) |
+| **Conversor de Timestamps e Bases**<br>`encode.converter` | 🎛️ Interativo | Converte timestamps Unix Epoch em datas legíveis e alterna entre bases numéricas (Bin/Oct/Dec/Hex) | [`tool.py`](../src/wintoolbox/tools/encode/converter/tool.py) | [Detalhes ➔](catalogo_ferramentas.md#encodeconverter-conversor-de-timestamps-e-bases-numéricas) |
+| **Gerador de Hash e Checksum**<br>`encode.crypto_hash` | 🎛️ Interativo | Calcula hashes MD5, SHA-1, SHA-256, SHA-512, CRC32 e HMAC de textos e arquivos | [`tool.py`](../src/wintoolbox/tools/encode/crypto_hash/tool.py) | [Detalhes ➔](catalogo_ferramentas.md#encodecrypto-hash-gerador-de-hash-e-checksum) |
+| **Codificador e Decodificador Universal**<br>`encode.encoders` | 🎛️ Interativo | Codifica e decodifica textos em Base64, URL, HTML, Hexadecimal, Unicode e ROT13 | [`tool.py`](../src/wintoolbox/tools/encode/encoders/tool.py) | [Detalhes ➔](catalogo_ferramentas.md#encodeencoders-codificador-e-decodificador-universal) |
+| **Gerador de UUID, ULID e Senhas Seguras**<br>`encode.generators` | 🎛️ Interativo | Gera identificadores únicos UUID v4/v1, ULID e senhas aleatórias seguras em lote | [`tool.py`](../src/wintoolbox/tools/encode/generators/tool.py) | [Detalhes ➔](catalogo_ferramentas.md#encodegenerators-gerador-de-uuid-ulid-e-senhas-seguras) |
+| **Hashes Avançados e Verificador de Manifestos**<br>`encode.hash_advanced` | 🎛️ Interativo | Calcula hashes criptográficos modernos (BLAKE2, SHA-3, SHA-256, CRC32), gera manifestos de verificação (.sha256, .sfv) e valida a integridade de lotes de arquivos. | [`tool.py`](../src/wintoolbox/tools/encode/hash_advanced/tool.py) | [Detalhes ➔](catalogo_ferramentas.md#encodehash-advanced-hashes-modernos-e-verificador-de-manifestos) |
+| **Gerador e Validador HMAC**<br>`encode.hmac` | 🎛️ Interativo | Calcula e valida assinaturas de autenticação em hash (HMAC) com SHA-256, SHA-512, MD5 e SHA-1 a partir de chaves em texto ou hexadecimal, ideal para webhooks e segurança de APIs. | [`tool.py`](../src/wintoolbox/tools/encode/hmac/tool.py) | [Detalhes ➔](catalogo_ferramentas.md#encodehmac-gerador-e-validador-de-hmac) |
+| **Entidades HTML e Caracteres Especiais**<br>`encode.html_entities` | 🎛️ Interativo | Codifica e decodifica entidades HTML (nomeadas, decimais e hexadecimais) com catálogo interativo de símbolos e caracteres especiais. | [`tool.py`](../src/wintoolbox/tools/encode/html_entities/tool.py) | [Detalhes ➔](catalogo_ferramentas.md#encodehtml-entities-catálogo-e-codificador-de-entidades-html) |
+| **Inspetor e Decodificador de JWT**<br>`encode.jwt` | 🎛️ Interativo | Decodifica tokens JWT inspecionando cabeçalho, claims e datas de validade | [`tool.py`](../src/wintoolbox/tools/encode/jwt/tool.py) | [Detalhes ➔](catalogo_ferramentas.md#encodejwt-inspetor-e-decodificador-de-jwt) |
+| **Depurador e Verificador de JWT**<br>`encode.jwt_debugger` | 🎛️ Interativo | Depura e valida tokens JWT, inspeciona claims temporais (exp/nbf/iat) e verifica assinaturas criptográficas HMAC (HS256/384/512). | [`tool.py`](../src/wintoolbox/tools/encode/jwt_debugger/tool.py) | [Detalhes ➔](catalogo_ferramentas.md#encodejwt-debugger-depurador-e-validador-avançado-de-jwt) |
+| **Gerador de Chaves SSH**<br>`encode.keygen` | 🎛️ Interativo | Gera pares de chaves criptográficas assimétricas Ed25519, RSA (2048/4096 bits) e ECDSA nos formatos OpenSSH e PEM, com proteção por senha e visualização de fingerprints SHA-256 e MD5. | [`tool.py`](../src/wintoolbox/tools/encode/keygen/tool.py) | [Detalhes ➔](catalogo_ferramentas.md#encodekeygen-gerador-de-pares-de-chaves-ssh-e-criptográficas) |
+| **Decodificador de Chave NF-e**<br>`encode.nfe_key` | 🎛️ Interativo | Valida e decodifica a chave de acesso de 44 dígitos de documentos fiscais eletrônicos (NF-e, NFC-e, CT-e, MDF-e): calcula dígito verificador Módulo 11 SEFAZ e extrai UF, data, CNPJ, modelo, série e número da nota. | [`tool.py`](../src/wintoolbox/tools/encode/nfe_key/tool.py) | [Detalhes ➔](catalogo_ferramentas.md#encodenfe-key-decodificador-e-validador-de-chave-nf-e) |
+| **Conversor Punycode e HTML**<br>`encode.punycode_html` | 🎛️ Interativo | Converte domínios internacionalizados com acentos para Punycode (xn--...) e vice-versa, além de codificar e decodificar entidades de caracteres HTML (nomeadas, decimais e hexadecimais). | [`tool.py`](../src/wintoolbox/tools/encode/punycode_html/tool.py) | [Detalhes ➔](catalogo_ferramentas.md#encodepunycode-html-conversor-idn-punycode-e-entidades-html) |
+
+---
+
+## <a id="15-seguranca-e-auditoria-defensiva"></a>15. 🛡️ Segurança e Auditoria Defensiva (4 Ferramentas)
+
+> Auditoria de segurança defensiva: verificação de senhas vazadas via Have I Been Pwned (k-anonimato seguro), consulta de reputação no VirusTotal, auditoria de cabeçalhos HTTP e validação de assinaturas Authenticode.
+
+| Ferramenta & ID | Tipo | Descrição dos Recursos | Código-Fonte | Catálogo |
+| :--- | :---: | :--- | :---: | :---: |
+| **Auditor de Cabeçalhos HTTP**<br>`security.http_headers` | 🎛️ Interativo | Auditoria defensiva de cabeçalhos de segurança web (HSTS, CSP, X-Frame-Options, etc.) com pontuação e recomendações | [`tool.py`](../src/wintoolbox/tools/security/http_headers/tool.py) | [Detalhes ➔](catalogo_ferramentas.md#securityhttp-headers-auditor-de-cabeçalhos-http-de-segurança) |
+| **Verificador de Senhas Vazadas**<br>`security.pwned_check` | 🎛️ Interativo | Consulta anônima e segura (k-anonimato HIBP) para verificar se uma senha foi exposta em vazamentos de dados públicos | [`tool.py`](../src/wintoolbox/tools/security/pwned_check/tool.py) | [Detalhes ➔](catalogo_ferramentas.md#securitypwned-check-verificador-de-senhas-vazadas-have-i-been-pwned) |
+| **Verificador de Assinatura Digital**<br>`security.signature_check` | 🎛️ Interativo | Validação da assinatura Authenticode de executáveis, DLLs e instaladores (empresa emissora e integridade) | [`tool.py`](../src/wintoolbox/tools/security/signature_check/tool.py) | [Detalhes ➔](catalogo_ferramentas.md#securitysignature-check-verificador-de-assinatura-digital-authenticode) |
+| **Consulta de Ameaças no VirusTotal**<br>`security.virustotal` | 🎛️ Interativo | Consulta de reputação de arquivos e hashes em dezenas de motores antivírus via API oficial do VirusTotal | [`tool.py`](../src/wintoolbox/tools/security/virustotal/tool.py) | [Detalhes ➔](catalogo_ferramentas.md#securityvirustotal-consulta-de-reputação-no-virustotal-hash-lookup) |
+
+---
+
+## 🚀 Como Executar o WinToolbox
+
+### 1. Modo Gráfico (GUI)
+
+A interface desktop oferece uma experiência rica e fluida para o dia a dia:
+
 ```bash
+# Execução direta via terminal
 python main.py
+
+# Ou pelo atalho no Windows
+iniciar.bat
 ```
 
-### Rodar os Testes Automatizados
+#### Recursos Visuais em Destaque:
+- **Paleta de Comandos (`Ctrl+K`)**: Pressione `Ctrl+K` a qualquer momento para abrir a busca instantânea global estilo VS Code. Digite termos-chave ou IDs para navegar direto para qualquer utilitário.
+- **Arrastar e Soltar (Drag & Drop)**: Arraste arquivos individuais ou pastas inteiras do Windows Explorer direto para a tabela das ferramentas em lote.
+- **Motor Assíncrono sem Travamentos**: Processamentos pesados de mídia, hashing ou compressão rodam em workers separados do `QThreadPool`. A UI nunca congela e permite pausar ou cancelar tarefas a qualquer instante.
+- **Console de Logs Integrado**: Acompanhe logs monoespaçados com marcação de severidade (INFO, AVISO, ERRO, SUCESSO) e cópia rápida.
+
+### 2. Modo Linha de Comando (CLI Headless)
+
+O **WinToolbox** pode ser operado sem interface gráfica para integração com scripts Batch, PowerShell ou rotinas do Agendador de Tarefas do Windows:
+
 ```bash
+# 1. Listar todas as ferramentas registradas no sistema
+python main.py --list
+
+# 2. Executar uma ferramenta em lote via linha de comando
+# Sintaxe: python main.py run <tool_id> <caminho_entrada> [opcoes]
+python main.py run images.convert "D:\Fotos_Viagem" -r -f WEBP -q 85 -d "E:\Fotos_Otimizadas"
+
+# 3. Executar ferramentas de inspeção e hashing
+python main.py run encode.crypto_hash "backup.iso" --algo sha256
+
+# 4. Limpeza de arquivos temporários do sistema
+python main.py run system.tools --action clean_temp
+```
+
+### 3. Suíte de Testes Automatizados
+
+O repositório conta com rigorosa cobertura de testes automatizados com validação black-box de efeito real:
+
+```bash
+# Executar todos os testes
 pytest tests/
+
+# Executar com relatório de cobertura
+pytest tests/ --cov=src/wintoolbox
 ```
 
 ---
 
-## Como Gerar o Executável (.exe)
+## 🛠️ Como Adicionar uma Nova Ferramenta
 
-Basta dar dois cliques no arquivo `gerar_exe.bat` ou executar:
-```bash
-pyinstaller --noconfirm --onedir --windowed --name "WinToolbox" --paths src main.py
+O WinToolbox foi desenhado com arquitetura de plugins aberta e desacoplada. Para criar uma nova ferramenta, basta seguir 4 etapas:
+
+### Passo 1: Escolha a Classe Base Adequada
+- Herde de `FileTool` se sua ferramenta processa arquivos em massa (ex: conversores, otimizadores, renomeadores). O motor de lotes gerenciará UI, tabelas e concorrência automaticamente.
+- Herde de `Tool` se sua ferramenta exige uma tela customizada (ex: painéis interativos, dashboards de monitoramento, simuladores).
+
+### Passo 2: Crie a Estrutura do Módulo
+Crie uma subpasta dentro de `src/wintoolbox/tools/<categoria>/<nome_ferramenta>/` contendo:
+- `logic.py`: Lógica pura de negócio (processamento puro, independente de Qt/UI).
+- `tool.py`: Definição da classe que herda de `FileTool` ou `Tool`, decorada com `@register`.
+
+### Exemplo Mínimo de `FileTool`:
+```python
+from pathlib import Path
+from typing import Any, Dict
+from wintoolbox.core.registry import FileTool, ItemResult, TaskContext, register
+
+@register
+class MeuOtimizadorTool(FileTool):
+    id = "minha_categoria.meu_otimizador"
+    name = "Meu Otimizador"
+    category = "Arquivos e Pastas"
+    description = "Otimiza arquivos personalizados em lote com segurança."
+    accepts = [".txt", ".dat"]
+    batch_kind = "per_file"
+    parallel_mode = "process"  # ou 'thread'
+
+    def process(self, src: Path, dst: Path, params: Dict[str, Any], ctx: TaskContext) -> ItemResult:
+        if ctx.cancelled():
+            return ItemResult(success=False, source_path=src, error="Cancelado pelo usuário.")
+        
+        # Implementação pura
+        conteudo = src.read_text(encoding="utf-8").strip()
+        dst.write_text(conteudo, encoding="utf-8")
+        
+        return ItemResult(success=True, source_path=src, output_path=dst, message="Processado com sucesso.")
 ```
-O executável final estará disponível em `dist/WinToolbox/WinToolbox.exe`.
+
+### Passo 3: Princípios de Qualidade (Diretrizes Anti-Gambiarra)
+1. **Validação do Efeito Real**: Se a ferramenta cria um PDF, imagem, áudio ou ZIP, o teste correspondente em `tests/` DEVE abrir o binário resultante e validar seu conteúdo interno.
+2. **Sem Asserções Frouxas**: Proibido usar `assert True` ou `>=` quando o valor esperado é determinístico.
+3. **Isolamento de Rede**: Testes unitários nunca fazem requisições reais para a internet; utilize mocks que testem cenários de falha reais (ex: 502 Bad Gateway, timeouts).
+4. **Tokens e Credenciais**: Chaves de API nunca devem sofrer hardcode no código-fonte. Utilize o repositório seguro global de configurações `api_tokens`.
+
+### Passo 4: Atualize a Documentação
+Ao finalizar a implementação, registre a nova ferramenta no [catalogo_ferramentas.md](catalogo_ferramentas.md) e execute `python docs/build_readme.py` para sincronizar este índice.
+
+---
+
+## 📄 Licença e Uso
+
+O **WinToolbox (All the Utils)** é um software livre sob licença aberta. Consulte o arquivo de licença no repositório para mais detalhes.
