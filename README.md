@@ -1,4 +1,4 @@
-# 🧰 WinToolbox (All the Utils) — Central de Documentação & Catálogo Geral
+# 🧰 All the Utils — Central de Documentação & Catálogo Geral
 
 > **Caixa de ferramentas completa, moderna e 100% offline para Windows.**
 > Desenvolvida em **Python + PySide6 (Qt)** com design sóbrio no padrão **Windows 11 Fluent**, motor assíncrono de processamento em lote nativo e linha de comando integrada.
