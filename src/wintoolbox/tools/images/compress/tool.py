@@ -20,7 +20,7 @@ class ImageCompressorTool(FileTool):
     category = "Imagens"
     description = "Comprima e reduza o peso de fotos PNG, JPG e WEBP sem perda perceptível de qualidade"
     keywords = ["comprimir", "otimizar", "reduzir", "tamanho", "peso", "lossless", "quantizacao", "jpeg", "png", "webp"]
-    accepts = [".png", ".jpg", ".jpeg", ".webp", ".heic", ".heif", ".avif"]
+    accepts = [".png", ".jpg", ".jpeg", ".jfif", ".webp", ".heic", ".heif", ".hif", ".avif"]
     batch_kind = "per_file"
     parallel_mode = "process"
 

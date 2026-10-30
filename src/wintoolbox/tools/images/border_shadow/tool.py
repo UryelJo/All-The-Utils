@@ -3,11 +3,18 @@ Ferramenta: Bordas, Sombras e Mockup de Capturas em Lote.
 Implementação completa com contrato FileTool.
 """
 from pathlib import Path
-from typing import Optional
+from typing import Any, Dict, Optional
+
 from PySide6.QtCore import Qt
 from PySide6.QtWidgets import (
-    QComboBox, QFrame, QGridLayout, QHBoxLayout,
-    QLabel, QSlider, QSpinBox, QVBoxLayout, QWidget, QLineEdit
+    QComboBox,
+    QFrame,
+    QGridLayout,
+    QLabel,
+    QSlider,
+    QSpinBox,
+    QVBoxLayout,
+    QWidget,
 )
 
 from wintoolbox.core.registry import FileTool, ItemResult, TaskContext, register
@@ -21,7 +28,11 @@ class BorderShadowTool(FileTool):
     category = "Imagens"
     description = "Adicione cantos arredondados, sombra difusa, moldura e fundo decorativo em screenshots"
     keywords = ["borda", "sombra", "mockup", "screenshot", "cantos arredondados", "moldura", "gradiente"]
-    accepts = [".png", ".jpg", ".jpeg", ".webp", ".bmp"]
+    accepts = [
+        ".png", ".jpg", ".jpeg", ".jfif", ".webp",
+        ".heic", ".heif", ".hif", ".avif", ".bmp",
+        ".tiff", ".qoi", ".tga", ".psd",
+    ]
     batch_kind = "per_file"
     parallel_mode = "process"
 
@@ -56,6 +67,9 @@ class BorderShadowTool(FileTool):
         self.spin_border = QSpinBox()
         self.spin_border.setRange(0, 20)
         self.spin_border.setValue(1)
+        self.spin_border.valueChanged.connect(
+            lambda v: self.lbl_border.setText(f"Borda ({v} px):")
+        )
         grid.addWidget(self.spin_border, 0, 3)
 
         # 3. Sombra (Desfoque)
@@ -94,52 +108,56 @@ class BorderShadowTool(FileTool):
         # 6. Modo de Fundo
         grid.addWidget(QLabel("Tipo de fundo:"), 2, 2)
         self.cmb_bg = QComboBox()
-        self.cmb_bg.addItems(["Transparente", "Gradiente Slate", "Gradiente Sunset", "Gradiente Ocean", "Gradiente Purple", "Cor Sólida"])
+        self.cmb_bg.addItems([
+            "Transparente",
+            "Gradiente Slate",
+            "Gradiente Sunset",
+            "Gradiente Ocean",
+            "Gradiente Purple",
+            "Cor Sólida",
+        ])
         grid.addWidget(self.cmb_bg, 2, 3)
 
         layout.addLayout(grid)
         return panel
 
-    def get_options(self) -> dict:
+    def get_options(self) -> Dict[str, Any]:
         return {
             "radius": self.slider_radius.value() if hasattr(self, "slider_radius") else 16,
             "border_width": self.spin_border.value() if hasattr(self, "spin_border") else 1,
             "shadow_blur": self.slider_shadow.value() if hasattr(self, "slider_shadow") else 24,
             "shadow_opacity": (self.slider_opacity.value() / 100.0) if hasattr(self, "slider_opacity") else 0.35,
             "padding": self.slider_padding.value() if hasattr(self, "slider_padding") else 40,
-            "bg_text": self.cmb_bg.currentText() if hasattr(self, "cmb_bg") else "Transparente"
+            "bg_text": self.cmb_bg.currentText() if hasattr(self, "cmb_bg") else "Transparente",
         }
 
-    def process(self, in_path: Path, out_path: Path, *args, **kwargs) -> ItemResult:
-        params = {}
-        ctx = None
-        for arg in args:
-            if isinstance(arg, dict):
-                params = arg
-            elif hasattr(arg, "cancelled") or hasattr(arg, "is_cancelled"):
-                ctx = arg
-        if "params" in kwargs and isinstance(kwargs["params"], dict):
-            params = kwargs["params"]
-        if "ctx" in kwargs:
-            ctx = kwargs["ctx"]
+    def output_ext(self, params: Dict[str, Any]) -> str:
+        return ".png"
 
-        if ctx is not None:
-            is_canc = ctx.cancelled() if hasattr(ctx, "cancelled") else (ctx.is_cancelled() if hasattr(ctx, "is_cancelled") else False)
-            if is_canc:
-                return ItemResult(
-                    in_path=in_path,
-                    out_path=out_path,
-                    status="cancelled",
-                    error="Operação cancelada pelo usuário"
-                )
-
+    def process(
+        self,
+        src: Path,
+        dst: Path,
+        params: Optional[Dict[str, Any]] = None,
+        ctx: Optional[TaskContext] = None,
+    ) -> ItemResult:
         opts = self.get_options() if hasattr(self, "slider_radius") else {}
-        radius = params.get("radius", opts.get("radius", 16))
-        border_w = params.get("border_width", opts.get("border_width", 1))
-        shadow_blur = params.get("shadow_blur", opts.get("shadow_blur", 24))
-        shadow_op = params.get("shadow_opacity", opts.get("shadow_opacity", 0.35))
-        pad = params.get("padding", opts.get("padding", 40))
-        bg_text = params.get("bg_text", opts.get("bg_text", "Transparente"))
+        eff_params = params if isinstance(params, dict) else {}
+
+        if ctx is not None and ctx.cancelled():
+            return ItemResult(
+                success=False,
+                source_path=src,
+                output_path=dst,
+                error="Operação cancelada pelo usuário",
+            )
+
+        radius = int(eff_params.get("radius", opts.get("radius", 16)))
+        border_w = int(eff_params.get("border_width", opts.get("border_width", 1)))
+        shadow_blur = int(eff_params.get("shadow_blur", opts.get("shadow_blur", 24)))
+        shadow_op = float(eff_params.get("shadow_opacity", opts.get("shadow_opacity", 0.35)))
+        pad = int(eff_params.get("padding", opts.get("padding", 40)))
+        bg_text = str(eff_params.get("bg_text", opts.get("bg_text", "Transparente")))
 
         if "Slate" in bg_text:
             bg_mode = "gradient"
@@ -160,14 +178,15 @@ class BorderShadowTool(FileTool):
             bg_mode = "transparent"
             preset = None
 
-        # Garante extensão PNG caso o fundo seja transparente para preservar o canal alfa
-        final_out = out_path
+        final_out = dst
         if bg_mode == "transparent" and final_out.suffix.lower() not in (".png", ".webp"):
             final_out = final_out.with_suffix(".png")
 
+        bytes_in = src.stat().st_size if src.exists() else 0
+
         try:
             res_path = process_image_border_shadow(
-                input_path=in_path,
+                input_path=src,
                 output_path=final_out,
                 corner_radius=radius,
                 border_width=border_w,
@@ -178,18 +197,22 @@ class BorderShadowTool(FileTool):
                 padding=pad,
                 background_mode=bg_mode,
                 bg_color_hex="#ffffff",
-                gradient_preset=preset
+                gradient_preset=preset,
             )
+            bytes_out = res_path.stat().st_size if res_path.exists() else 0
             return ItemResult(
-                in_path=in_path,
-                out_path=res_path,
-                status="success",
-                detail=f"Mockup gerado: raio {radius}px, sombra {shadow_blur}px"
+                success=True,
+                source_path=src,
+                output_path=res_path,
+                message=f"Mockup gerado: raio {radius}px, sombra {shadow_blur}px",
+                bytes_in=bytes_in,
+                bytes_out=bytes_out,
             )
         except Exception as e:
             return ItemResult(
-                in_path=in_path,
-                out_path=out_path,
-                status="error",
-                error=str(e)
+                success=False,
+                source_path=src,
+                output_path=dst,
+                error=str(e),
+                bytes_in=bytes_in,
             )

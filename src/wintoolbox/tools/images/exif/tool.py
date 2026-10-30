@@ -144,7 +144,7 @@ class ImageExifView(QWidget):
             self,
             "Selecionar Imagem com EXIF",
             "",
-            "Imagens (*.jpg *.jpeg *.tiff *.png *.webp)"
+            "Imagens (*.jpg *.jpeg *.jfif *.heic *.heif *.hif *.avif *.tiff *.tif *.png *.webp)"
         )
         if not f:
             return
@@ -260,7 +260,7 @@ class ImageExifView(QWidget):
             self,
             "Selecionar Fotos",
             "",
-            "Fotos (*.jpg *.jpeg *.tiff *.png *.webp)"
+            "Fotos (*.jpg *.jpeg *.jfif *.heic *.heif *.hif *.avif *.tiff *.tif *.png *.webp)"
         )
         if files:
             for f in files:
@@ -275,7 +275,7 @@ class ImageExifView(QWidget):
             for root, _, files in os.walk(folder):
                 for f in files:
                     ext = Path(f).suffix.lower()
-                    if ext in (".jpg", ".jpeg", ".tiff", ".png", ".webp"):
+                    if ext in (".jpg", ".jpeg", ".jfif", ".heic", ".heif", ".hif", ".avif", ".tiff", ".tif", ".png", ".webp"):
                         p = Path(root) / f
                         if p not in self.batch_files:
                             self.batch_files.append(p)

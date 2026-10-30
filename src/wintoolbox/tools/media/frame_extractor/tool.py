@@ -10,6 +10,7 @@ from PySide6.QtWidgets import (
 )
 
 from wintoolbox.core.registry import FileTool, ItemResult, TaskContext, register
+from wintoolbox.tools.media.convert.logic import SUPPORTED_VIDEO_INPUTS
 from wintoolbox.tools.media.frame_extractor.logic import extract_video_frames
 
 
@@ -20,7 +21,7 @@ class FrameExtractorTool(FileTool):
     category = "Áudio e Vídeo"
     description = "Extrator de quadros de vídeo: captura fotos de cenas de vídeos em intervalos regulares ou gera folhas de contato (Storyboards) com miniaturas cronológicas."
     keywords = ["video", "frames", "quadros", "miniaturas", "screenshots", "ffmpeg", "mosaico", "lote"]
-    accepts = [".mp4", ".mkv", ".avi", ".mov", ".webm", ".flv", ".wmv"]
+    accepts = list(SUPPORTED_VIDEO_INPUTS)
     batch_kind = "per_file_multi"
     parallel_mode = "process"
 

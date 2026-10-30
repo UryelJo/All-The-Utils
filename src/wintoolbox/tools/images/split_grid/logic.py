@@ -8,6 +8,9 @@ Zero dependências de interface gráfica ou bibliotecas de UI.
 from pathlib import Path
 from typing import List, Tuple
 from PIL import Image
+from wintoolbox.tools.images.convert.logic import ensure_heif_registered
+
+ensure_heif_registered()
 
 
 def calculate_grid_boxes(

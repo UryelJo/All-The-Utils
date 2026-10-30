@@ -8,6 +8,9 @@ Zero dependências de interface gráfica ou bibliotecas de UI.
 from pathlib import Path
 from typing import Optional, Tuple
 from PIL import Image, ImageDraw, ImageFilter
+from wintoolbox.tools.images.convert.logic import ensure_heif_registered
+
+ensure_heif_registered()
 
 
 def parse_hex_color(hex_str: str, alpha: int = 255) -> Tuple[int, int, int, int]:
@@ -228,6 +231,8 @@ def process_image_border_shadow(
             rgb_bg = Image.new("RGB", result.size, (255, 255, 255))
             rgb_bg.paste(result, mask=result.split()[3])
             rgb_bg.save(output_path, "JPEG", quality=95)
+        elif out_ext == ".webp":
+            result.save(output_path, "WEBP", quality=95)
         else:
             result.save(output_path, "PNG")
 

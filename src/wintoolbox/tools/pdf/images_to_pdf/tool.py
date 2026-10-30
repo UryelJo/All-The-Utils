@@ -24,7 +24,7 @@ class ImagesToPdfTool(Tool):
     name = "Imagens para PDF"
     category = "PDF"
     description = "Conversor de imagens para PDF: transforma fotos e imagens (JPG, PNG, WebP) em documento PDF unificado com opções de orientação, margens e tamanho de folha."
-    keywords = ["pdf", "imagens", "fotos", "jpg", "png", "a4", "álbum", "converter", "scan"]
+    keywords = ["pdf", "imagens", "fotos", "jpg", "png", "heic", "heif", "iphone", "avif", "a4", "álbum", "converter", "scan"]
 
     def build_view(self, parent: Optional[QWidget] = None) -> QWidget:
         container = QFrame(parent)
@@ -132,7 +132,7 @@ class ImagesToPdfTool(Tool):
             None,
             "Selecionar Imagens",
             "",
-            "Imagens (*.png *.jpg *.jpeg *.webp *.bmp *.tiff);;Todos os Arquivos (*.*)"
+            "Imagens (*.png *.jpg *.jpeg *.jfif *.webp *.heic *.heif *.hif *.avif *.bmp *.tiff *.tif *.gif *.qoi *.tga *.psd *.jp2 *.dds);;Todos os Arquivos (*.*)"
         )
         for f in files:
             self.list_images.addItem(f)

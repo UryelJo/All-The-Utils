@@ -1,15 +1,19 @@
 """
 Lógica pura para conversão de imagens em lote para documento PDF.
-Compatível com Pillow e pypdf, sem necessidade de dependências pesadas.
+Compatível com Pillow, pillow-heif (iPhone HEIC/HEIF) e pypdf, sem necessidade de dependências pesadas.
 """
 from pathlib import Path
 from typing import Dict, List, Tuple
-from PIL import Image
+from PIL import Image, ImageOps
+
+from wintoolbox.tools.images.convert.logic import _apply_color_profile, ensure_heif_registered
+
+ensure_heif_registered()
 
 PAGE_SIZES: Dict[str, Tuple[int, int]] = {
     "A4": (595, 842),       # 210 x 297 mm em 72 DPI
-    "Carta (Letter)": (612, 792), # 8.5 x 11 pol
-    "Ofício (Legal)": (612, 1008),# 8.5 x 14 pol
+    "Carta (Letter)": (612, 792),  # 8.5 x 11 pol
+    "Ofício (Legal)": (612, 1008),  # 8.5 x 14 pol
     "Original da Imagem": (0, 0),
 }
 
@@ -24,7 +28,10 @@ def convert_images_to_pdf(
 ) -> Path:
     """
     Converte uma lista ordenada de caminhos de imagens em um documento PDF consolidado.
+    Suporta fotos HEIC/HEIF de iPhone com transposição automática EXIF e conversão Display P3 -> sRGB.
     """
+    ensure_heif_registered()
+
     if not image_paths:
         raise ValueError("A lista de imagens para conversão está vazia.")
 
@@ -40,7 +47,15 @@ def convert_images_to_pdf(
             if not p.is_file():
                 continue
 
-            with Image.open(p) as img_raw:
+            with Image.open(p) as img_opened:
+                raw_icc = img_opened.info.get("icc_profile")
+                img_transposed = ImageOps.exif_transpose(img_opened)
+                img_raw, _ = _apply_color_profile(
+                    img_transposed,
+                    raw_icc,
+                    color_profile_mode="srgb",
+                    target_supports_icc=False,
+                )
                 # Normaliza modo de cor para RGB (converte RGBA / P / 1 para RGB com fundo branco)
                 if img_raw.mode in ("RGBA", "LA") or (img_raw.mode == "P" and "transparency" in img_raw.info):
                     bg = Image.new("RGB", img_raw.size, (255, 255, 255))

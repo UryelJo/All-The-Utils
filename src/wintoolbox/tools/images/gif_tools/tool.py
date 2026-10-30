@@ -199,7 +199,7 @@ class GifToolsView(QWidget):
             self,
             "Selecionar Imagens para o GIF",
             "",
-            "Imagens (*.png *.jpg *.jpeg *.webp *.bmp);;Todos os Arquivos (*.*)"
+            "Imagens (*.png *.jpg *.jpeg *.jfif *.webp *.heic *.heif *.hif *.avif *.bmp *.tiff *.qoi *.tga *.psd);;Todos os Arquivos (*.*)"
         )
         for f in files:
             self.list_create.addItem(f)

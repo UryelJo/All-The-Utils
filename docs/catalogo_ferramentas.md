@@ -9,13 +9,18 @@ Este documento mantém o inventário detalhado de todas as ferramentas disponív
 ### `images.convert` — Conversão e Otimização de Imagens
 - **Tipo**: `FileTool` (Processamento em Lote Automatizado)
 - **Extensões Suportadas**: `.png`, `.jpg`, `.jpeg`, `.webp`, `.bmp`, `.tiff`, `.ico`, `.heic`, `.heif`, `.avif`
-- **Formatos de Saída**: PNG, JPEG, WEBP, BMP, TIFF, ICO
+- **Formatos de Saída**: WEBP, JPG, PNG, HEIC, HEIF, AVIF, TIFF, BMP, GIF, ICO, ICNS, QOI, TGA, DDS, JP2 (JPEG 2000), PPM, PCX, PDF (18 formatos)
+- **Extensões de Entrada Completas (42 formatos)**: `.png`, `.apng`, `.jpg`, `.jpeg`, `.jpe`, `.jfif`, `.webp`, `.gif`, `.bmp`, `.dib`, `.tif`, `.tiff`, `.ico`, `.cur`, `.heic`, `.heif`, `.heics`, `.heifs`, `.hif`, `.avif`, `.avifs`, `.mpo`, `.psd`, `.qoi`, `.tga`, `.dds`, `.icns`, `.jp2`, `.j2k`, `.jpx`, `.jpf`, `.j2c`, `.ppm`, `.pgm`, `.pbm`, `.pnm`, `.pcx`, `.pfm`, `.sgi`, `.ras`, `.xbm`, `.xpm`
 - **Recursos**:
   - Seleção de arquivos avulsos ou pastas inteiras com detecção recursiva.
   - Controle de qualidade (1-100%).
   - Manutenção de metadados EXIF opcional.
   - Redimensionamento proporcional (largura/altura máxima).
-  - Remoção opcional de transparência com fundo branco sólido.
+  - Suporte bidirecional nativo ao formato Apple iPhone HEIF/HEIC (`.heic`, `.heif`, `.hif`), incluindo modo **Sem Perdas (Lossless GBR bit-exact)** e amostragem de croma (`4:2:0`, `4:2:2`, `4:4:4`).
+  - Gerenciamento colorimétrico ICC via LittleCMS2 (`PIL.ImageCms`): conversão automática de perfis wide-gamut (Apple Display P3 / Adobe RGB / CMYK) para **sRGB** padrão, preservação do perfil ICC original ou remoção completa (`strip`).
+  - Controle de privacidade EXIF em 3 níveis: preservar EXIF completo (corrigindo orientação física via `exif_transpose`), remover apenas coordenadas **GPS** ou limpar todos os metadados.
+  - Extração opcional de todos os quadros de arquivos multi-imagem (sequências `.heics`, `.avifs`, `.gif`, `.apng`, `.tiff`, `.mpo`).
+  - Composição de transparência (canal alfa) sobre cor de fundo hexadecimal configurável (`#RRGGBB`) ao converter para formatos opacos (JPG, BMP, PDF, PPM, PCX).
   - Gravação atômica (`.tmp_wtbx`) e estratégia de conflito (sobrescrever, renomear numerado, pular).
 
 ### `images.resize` — Redimensionador e Cortador de Imagens
@@ -57,7 +62,7 @@ Este documento mantém o inventário detalhado de todas as ferramentas disponív
 - **Tipo**: `Tool` (Interativo e Lote)
 - **Recursos**:
   - **Aba Inspecionar**: Detecção de fabricante, modelo da câmera, abertura f/, exposição, ISO, distância focal, data/hora original, coordenadas GPS com link direto para o Google Maps e tabela completa de tags brutas.
-  - **Aba Remoção em Lote**: Anonimização total (remoção de todos os metadados), remoção seletiva de GPS, ou renomeação automática de fotos pelo padrão `AAAA-MM-DD_HH-MM-SS` da data de captura.
+  - **Aba Remoção em Lote**: Anonimização total (remoção de todos os metadados), remoção seletiva de GPS (compatível com JPEG, PNG, WEBP, TIFF, AVIF e fotos Apple iPhone `.heic`/`.heif`/`.hif`), ou renomeação automática de fotos pelo padrão `AAAA-MM-DD_HH-MM-SS` da data de captura.
 
 ### `images.favicon` — Gerador de Ícones e Favicons
 - **Tipo**: `Tool`
@@ -868,7 +873,7 @@ Este documento mantém o inventário detalhado de todas as ferramentas disponív
 - **Tipo**: `Tool`
 - **Extensões Suportadas**: `.png`, `.jpg`, `.jpeg`, `.webp`, `.bmp`, `.tiff`
 - **Recursos**:
-  - Converte fotos, capturas e digitalizações em lote para um único documento PDF compilado.
+  - Converte fotos (incluindo fotos Apple iPhone `.heic`/`.heif`/`.hif`, `.avif`, `.psd`, `.qoi`, `.tga`, `.jp2`, `.png`, `.jpg`, `.webp`, `.bmp`, `.tiff`), capturas e digitalizações em lote para um único documento PDF compilado, aplicando rotação automática EXIF e conversão de cor Display P3 para sRGB.
   - Suporte a tamanhos padrão de papel: A4 (210x297mm), Carta (Letter), Ofício (Legal) e Tamanho Original da Imagem.
   - Orientação da folha: Automática (segue proporção da foto), Retrato (Vertical) ou Paisagem (Horizontal).
   - Controle de margem interna em pontos (pt).
@@ -938,8 +943,11 @@ Este documento mantém o inventário detalhado de todas as ferramentas disponív
 
 ### `media.convert` — Conversor de Vídeo e Áudio
 - **Tipo**: `FileTool` (Processamento em Lote Automatizado)
-- **Extensões Suportadas**: `.mp4`, `.mkv`, `.avi`, `.mov`, `.webm`, `.flv`, `.wmv`, `.mp3`, `.wav`, `.aac`, `.flac`, `.ogg`, `.m4a`, `.wma`
-- **Formatos de Saída**: MP4, MKV, WEBM, AVI, MOV, GIF, MP3, WAV, AAC, FLAC, OGG, M4A
+- **Extensões Suportadas (50 formatos)**: Vídeo (`.mp4`, `.m4v`, `.mov`, `.mkv`, `.webm`, `.avi`, `.flv`, `.f4v`, `.wmv`, `.asf`, `.ts`, `.mts`, `.m2ts`, `.mpg`, `.mpeg`, `.mpe`, `.mpv`, `.m2v`, `.vob`, `.3gp`, `.3g2`, `.ogv`, `.divx`, `.dv`, `.mxf`, `.rm`, `.rmvb`) e Áudio (`.mp3`, `.wav`, `.aac`, `.flac`, `.ogg`, `.oga`, `.opus`, `.m4a`, `.m4b`, `.m4r`, `.wma`, `.aiff`, `.aif`, `.caf`, `.ac3`, `.eac3`, `.dts`, `.amr`, `.ape`, `.wv`, `.mp2`, `.weba`, `.alac`)
+- **Formatos de Saída (26 formatos)**: Vídeo/Animação (`MP4`, `MKV`, `MOV`, `WEBM`, `AVI`, `WMV`, `TS`, `FLV`, `M4V`, `MPG`, `3GP`, `OGV`, `GIF`, `WEBP` animado) e Áudio (`MP3`, `M4A`, `AAC`, `OPUS`, `OGG`, `FLAC`, `WAV`, `AIFF`, `AC3`, `WMA`, `CAF`, `MP2`)
+- **Codecs de Vídeo e Opções Avançadas**:
+  - Seleção de Codec de Vídeo: Automático por contêiner, **H.264 (AVC)**, **H.265 / HEVC** (com tag `hvc1` compatível nativamente com Apple/QuickTime/iPhone), **AV1**, **VP9**, **Apple ProRes 422** e **Stream Copy** (remux instantâneo sem recodificação).
+  - Limite opcional de resolução máxima vertical (`2160p 4K`, `1440p 2K`, `1080p`, `720p`, `480p`, `360p`) com proteção automática de dimensões pares (`trunc(iw/2)*2`) e controle de bitrate de áudio (`96k` a `320k`) e largura de GIF/WebP animado.
 - **Recursos**:
   - Conversão em lote com recursão de pastas e espelhamento de estrutura de diretórios.
   - Extração exclusiva de faixa de áudio de vídeos (convertendo direto para MP3/AAC/WAV/FLAC).
@@ -964,7 +972,7 @@ Este documento mantém o inventário detalhado de todas as ferramentas disponív
 
 ### `media.frame_extractor` — Extrator de Frames de Vídeo
 - **Tipo**: `FileTool` (Processamento em Lote Automatizado)
-- **Extensões Suportadas**: `.mp4`, `.mkv`, `.avi`, `.mov`, `.webm`, `.flv`, `.wmv`
+- **Extensões Suportadas**: `.mp4`, `.m4v`, `.mov`, `.mkv`, `.webm`, `.avi`, `.flv`, `.f4v`, `.wmv`, `.asf`, `.ts`, `.mts`, `.m2ts`, `.mpg`, `.mpeg`, `.vob`, `.3gp`, `.3g2`, `.ogv`, `.mxf`
 - **Recursos**:
   - Extração de quadros a cada N segundos em lote para toda uma biblioteca de vídeos.
   - Extração de quadro fixo por timestamp (`HH:MM:SS`).
@@ -1326,7 +1334,7 @@ Este documento mantém o inventário detalhado de todas as ferramentas disponív
   - Normalização da sonoridade de áudios e vídeos pelo padrão broadcast internacional EBU R128 / ITU-R BS.1770 (`loudnorm`).
   - Presets prontos para streaming: Spotify/YouTube (-14 LUFS), Apple Music (-16 LUFS), Televisão / Broadcast (-23 LUFS) ou modo Personalizado.
   - Tratamento inteligente de vídeos: preserva a trilha de vídeo original intocada (`-c:v copy`), normalizando apenas as faixas de áudio sem perda de tempo ou qualidade de imagem.
-  - Suporte a múltiplos formatos de áudio e vídeo (.mp4, .mkv, .mp3, .wav, .flac, .m4a, .aac, .ogg).
+  - Suporte expandido a 50 formatos de áudio e vídeo (`.mp4`, `.mov`, `.mkv`, `.webm`, `.avi`, `.ts`, `.mts`, `.m2ts`, `.wmv`, `.flv`, `.mpg`, `.vob`, `.3gp`, `.mxf`, `.mp3`, `.wav`, `.flac`, `.m4a`, `.aac`, `.ogg`, `.opus`, `.aiff`, `.caf`, `.ac3`, `.wma`, etc.).
 
 ### `media.subtitles` — Editor e Conversor de Legendas (SRT / WebVTT)
 - **Tipo**: `Tool` (Interativo e Utilitário de Mídia)

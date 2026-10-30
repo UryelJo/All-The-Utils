@@ -139,7 +139,7 @@ class ImageCollageView(QWidget):
             self,
             "Selecionar Fotos para Colagem",
             "",
-            "Imagens (*.png *.jpg *.jpeg *.webp *.bmp);;Todos os Arquivos (*.*)"
+            "Imagens (*.png *.jpg *.jpeg *.jfif *.webp *.heic *.heif *.hif *.avif *.bmp *.tiff *.gif *.qoi *.tga *.psd *.jp2);;Todos os Arquivos (*.*)"
         )
         for f in files:
             self.list_images.addItem(f)

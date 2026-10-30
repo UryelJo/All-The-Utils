@@ -25,8 +25,8 @@ class NormalizeTool(FileTool):
     keywords = ["normalizar", "volume", "loudnorm", "lufs", "audio", "video", "som", "mp3", "ebu r128", "podcast", "lote"]
 
     accepts = [
-        ".mp3", ".wav", ".m4a", ".aac", ".ogg", ".flac", ".wma",
-        ".mp4", ".mkv", ".mov", ".avi", ".webm"
+        ".mp3", ".wav", ".m4a", ".aac", ".ogg", ".opus", ".flac", ".wma", ".aiff", ".aif", ".ac3", ".caf",
+        ".mp4", ".m4v", ".mkv", ".mov", ".avi", ".webm", ".ts", ".mts", ".m2ts", ".wmv", ".flv"
     ]
     batch_kind = "per_file"
     parallel_mode = "thread"

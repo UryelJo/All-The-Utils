@@ -3,11 +3,16 @@ Ferramenta: Divisão de Imagens em Grade e Fatias.
 Permite particionar imagens para carrossel, mosaicos e sprites em lote.
 """
 from pathlib import Path
-from typing import Optional
-from PySide6.QtCore import Qt
+from typing import Any, Dict, Optional
+
 from PySide6.QtWidgets import (
-    QComboBox, QFrame, QGridLayout, QHBoxLayout,
-    QLabel, QSpinBox, QVBoxLayout, QWidget
+    QComboBox,
+    QFrame,
+    QGridLayout,
+    QLabel,
+    QSpinBox,
+    QVBoxLayout,
+    QWidget,
 )
 
 from wintoolbox.core.registry import FileTool, ItemResult, TaskContext, register
@@ -21,7 +26,11 @@ class SplitGridTool(FileTool):
     category = "Imagens"
     description = "Divida imagens em grades NxM ou fatias para carrossel do Instagram, posters e sprites"
     keywords = ["dividir", "grade", "fatiar", "carrossel", "instagram", "mosaico", "sprites", "grid", "tiles"]
-    accepts = [".png", ".jpg", ".jpeg", ".webp", ".bmp", ".tiff"]
+    accepts = [
+        ".png", ".jpg", ".jpeg", ".jfif", ".webp",
+        ".heic", ".heif", ".hif", ".avif", ".bmp",
+        ".tiff", ".qoi", ".tga", ".psd",
+    ]
     batch_kind = "per_file"
     parallel_mode = "process"
 
@@ -104,70 +113,64 @@ class SplitGridTool(FileTool):
             self.spin_rows.setValue(4)
             self.spin_cols.setValue(4)
 
-    def get_options(self) -> dict:
+    def get_options(self) -> Dict[str, Any]:
         return {
             "rows": self.spin_rows.value() if hasattr(self, "spin_rows") else 1,
             "cols": self.spin_cols.value() if hasattr(self, "spin_cols") else 3,
             "overlap": self.spin_overlap.value() if hasattr(self, "spin_overlap") else 0,
-            "format": self.cmb_format.currentText() if hasattr(self, "cmb_format") else "PNG"
+            "format": self.cmb_format.currentText() if hasattr(self, "cmb_format") else "PNG",
         }
 
-    def process(self, in_path: Path, out_path: Path, *args, **kwargs) -> ItemResult:
-        params = {}
-        ctx = None
-        for arg in args:
-            if isinstance(arg, dict):
-                params = arg
-            elif hasattr(arg, "cancelled") or hasattr(arg, "is_cancelled"):
-                ctx = arg
-        if "params" in kwargs and isinstance(kwargs["params"], dict):
-            params = kwargs["params"]
-        if "ctx" in kwargs:
-            ctx = kwargs["ctx"]
-
-        if ctx is not None:
-            is_canc = ctx.cancelled() if hasattr(ctx, "cancelled") else (ctx.is_cancelled() if hasattr(ctx, "is_cancelled") else False)
-            if is_canc:
-                return ItemResult(
-                    in_path=in_path,
-                    out_path=out_path,
-                    status="cancelled",
-                    error="Operação cancelada pelo usuário"
-                )
-
+    def process(
+        self,
+        src: Path,
+        dst: Path,
+        params: Optional[Dict[str, Any]] = None,
+        ctx: Optional[TaskContext] = None,
+    ) -> ItemResult:
         opts = self.get_options() if hasattr(self, "spin_rows") else {}
-        rows = params.get("rows", opts.get("rows", 1))
-        cols = params.get("cols", opts.get("cols", 3))
-        overlap = params.get("overlap", opts.get("overlap", 0))
-        out_fmt = str(params.get("format", opts.get("format", "PNG"))).lower()
+        eff_params = params if isinstance(params, dict) else {}
 
-        rows = self.spin_rows.value()
-        cols = self.spin_cols.value()
-        overlap = self.spin_overlap.value()
-        out_fmt = self.cmb_format.currentText().lower()
+        if ctx is not None and ctx.cancelled():
+            return ItemResult(
+                success=False,
+                source_path=src,
+                output_path=dst,
+                error="Operação cancelada pelo usuário",
+            )
 
-        # Cria uma subpasta nomeada para acomodar os múltiplos pedaços da imagem
-        dest_folder = out_path.parent / f"{in_path.stem}_grid_{rows}x{cols}"
+        rows = int(eff_params.get("rows", opts.get("rows", 1)))
+        cols = int(eff_params.get("cols", opts.get("cols", 3)))
+        overlap = int(eff_params.get("overlap", opts.get("overlap", 0)))
+        out_fmt = str(eff_params.get("format", opts.get("format", "PNG"))).lower()
+
+        clean_stem = dst.stem.split(".wtbx-")[0] if ".wtbx-" in dst.stem else src.stem
+        dest_folder = dst.parent / f"{clean_stem}_grid_{rows}x{cols}"
+        bytes_in = src.stat().st_size if src.exists() else 0
 
         try:
             generated_files = split_image_file(
-                input_path=in_path,
+                input_path=src,
                 output_dir=dest_folder,
                 rows=rows,
                 cols=cols,
                 overlap_px=overlap,
-                output_format=out_fmt
+                output_format=out_fmt,
             )
+            bytes_out = sum(f.stat().st_size for f in generated_files if f.exists())
             return ItemResult(
-                in_path=in_path,
-                out_path=dest_folder,
-                status="success",
-                detail=f"{len(generated_files)} partes geradas em {dest_folder.name}"
+                success=True,
+                source_path=src,
+                output_path=dest_folder,
+                message=f"{len(generated_files)} partes geradas em {dest_folder.name}",
+                bytes_in=bytes_in,
+                bytes_out=bytes_out,
             )
         except Exception as e:
             return ItemResult(
-                in_path=in_path,
-                out_path=out_path,
-                status="error",
-                error=str(e)
+                success=False,
+                source_path=src,
+                output_path=dst,
+                error=str(e),
+                bytes_in=bytes_in,
             )

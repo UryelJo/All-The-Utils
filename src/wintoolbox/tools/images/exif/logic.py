@@ -147,7 +147,9 @@ def strip_metadata(src: Path, dst: Path, remove_gps_only: bool = False) -> None:
                 # Remove apenas a referência GPS
                 if ExifTags.IFD.GPSInfo in exif:
                     del exif[ExifTags.IFD.GPSInfo]
-                im.save(dst, exif=exif)
+                if hasattr(exif, "_ifds") and ExifTags.IFD.GPSInfo in exif._ifds:
+                    del exif._ifds[ExifTags.IFD.GPSInfo]
+                im.save(dst, exif=exif.tobytes())
                 return
 
         # Remoção Total: copia os pixels para uma nova imagem limpa

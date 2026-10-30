@@ -23,7 +23,7 @@ class ImageResizeTool(FileTool):
     category = "Imagens"
     description = "Redimensione, corte, rotacione e espelhe fotos e imagens em lote com alta qualidade"
     keywords = ["redimensionar", "imagem", "escala", "cortar", "crop", "rotacionar", "espelhar", "lanczos", "fotos"]
-    accepts = [".png", ".jpg", ".jpeg", ".webp", ".bmp", ".tiff", ".ico", ".heic", ".heif", ".avif"]
+    accepts = [".png", ".jpg", ".jpeg", ".jfif", ".webp", ".bmp", ".tiff", ".tif", ".ico", ".heic", ".heif", ".hif", ".avif", ".qoi", ".tga", ".psd", ".jp2", ".dds"]
     batch_kind = "per_file"
     parallel_mode = "process"
 
