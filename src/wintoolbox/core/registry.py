@@ -143,6 +143,11 @@ def _ensure_loaded() -> None:
         "wintoolbox.tools.calc",
         "wintoolbox.tools.automation",
         "wintoolbox.tools.security",
+        "wintoolbox.tools.crypto",
+        "wintoolbox.tools.web",
+        "wintoolbox.tools.forensics",
+        "wintoolbox.tools.osint",
+        "wintoolbox.tools.rev",
     ):
         try:
             __import__(pkg)
@@ -238,6 +243,33 @@ CANONICAL_CATEGORIES: Dict[str, str] = {
     "seguranca": "Segurança",
     "segurança e auditoria": "Segurança",
     "security": "Segurança",
+
+    # Criptografia
+    "criptografia": "Criptografia",
+    "crypto": "Criptografia",
+    "criptografia e esteganografia": "Criptografia",
+
+    # Web
+    "web": "Web",
+    "ofensiva web": "Web",
+    "testes web": "Web",
+
+    # Forense
+    "forense": "Forense",
+    "forensics": "Forense",
+    "análise forense": "Forense",
+    "analise forense": "Forense",
+
+    # OSINT
+    "osint": "OSINT",
+    "inteligência de fontes abertas": "OSINT",
+    "inteligencia de fontes abertas": "OSINT",
+
+    # Engenharia reversa
+    "reverse engineering": "Reverse Engineering",
+    "engenharia reversa": "Reverse Engineering",
+    "rev": "Reverse Engineering",
+    "reversing": "Reverse Engineering",
 }
 
 

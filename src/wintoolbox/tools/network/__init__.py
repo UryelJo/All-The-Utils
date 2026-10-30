@@ -20,3 +20,11 @@ import wintoolbox.tools.network.dns_benchmark
 import wintoolbox.tools.network.whois
 import wintoolbox.tools.network.bandwidth_monitor
 import wintoolbox.tools.network.subnet_calc
+
+# Fase 16: Captura, criação e interceptação de tráfego para testes autorizados
+import wintoolbox.tools.network.packet_sniffer
+import wintoolbox.tools.network.packet_crafter
+import wintoolbox.tools.network.arp_poison
+import wintoolbox.tools.network.dns_spoof
+import wintoolbox.tools.network.deauth_test
+import wintoolbox.tools.network.mitm_proxy

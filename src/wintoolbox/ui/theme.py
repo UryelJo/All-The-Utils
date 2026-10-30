@@ -363,39 +363,41 @@ def apply_theme(app: Optional[QApplication], mode: Optional[str] = None, accent_
         background-color: #ffffff;
     }}
 
-    /* Cartões e Superfícies Sólidas */
+    /* Cartões e Superfícies Sólidas (Bento Grid) */
     QFrame[class="card"], QFrame.card, .card {{
         background-color: {t.bg_card};
         border: 1px solid {t.border_color};
-        border-radius: 8px;
+        border-radius: 16px;
     }}
     QFrame[class="card"] QLabel, QFrame.card QLabel, .card QLabel {{
         background-color: transparent;
     }}
 
-    /* Cards Interativos de Ferramenta (Home Page) */
-    QFrame[class="tool-card"], QFrame.tool-card {{
+    /* Cards Interativos de Ferramenta e Módulos Bento */
+    QFrame[class="tool-card"], QFrame.tool-card,
+    QFrame[class="bento-card"], QFrame.bento-card {{
         background-color: {t.bg_card};
         border: 1px solid {t.border_color};
-        border-radius: 8px;
+        border-radius: 16px;
     }}
-    QFrame[class="tool-card"]:hover, QFrame.tool-card:hover {{
+    QFrame[class="tool-card"]:hover, QFrame.tool-card:hover,
+    QFrame[class="bento-card"]:hover, QFrame.bento-card:hover {{
         background-color: {t.bg_card_hover};
-        border: 1px solid {t.border_color};
+        border: 1px solid {t.accent};
     }}
 
-    /* Hero Banner / Cabeçalho da Home */
+    /* Hero Banner / Cabeçalho da Home Bento */
     QFrame#heroCard {{
         background-color: {t.bg_card};
         border: 1px solid {t.border_color};
-        border-radius: 8px;
+        border-radius: 18px;
     }}
 
     /* Dropzone Visual (Smart Drop & Batch Input Vazio) */
     QFrame[class="dropzone"], QFrame.dropzone {{
         background-color: {t.bg_sidebar};
         border: 2px dashed {t.border_color};
-        border-radius: 10px;
+        border-radius: 18px;
     }}
     QFrame[class="dropzone"]:hover, QFrame.dropzone:hover,
     QFrame[class="dropzone-active"], QFrame.dropzone-active {{
@@ -477,6 +479,24 @@ def apply_theme(app: Optional[QApplication], mode: Optional[str] = None, accent_
         border-radius: 6px;
     }}
 
+    /* Botão Circular de Disparo Rápido (Estilo Bento ↗) */
+    QPushButton[class="action-circle-btn"], QPushButton.action-circle-btn {{
+        background-color: {t.bg_input};
+        color: {t.text_secondary};
+        border: 1px solid {t.border_color};
+        border-radius: 14px;
+        min-width: 28px;
+        max-width: 28px;
+        min-height: 28px;
+        max-height: 28px;
+        padding: 0px;
+    }}
+    QPushButton[class="action-circle-btn"]:hover, QPushButton.action-circle-btn:hover {{
+        background-color: {t.accent};
+        color: #ffffff;
+        border-color: {t.accent};
+    }}
+
     /* Chips de Filtro de Categoria */
     QPushButton[class="chip"], QPushButton.chip {{
         background-color: {t.bg_card};
@@ -505,7 +525,7 @@ def apply_theme(app: Optional[QApplication], mode: Optional[str] = None, accent_
         color: {badge_batch_fg};
         font-size: 10px;
         font-weight: 600;
-        border-radius: 4px;
+        border-radius: 6px;
         padding: 2px 7px;
     }}
     QLabel[class="badge-panel"], QLabel.badge-panel {{
@@ -513,16 +533,17 @@ def apply_theme(app: Optional[QApplication], mode: Optional[str] = None, accent_
         color: {badge_panel_fg};
         font-size: 10px;
         font-weight: 600;
-        border-radius: 4px;
+        border-radius: 6px;
         padding: 2px 7px;
     }}
     QLabel[class="ext-chip"], QLabel.ext-chip {{
         background-color: {t.bg_input};
         color: {t.text_secondary};
         border: 1px solid {t.border_color};
-        border-radius: 4px;
+        border-radius: 6px;
         padding: 2px 6px;
-        font-size: 11px;
+        font-size: 10px;
+        font-weight: 500;
     }}
 
     /* Entradas de Texto e Seletores */

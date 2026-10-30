@@ -38,7 +38,8 @@ def run_self_test() -> int:
 
     # Uma categoria ausente = dependência faltando no pacote (o registro a ignora sem travar o app)
     expected = {"Arquivos e Pastas", "Codificação e Hash", "Compactação", "Dados e Estruturas", "Imagens",
-                "PDF", "Rede e Internet", "Sistema", "Texto e Redação", "Áudio e Vídeo"}
+                "PDF", "Rede e Internet", "Sistema", "Texto e Redação", "Áudio e Vídeo",
+                "Segurança", "Criptografia", "Web", "Forense", "OSINT", "Reverse Engineering"}
     cats = get_categories()
     tools = get_all_tools()
     check(f"Ferramentas registradas: {len(tools)} em {len(cats)} categorias", len(tools) > 0)

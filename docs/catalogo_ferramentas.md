@@ -2159,6 +2159,186 @@ Este documento mantém o inventário detalhado de todas as ferramentas disponív
   - Aplicação de estados de layout automáticos: Maximizado, Metade Esquerda da Tela (Snap Left), Metade Direita da Tela (Snap Right) ou Coordenadas Fixas em pixels ($X, Y, Largura, Altura$).
   - Aplicação imediata de regras sobre as janelas abertas atualmente no sistema operacional.
 
+## 28. Segurança Ofensiva, Forense, OSINT e Engenharia Reversa
+
+Esta expansão adiciona 43 ferramentas organizadas nos pacotes `security`, `crypto`,
+`network`, `web`, `forensics`, `osint`, `rev` e `system`. As dependências opcionais
+estão em `requirements-security.txt`. Toda operação longa usa `TaskRunner` e as
+bibliotecas pesadas são importadas sob demanda.
+
+### `security.hash_identify` — Identificador de Tipo de Hash
+- **Tipo**: `Tool`.
+- **Recursos**: assinaturas para MD5, SHA-1/2/3, NTLM, LM, bcrypt, Argon2, scrypt, Django, WordPress/PHPass, Joomla, Drupal, RIPEMD-160, CRC32, crypt Unix e Base64 de hash; confiança, comprimento esperado, exemplo e modo Hashcat; análise em tempo real com debounce de 300 ms.
+
+### `security.hash_cracker` — Quebrador de Hashes
+- **Tipo**: `Tool`; exige confirmação do termo de uso responsável.
+- **Recursos**: wordlist com fallback de 100 senhas, força bruta com charset e comprimento, detecção automática do algoritmo, MD4/NTLM nativo, benchmark, Hashcat/GPU opcional, progresso, taxa, cancelamento e painel de log.
+
+### `security.rainbow_generator` — Gerador de Rainbow Table
+- **Tipo**: `Tool`.
+- **Recursos**: geração incremental em SQLite com índice primário, estimativa de combinações e tamanho, confirmação acima de 1 GB, cancelamento com preservação parcial e consulta instantânea de hash.
+
+### `security.jwt_secret_cracker` — Quebrador de Segredo JWT
+- **Tipo**: `Tool`.
+- **Recursos**: leitura de HS256/HS384/HS512, validação de assinatura em tempo constante, wordlist/lista inline/força bruta, alerta de token expirado, segredo encontrado e re-assinatura de token para validação.
+
+### `crypto.stegano` — Esteganografia em Imagem e Áudio
+- **Tipo**: `FileTool`; extensões `.png`, `.bmp` e `.wav`.
+- **Recursos**: LSB em pixels RGB ou amostras WAV, mensagem ou arquivo, senha com fluxo SHA-256, cabeçalho `WTBXSTEG` com tamanho, flags e integridade SHA-256, cálculo de capacidade e extração com detecção de payload.
+
+### `crypto.stegano_detect` — Detector de Esteganografia
+- **Tipo**: `Tool`.
+- **Recursos**: chi-quadrado de Westfeld-Pfitzmann, RS Analysis de Fridrich, Sample Pair Analysis de Dumitrescu, score consolidado de 0 a 100, histograma de LSBs e laudo em texto com métricas brutas.
+
+### `crypto.rsa_attack` — Ataques a RSA Fraco
+- **Tipo**: `Tool` com quatro abas.
+- **Recursos**: Wiener por frações continuadas, fatoração de Fermat para primos próximos, módulo comum por Bézout e broadcast de Hastad com teorema chinês dos restos; teste de decriptação quando o ciphertext é informado.
+
+### `crypto.classical_break` — Criptoanálise de Cifras Clássicas
+- **Tipo**: `Tool`.
+- **Recursos**: análise de frequência contra português/inglês, quebra de César com score de bigramas, Índice de Coincidência e Kasiski para Vigenère e substituição simples por hill-climbing.
+
+### `network.packet_sniffer` — Analisador de Tráfego de Rede
+- **Tipo**: `Tool`; requer Administrador e confirmação ética; depende de Npcap/Scapy.
+- **Recursos**: escolha de interface e filtro BPF, `AsyncSniffer`, tabela em tempo real, dissecação TCP/UDP/ICMP/DNS/HTTP/TLS SNI, estatísticas por protocolo e top IPs, salvamento `.pcap`.
+
+### `network.packet_crafter` — Forjador de Pacotes
+- **Tipo**: `Tool`; requer Administrador e confirmação ética.
+- **Recursos**: abas ICMP, TCP, UDP e DNS; flags, payload, envio e resposta com latência; trace route manual por TTL; histórico e exportação de log/pcap.
+
+### `network.arp_poison` — Testador de ARP Spoofing
+- **Tipo**: `Tool`; requer Administrador e termo ético.
+- **Recursos**: descoberta de gateway e dispositivos da LAN, envenenamento bidirecional controlado, contadores, parada imediata e restauração das tabelas ARP em `try/finally`.
+
+### `network.dns_spoof` — Simulador de DNS Spoofing
+- **Tipo**: `Tool`; confirmação ética.
+- **Recursos**: regras domínio para IP, interceptação de consultas UDP/53, resposta forjada e modo somente-log para auditoria de captive portals e DNS rebinding.
+
+### `network.deauth_test` — Testador de Robustez WiFi
+- **Tipo**: `Tool`; requer Administrador, placa em modo monitor e confirmação dupla.
+- **Recursos**: varredura de redes, BSSID/canal/segurança, deauth limitado a um pacote por segundo, duração configurável, relatório e observação sobre a resistência de WPA3-SAE.
+
+### `network.mitm_proxy` — Proxy Interceptador
+- **Tipo**: `Tool`; confirmação ética.
+- **Recursos**: proxy local em `127.0.0.1:8080`, CA de teste, fluxo de requisições/respostas, filtros, regras de rewrite, exportação HAR e modo HTTP nativo quando mitmproxy não está instalado.
+
+### `web.dir_bruteforce` — Descobridor de Diretórios Web
+- **Tipo**: `Tool`; confirmação ética.
+- **Recursos**: wordlist interna extensa, wordlist externa, códigos de sucesso configuráveis, threads limitadas, atraso, filtro por tamanho, tabela colorida e exportação CSV/JSON.
+
+### `web.subdomain_enum` — Enumerador de Subdomínios
+- **Tipo**: `Tool`; confirmação ética.
+- **Recursos**: wordlist interna, resolução concorrente A/AAAA, detecção de wildcard DNS, checagem HTTP opcional, exportação CSV e fallback sem dnspython.
+
+### `web.vuln_scanner` — Scanner de Vulnerabilidades Web
+- **Tipo**: `Tool`; confirmação ética e testes não destrutivos.
+- **Recursos**: extração de formulários, SQLi error-based, XSS refletido, LFI, open redirect e cabeçalhos ausentes; relatório com severidade, evidência, correção e exportação Markdown/JSON.
+
+### `web.jwt_toolkit` — Toolkit de Teste de JWT
+- **Tipo**: `Tool`; confirmação ética.
+- **Recursos**: `alg: none`, confusão HMAC/RSA, `kid` com path traversal e integração com quebra de segredo; token modificado em Base64URL colorido e teste contra endpoint próprio.
+
+### `web.csrf_poc` — Gerador de PoC CSRF
+- **Tipo**: `Tool`.
+- **Recursos**: três variantes (auto-submit, fetch e imagem GET), preview HTML, comentário legal, cópia e salvamento `.html`.
+
+### `forensics.memory_dump` — Extrator de Memória de Processo
+- **Tipo**: `Tool`; requer Administrador e confirmação ética.
+- **Recursos**: lista de processos, `ReadProcessMemory` por região de `VirtualQueryEx`, dump `.dmp` com log de regiões e classificação de strings (URL, IP, e-mail, registro e `Authorization`).
+
+### `forensics.file_recovery` — Recuperador de Arquivos Deletados
+- **Tipo**: `Tool`; leitura estritamente somente-leitura.
+- **Recursos**: MFT NTFS via pytsk3 quando disponível, carving por assinaturas JPEG/PDF/ZIP/Office/MP4, preview de imagens, destino separado da origem e `recuperados.csv`.
+
+### `forensics.registry_parser` — Analisador de Hives do Registro
+- **Tipo**: `Tool`.
+- **Recursos**: SAM (RID, usuário, hashes, último logon, flags), SYSTEM (serviços, drivers, USB, shutdown), SOFTWARE (instalados, versão, timezone) e NTUSER.DAT (RecentDocs, UserAssist, TypedPaths, MRU); árvore com busca e exportação.
+
+### `forensics.browser_extract` — Extrator de Dados de Navegadores
+- **Tipo**: `Tool`; confirmação ética e leitura sobre cópias.
+- **Recursos**: Chrome, Edge, Brave, Opera, Vivaldi e Firefox; histórico, downloads, cookies DPAPI/AES-GCM, senhas salvas, autofill e bookmarks; abas, filtros e exportação JSON/CSV.
+
+### `forensics.usb_history` — Histórico de Dispositivos USB
+- **Tipo**: `Tool`.
+- **Recursos**: `USBSTOR` e `USB`, correlação VID/PID, `Setupapi.dev.log`, primeira instalação, última inserção/remoção, dispositivos desconhecidos e CSV.
+
+### `forensics.lnk_analyzer` — Analisador de Atalhos `.lnk`
+- **Tipo**: `FileTool`; extensão `.lnk`.
+- **Recursos**: parser MS-SHLLINK nativo com LnkParse3 opcional, caminho, argumentos, diretório de trabalho, timestamps, volume serial, hostname e MAC; CSV consolidado.
+
+### `forensics.artifact_timeline` — Linha do Tempo de Artefatos
+- **Tipo**: `Tool`.
+- **Recursos**: Event Logs (logon, 4688, serviços, USB), Prefetch, AmCache e RecentDocs em uma única linha do tempo com filtros por período/fonte e exportação CSV/XLSX.
+
+### `osint.username_enum` — Enumeração de Username
+- **Tipo**: `Tool`; aviso de responsabilidade e LGPD.
+- **Recursos**: base interna de mais de cem sites, consultas concorrentes, marcadores de ausência por site, status Encontrado/Não encontrado/Erro, abertura no navegador e CSV/JSON.
+
+### `osint.domain_intel` — Inteligência de Domínio
+- **Tipo**: `Tool`.
+- **Recursos**: WHOIS via protocolo nativo, DNS A/AAAA/MX/TXT/NS/SOA/CAA, SSL/TLS, tecnologias por headers/HTML, Google Dorks prontos e relatório Markdown.
+
+### `osint.email_breach` — Verificador de E-mail em Vazamentos
+- **Tipo**: `Tool`; aviso de privacidade e LGPD.
+- **Recursos**: HIBP v3 com token via `get_api_token("hibp")`, consulta individual ou em lote, classes de dados expostos, score de risco e exportação JSON.
+
+### `osint.metadata_extract` — Extrator de Metadados
+- **Tipo**: `FileTool`; imagens, PDF, Office OpenXML e mídia.
+- **Recursos**: EXIF/XMP/IPTC, autor e empresa em PDF/OOXML, ID3/MP4, GPS com link de mapa, detecção de metadados reveladores e exportação JSON/CSV.
+
+### `rev.pe_analyzer` — Analisador de Executáveis PE
+- **Tipo**: `Tool`.
+- **Recursos**: machine, timestamp, entrypoint, image base, subsystem, seções com entropia e flags, imports por categoria, exports, recursos, compilador provável, packers e assinatura Authenticode.
+
+### `rev.strings_extract` — Extrator de Strings
+- **Tipo**: `FileTool`; qualquer binário.
+- **Recursos**: ASCII e UTF-16LE, comprimento mínimo ajustável, classificação de URL/IP/e-mail/caminho/registro/hash/JWT/chave de API/Base64, filtros e exportação TXT/CSV/JSON.
+
+### `rev.disassembler` — Desassemblador Multi-Arquitetura
+- **Tipo**: `Tool`.
+- **Recursos**: x86, x86-64, ARM, ARM64 e MIPS via Capstone, sintaxe Intel/AT&T, navegação por offset, bytes brutos, xrefs para `call`/`jmp`, assembler Keystone opcional e exportação ASM.
+
+### `rev.js_deobfuscator` — Desofuscador JavaScript
+- **Tipo**: `Tool`.
+- **Recursos**: pretty-print, unescape `\xNN`/`\uNNNN`, resolução de `String.fromCharCode`, `eval` literal, renomeação `_0x...`, remoção simples de dead code, diff antes/depois e análise de risco.
+
+### `rev.pyc_decompiler` — Decompilador de Bytecode Python
+- **Tipo**: `FileTool`; extensão `.pyc`.
+- **Recursos**: magic number, escolha entre decompyle3/uncompyle6/pycdc, fallback com `dis`, exportação `.py` e log de avisos.
+
+### `system.persistence_scan` — Scanner de Persistência
+- **Tipo**: `Tool`.
+- **Recursos**: Run/RunOnce, serviços, tarefas agendadas, WMI subscriptions, Startup, AppInit_DLLs, Winlogon e IFEO; hash SHA-256, assinatura, alertas de path suspeito, typosquatting, JSON/CSV e atalhos para Regedit/Explorer.
+
+### `system.rootkit_detect` — Detector de Rootkit
+- **Tipo**: `Tool`; requer Administrador.
+- **Recursos**: comparação psutil/NtQuerySystemInformation, portas LISTEN sem dono, drivers não assinados, integridade de `winlogon`/`lsass` e relatório somente-diagnóstico.
+
+### `system.keylogger_detect` — Detector de Keylogger
+- **Tipo**: `Tool`.
+- **Recursos**: DLLs e hooks suspeitos, filtros de teclado, logs em TEMP/APPDATA, heurística de `GetAsyncKeyState` e recomendações; não instala nem remove nada.
+
+### `system.credential_audit` — Auditoria de Credenciais Locais
+- **Tipo**: `Tool`; confirmação ética e exportação apenas de metadados.
+- **Recursos**: Credential Manager do perfil atual, tipos e persistência, análise de força/reutilização, revelação de plaintext somente com confirmação explícita e HIBP k-anonimato opcional.
+
+### `system.defender_audit` — Auditoria do Windows Defender
+- **Tipo**: `Tool`.
+- **Recursos**: status em tempo real, versões de engine/assinaturas, datas de varredura, exclusões, regras ASR, proteção de nuvem/PUA/tamper, recomendações e relatório de conformidade.
+
+### `system.firewall_audit` — Auditoria do Firewall
+- **Tipo**: `Tool`.
+- **Recursos**: três perfis, regras `Any` para `Any` em portas sensíveis, aplicações sem assinatura, portas em LISTEN sem regra explícita, status do serviço, CSV e comparação com baseline.
+
+### `system.dns_leak_test` — Teste de Vazamento de DNS
+- **Tipo**: `Tool`.
+- **Recursos**: descoberta do resolver real e IP público, detecção de VPN vazando DNS, DNS de ISP, inconsistências entre resolvedores e recomendações de configuração.
+
+### `system.webrtc_leak` — Detector de Vazamento WebRTC
+- **Tipo**: `Tool`.
+- **Recursos**: navegador headless com Playwright quando disponível, coleta de ICE candidates, IPs locais/públicos expostos, comparação com IP real e instruções por navegador; modo manual sem Playwright.
+
+
 
 
 

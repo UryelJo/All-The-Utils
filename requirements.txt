@@ -13,6 +13,7 @@ Send2Trash>=1.8.0
 rapidfuzz>=3.0.0
 qrcode>=7.4.0
 paramiko>=3.4.0
+requests>=2.31.0
 sqlparse>=0.5.0
 pikepdf>=8.0.0
 pypdfium2>=4.20.0
