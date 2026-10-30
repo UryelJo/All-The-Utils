@@ -225,7 +225,7 @@ class RsaAttackView(PainelFerramenta):
 
         self.txt_resultado.setPlainText("Executando ataque de Wiener e análise automática de vulnerabilidades...")
 
-        def _tarefa() -> str:
+        def _tarefa(ctx: Any = None) -> str:
             res = analise_automatica(n, e, c)
             return relatorio_analise_automatica(res, c)
 
@@ -251,7 +251,7 @@ class RsaAttackView(PainelFerramenta):
 
         self.txt_resultado.setPlainText(f"Executando fatoração de Fermat com até {max_iter:,} iterações...")
 
-        def _tarefa() -> str:
+        def _tarefa(ctx: Any = None) -> str:
             res = fatorar_fermat(n, max_iteracoes=max_iter)
             return relatorio_fermat(res, n, e=e, cifra=c)
 
@@ -276,7 +276,7 @@ class RsaAttackView(PainelFerramenta):
 
         self.txt_resultado.setPlainText("Executando ataque do Módulo Comum via Algoritmo Estendido de Euclides...")
 
-        def _tarefa() -> str:
+        def _tarefa(ctx: Any = None) -> str:
             res = ataque_modulo_comum(n, e1, c1, e2, c2)
             return relatorio_modulo_comum(res)
 
@@ -302,7 +302,7 @@ class RsaAttackView(PainelFerramenta):
 
         self.txt_resultado.setPlainText("Executando ataque Hastad Broadcast via Teorema Chinês dos Restos (CRT)...")
 
-        def _tarefa() -> str:
+        def _tarefa(ctx: Any = None) -> str:
             res = ataque_hastad(chaves)
             return relatorio_hastad(res, chaves)
 

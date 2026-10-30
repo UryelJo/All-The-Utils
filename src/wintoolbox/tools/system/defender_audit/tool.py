@@ -136,7 +136,7 @@ class DefenderAuditView(PainelFerramenta):
         self.lbl_score.setText("Score de Segurança: Auditando...")
         self.lbl_status.setText("Consultando WMI e PowerShell...")
 
-        def _tarefa() -> Dict[str, Any]:
+        def _tarefa(ctx: Any = None) -> Dict[str, Any]:
             return coletar_status_defender()
 
         def _sucesso(resultado: Dict[str, Any]) -> None:

@@ -136,7 +136,7 @@ class DnsLeakTestView(PainelFerramenta):
         self.lbl_score.setText("Score de Privacidade: Verificando...")
         self.lbl_status.setText("Consultando resolvers e endpoint de diagnóstico...")
 
-        def _tarefa() -> Dict[str, Any]:
+        def _tarefa(ctx: Any = None) -> Dict[str, Any]:
             return coletar_dados_dns_leak()
 
         def _sucesso(resultado: Dict[str, Any]) -> None:

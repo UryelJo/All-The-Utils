@@ -135,7 +135,7 @@ class KeyloggerDetectView(PainelFerramenta):
         self.lbl_score.setText("Score de Integridade: Verificando...")
         self.lbl_status.setText("Examinando UpperFilters, processos e logs...")
 
-        def _tarefa() -> Dict[str, Any]:
+        def _tarefa(ctx: Any = None) -> Dict[str, Any]:
             return coletar_dados_keylogger()
 
         def _sucesso(resultado: Dict[str, Any]) -> None:

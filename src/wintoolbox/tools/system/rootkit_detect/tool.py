@@ -148,7 +148,7 @@ class RootkitDetectView(PainelFerramenta):
         self.lbl_score.setText("Score de Integridade: Auditando...")
         self.lbl_status.setText("Executando cross-check de processos nativos e sockets...")
 
-        def _tarefa() -> Dict[str, Any]:
+        def _tarefa(ctx: Any = None) -> Dict[str, Any]:
             return coletar_dados_rootkit()
 
         def _sucesso(resultado: Dict[str, Any]) -> None:

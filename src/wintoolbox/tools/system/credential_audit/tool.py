@@ -148,7 +148,7 @@ class CredentialAuditView(PainelFerramenta):
         self.lbl_score.setText("Score de Higiene: Auditando...")
         self.lbl_status.setText("Lendo Credential Manager local...")
 
-        def _tarefa() -> Dict[str, Any]:
+        def _tarefa(ctx: Any = None) -> Dict[str, Any]:
             return coletar_credenciais_locais()
 
         def _sucesso(resultado: Dict[str, Any]) -> None:

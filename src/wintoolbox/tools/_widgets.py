@@ -5,8 +5,9 @@ execução assíncrona. Os widgets são criados apenas na thread principal.
 """
 from __future__ import annotations
 
+import inspect
 from pathlib import Path
-from typing import Any, Callable, Dict, List, Optional
+from typing import Any, Callable, Dict, List, Optional, Union
 
 from PySide6.QtCore import Qt
 from PySide6.QtGui import QFont
@@ -193,7 +194,7 @@ def mostrar_erro(parent: Optional[QWidget], titulo: str, erro: Exception | str) 
 
 def executar_assincrono(
     dono: QWidget,
-    funcao: Callable[[TaskContext], Any],
+    funcao: Callable[..., Any],
     ao_concluir: Optional[Callable[[Any], None]] = None,
     ao_falhar: Optional[Callable[[Exception], None]] = None,
     ao_progredir: Optional[Callable[[int, int, str], None]] = None,
@@ -203,7 +204,7 @@ def executar_assincrono(
 
     O TaskRunner do projeto entrega um ``ToolResult``. Este auxiliar embrulha o
     valor real em ``ToolResult.details[0]`` para que consumidores simples não
-    precisem montar um resultado de lote.
+    precisem montar um resultado de lote. Suporta funções que aceitam `ctx` ou sem argumentos.
     """
     runner = getattr(dono, "runner", None)
     if not isinstance(runner, TaskRunner):
@@ -211,7 +212,15 @@ def executar_assincrono(
         setattr(dono, "runner", runner)
 
     def _tarefa(ctx: TaskContext) -> ToolResult:
-        valor = funcao(ctx)
+        try:
+            sig = inspect.signature(funcao)
+            aceita_ctx = len(sig.parameters) > 0 or any(
+                p.kind in (p.VAR_POSITIONAL, p.VAR_KEYWORD) for p in sig.parameters.values()
+            )
+        except (ValueError, TypeError):
+            aceita_ctx = True
+
+        valor = funcao(ctx) if aceita_ctx else funcao()
         resultado = ToolResult(success=True, message="Concluído", items_total=1, items_success=1)
         resultado.details.append(valor)  # type: ignore[arg-type]
         return resultado

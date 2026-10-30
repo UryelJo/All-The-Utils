@@ -173,7 +173,7 @@ class SteganoDetectView(PainelFerramenta):
         self.lbl_score.setText("Score de Suspeita: Analisando...")
         self.lbl_risco.setText("Calculando matrizes e testes estatísticos...")
 
-        def _tarefa() -> Dict[str, Any]:
+        def _tarefa(ctx: Any = None) -> Dict[str, Any]:
             return analisar_arquivo(caminho, incluir_rs=calcular_rs)
 
         def _sucesso(resultado: Dict[str, Any]) -> None:

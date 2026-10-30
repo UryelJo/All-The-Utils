@@ -177,7 +177,7 @@ class ClassicalBreakView(PainelFerramenta):
         self.btn_analisar_tudo.setEnabled(False)
         self.txt_relatorio.setPlainText("Executando testes estatísticos, análise de frequência e busca estocástica...")
 
-        def _tarefa() -> Dict[str, Any]:
+        def _tarefa(ctx: Any = None) -> Dict[str, Any]:
             return analisar_texto(texto, maximo_chave=chave_max)
 
         def _sucesso(resultado: Dict[str, Any]) -> None:
