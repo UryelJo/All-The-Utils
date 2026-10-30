@@ -854,7 +854,7 @@ class FileRecoveryTool(Tool):
 
     id = "forensics.file_recovery"
     name = "Recuperação de Arquivos"
-    category = "Forense"
+    category = "Seguran?a e An?lise"
     description = (
         "Recupera arquivos de imagens de disco e unidades usando pytsk3 (quando "
         "disponível) ou carving read-only por assinaturas, sem gravar na origem"

@@ -321,7 +321,7 @@ class CsrfPocTool(Tool):
 
     id = "web.csrf_poc"
     name = "Gerador de PoC CSRF"
-    category = "Web"
+    category = "Seguran?a e An?lise"
     description = (
         "Gera três variantes de Prova de Conceito de CSRF (envio automático, fetch e "
         "imagem GET) com aviso legal no HTML, prévia, cópia e gravação em arquivo"

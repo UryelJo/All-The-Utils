@@ -614,7 +614,7 @@ class MetadataExtractTool(FileTool):
 
     id = "osint.metadata_extract"
     name = "Extrator de Metadados"
-    category = "OSINT"
+    category = "Seguran?a e An?lise"
     description = (
         "Lê EXIF, XMP e IPTC de imagens, propriedades de PDF e Office Open XML, "
         "tags de MP3 e átomos de MP4, incluindo coordenadas GPS, e exporta em JSON ou texto"

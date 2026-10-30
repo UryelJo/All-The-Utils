@@ -643,7 +643,7 @@ class JsDeobfuscatorTool(Tool):
 
     id = "rev.js_deobfuscator"
     name = "Desofuscador de JavaScript"
-    category = "Reverse Engineering"
+    category = "Seguran?a e An?lise"
     description = (
         "Desescapa sequências, resolve String.fromCharCode, desembrulha eval literal, "
         "renomeia identificadores _0x, remove código morto simples e mostra o diff lado a lado"

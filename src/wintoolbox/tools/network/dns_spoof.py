@@ -207,7 +207,7 @@ class DnsSpoofTool(Tool):
 
     id = "network.dns_spoof"
     name = "Simulador de DNS Spoofing"
-    category = "Rede e Internet"
+    category = "Seguran?a e An?lise"
     description = (
         "Escuta consultas DNS, aplica regras de domínio e devolve respostas "
         "forjadas com modo somente registro, tabela ao vivo e contadores"

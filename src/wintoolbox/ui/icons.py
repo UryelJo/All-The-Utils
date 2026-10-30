@@ -38,6 +38,7 @@ CATEGORY_META: Dict[str, Tuple[str, str]] = {
     "Automações": ("cat_automation", NEUTRAL_ICON_COLOR),
     "Segurança": ("cat_security", NEUTRAL_ICON_COLOR),
     "Segurança e Auditoria": ("cat_security", NEUTRAL_ICON_COLOR),
+    "Segurança e Análise": ("cat_security", NEUTRAL_ICON_COLOR),
 }
 
 _CACHED_APP_ICON: Optional[QIcon] = None

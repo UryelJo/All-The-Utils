@@ -65,7 +65,7 @@ def _status_color_mapper(rec: Dict[str, Any], key: str) -> Optional[str]:
 class HttpHeadersTool(Tool):
     id = "security.http_headers"
     name = "Auditor de Cabeçalhos HTTP"
-    category = "Segurança"
+    category = "Seguran?a e An?lise"
     description = "Auditoria defensiva de cabeçalhos de segurança web (HSTS, CSP, X-Frame-Options, etc.) com pontuação e recomendações"
     keywords = ["cabeçalhos", "headers", "segurança", "hsts", "csp", "owasp", "http", "clickjacking", "auditoria", "defensivo"]
 

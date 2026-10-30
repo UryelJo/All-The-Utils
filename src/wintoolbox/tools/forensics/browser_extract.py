@@ -720,7 +720,7 @@ class BrowserExtractTool(Tool):
 
     id = "forensics.browser_extract"
     name = "Extração de Artefatos de Navegadores"
-    category = "Forense"
+    category = "Seguran?a e An?lise"
     description = (
         "Extrai histórico, downloads, cookies e credenciais salvas de Chrome, Edge, "
         "Brave, Vivaldi, Opera e Firefox por meio de cópias temporárias somente leitura"

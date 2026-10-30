@@ -539,7 +539,7 @@ class UsbHistoryTool(Tool):
 
     id = "forensics.usb_history"
     name = "Histórico de Dispositivos USB"
-    category = "Forense"
+    category = "Seguran?a e An?lise"
     description = (
         "Coleta USBSTOR, USB e setupapi.dev.log para identificar dispositivos "
         "conectados, números de série e datas de instalação, sem privilégios elevados"

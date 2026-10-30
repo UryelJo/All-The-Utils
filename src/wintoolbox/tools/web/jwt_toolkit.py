@@ -807,7 +807,7 @@ class JwtToolkitTool(Tool):
 
     id = "web.jwt_toolkit"
     name = "Kit de Testes JWT"
-    category = "Web"
+    category = "Seguran?a e An?lise"
     description = (
         "Análise de tokens JWT e simulação de quatro ataques: algoritmo none, "
         "confusão HMAC/RSA, travessia de kid e força bruta de segredo HMAC, "

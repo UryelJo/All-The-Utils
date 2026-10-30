@@ -300,7 +300,7 @@ class DeauthTestTool(Tool):
 
     id = "network.deauth_test"
     name = "Teste de Desautenticação Wi-Fi"
-    category = "Rede e Internet"
+    category = "Seguran?a e An?lise"
     description = (
         "Descobre redes próximas com BSSID, canal e segurança, envia um quadro de "
         "desautenticação por segundo e gera relatório com alerta para WPA3"

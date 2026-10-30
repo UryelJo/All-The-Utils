@@ -353,7 +353,7 @@ class EmailBreachTool(Tool):
 
     id = "osint.email_breach"
     name = "Verificador de Vazamentos de E-mail"
-    category = "OSINT"
+    category = "Seguran?a e An?lise"
     description = (
         "Consulta em lote a API v3 do Have I Been Pwned para saber quais vazamentos "
         "expuseram cada e-mail, classifica o risco pelas classes de dados e exporta o relatório em JSON"

@@ -214,7 +214,7 @@ class DisassemblerTool(Tool):
 
     id = "rev.disassembler"
     name = "Desmontador de Código de Máquina"
-    category = "Reverse Engineering"
+    category = "Seguran?a e An?lise"
     description = (
         "Desmonta o código de máquina de executáveis e binários com Capstone, "
         "permite navegar por endereço, mapear referências e exportar o assembly em texto"

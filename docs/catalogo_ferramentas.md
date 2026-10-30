@@ -2159,7 +2159,7 @@ Este documento mantém o inventário detalhado de todas as ferramentas disponív
   - Aplicação de estados de layout automáticos: Maximizado, Metade Esquerda da Tela (Snap Left), Metade Direita da Tela (Snap Right) ou Coordenadas Fixas em pixels ($X, Y, Largura, Altura$).
   - Aplicação imediata de regras sobre as janelas abertas atualmente no sistema operacional.
 
-## 28. Segurança Ofensiva, Forense, OSINT e Engenharia Reversa
+## 28. Segurança e Análise (Segurança Ofensiva, Forense, OSINT, Engenharia Reversa e Pentest)
 
 Esta expansão adiciona 43 ferramentas organizadas nos pacotes `security`, `crypto`,
 `network`, `web`, `forensics`, `osint`, `rev` e `system`. As dependências opcionais

@@ -29,7 +29,7 @@ _log = get_logger("security.virustotal.ui")
 class VirusTotalTool(Tool):
     id = "security.virustotal"
     name = "Consulta de Ameaças no VirusTotal"
-    category = "Segurança"
+    category = "Seguran?a e An?lise"
     description = "Consulta de reputação de arquivos e hashes em dezenas de motores antivírus via API oficial do VirusTotal"
     keywords = ["virustotal", "antivirus", "malware", "hash", "sha256", "reputacao", "seguranca", "ameaca"]
 

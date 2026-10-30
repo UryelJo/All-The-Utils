@@ -1214,7 +1214,7 @@ class VulnScannerTool(Tool):
 
     id = "web.vuln_scanner"
     name = "Varredura de Vulnerabilidades Web"
-    category = "Web"
+    category = "Seguran?a e An?lise"
     description = (
         "Testes não destrutivos de SQL Injection, XSS refletido, LFI, redirecionamento "
         "aberto e cabeçalhos ausentes, com limite de requisições e relatório em Markdown ou JSON"

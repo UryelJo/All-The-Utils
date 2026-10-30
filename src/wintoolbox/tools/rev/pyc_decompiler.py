@@ -316,7 +316,7 @@ class PycDecompilerTool(FileTool):
 
     id = "rev.pyc_decompiler"
     name = "Descompilador de Bytecode Python (.pyc)"
-    category = "Reverse Engineering"
+    category = "Seguran?a e An?lise"
     description = (
         "Identifica o magic number e a versão do CPython, tenta decompyle3, uncompyle6 "
         "ou pycdc e, sem eles, entrega a desmontagem completa com dis em .txt ou .py"
