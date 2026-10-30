@@ -1150,7 +1150,7 @@ class PersistenceScanTool(Tool):
 
     id = "system.persistence_scan"
     name = "Varredura de Persistência"
-    category = "Seguran?a e An?lise"
+    category = "Segurança e Análise"
     description = (
         "Auditoria somente leitura dos pontos de inicialização do Windows (Run/RunOnce, "
         "serviços, tarefas agendadas, WMI, Startup, AppInit_DLLs, Winlogon e IFEO) com "

@@ -319,7 +319,7 @@ class ArpPoisonTool(Tool):
 
     id = "network.arp_poison"
     name = "Teste de ARP Spoofing (MITM Local)"
-    category = "Seguran?a e An?lise"
+    category = "Segurança e Análise"
     description = (
         "Envenenamento ARP bidirecional entre gateway e alvo, com descoberta de "
         "dispositivos, contadores em tempo real e restauração automática das "

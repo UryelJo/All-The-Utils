@@ -259,7 +259,7 @@ class StringsExtractTool(FileTool):
 
     id = "rev.strings_extract"
     name = "Extrator de Strings Classificadas"
-    category = "Seguran?a e An?lise"
+    category = "Segurança e Análise"
     description = (
         "Extrai strings ASCII e UTF-16LE de qualquer arquivo e classifica URLs, IPs, "
         "e-mails, domínios, caminhos, chaves, JWT, Base64 e hashes, exportando em texto, JSON ou CSV"

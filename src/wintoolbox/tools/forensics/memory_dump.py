@@ -643,7 +643,7 @@ class MemoryDumpTool(Tool):
 
     id = "forensics.memory_dump"
     name = "Captura de Memória de Processo"
-    category = "Seguran?a e An?lise"
+    category = "Segurança e Análise"
     description = (
         "Captura somente leitura das regiões legíveis da memória de um processo "
         "para análise forense, classificando URLs, IPs, e-mails, chaves de registro "

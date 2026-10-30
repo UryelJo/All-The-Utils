@@ -415,6 +415,7 @@ def quebrar_vigenere(
     return {
         "chave": melhor["chave"],
         "tamanho": melhor["tamanho"],
+        "ic_medio": melhor["ic_medio"],
         "texto": melhor["texto"],
         "pontuacao": melhor["pontuacao"],
         "tabela_tamanhos": tabela,

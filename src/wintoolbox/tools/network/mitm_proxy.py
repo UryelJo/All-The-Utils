@@ -636,7 +636,7 @@ class MitmProxyTool(Tool):
 
     id = "network.mitm_proxy"
     name = "Proxy de Interceptação MITM"
-    category = "Seguran?a e An?lise"
+    category = "Segurança e Análise"
     description = (
         "mitmproxy em 127.0.0.1:8080 com tabela de fluxos, filtro, reescrita de "
         "URL e exportação HAR; inclui proxy HTTP nativo de diagnóstico quando o "

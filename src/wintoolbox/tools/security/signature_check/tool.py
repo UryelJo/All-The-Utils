@@ -23,7 +23,7 @@ _log = get_logger("security.signature_check.ui")
 class SignatureCheckTool(Tool):
     id = "security.signature_check"
     name = "Verificador de Assinatura Digital"
-    category = "Seguran?a e An?lise"
+    category = "Segurança e Análise"
     description = "Validação da assinatura Authenticode de executáveis, DLLs e instaladores (empresa emissora e integridade)"
     keywords = ["assinatura digital", "authenticode", "certificado", "exe", "dll", "msi", "seguranca", "valido", "falsificado"]
 

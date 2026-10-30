@@ -37,9 +37,12 @@ def run_self_test() -> int:
     apply_theme(app)
 
     # Uma categoria ausente = dependência faltando no pacote (o registro a ignora sem travar o app)
-    expected = {"Arquivos e Pastas", "Codificação e Hash", "Compactação", "Dados e Estruturas", "Imagens",
-                "PDF", "Rede e Internet", "Sistema", "Texto e Redação", "Áudio e Vídeo",
-                "Segurança", "Criptografia", "Web", "Forense", "OSINT", "Reverse Engineering"}
+    expected = {
+        "Arquivos e Pastas", "Automação", "Calculadoras", "Codificação e Hash",
+        "Compactação", "Dados e Estruturas", "Desenvolvimento", "Imagens",
+        "PDF", "Produtividade", "Rede e Internet", "Segurança e Análise",
+        "Sistema", "Texto e Redação", "Áudio e Vídeo",
+    }
     cats = get_categories()
     tools = get_all_tools()
     check(f"Ferramentas registradas: {len(tools)} em {len(cats)} categorias", len(tools) > 0)

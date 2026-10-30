@@ -48,7 +48,7 @@ class RainbowGeneratorTool(Tool):
 
     id = "security.rainbow_generator"
     name = "Gerador de Rainbow Table"
-    category = "Seguran?a e An?lise"
+    category = "Segurança e Análise"
     description = (
         "Pré-calcula hashes em um banco SQLite indexado e permite consulta instantânea "
         "de plaintext para MD5, SHA-1 e SHA-256."

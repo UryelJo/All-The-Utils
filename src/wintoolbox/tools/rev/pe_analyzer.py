@@ -461,7 +461,7 @@ class PeAnalyzerTool(Tool):
 
     id = "rev.pe_analyzer"
     name = "Analisador de Executáveis PE"
-    category = "Seguran?a e An?lise"
+    category = "Segurança e Análise"
     description = (
         "Inspeciona cabeçalhos, seções, entropia, importações, exportações, recursos e "
         "assinatura Authenticode de arquivos PE, apontando indícios de empacotamento"

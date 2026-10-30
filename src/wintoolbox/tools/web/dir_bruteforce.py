@@ -838,7 +838,7 @@ class DirBruteforceTool(Tool):
 
     id = "web.dir_bruteforce"
     name = "Força Bruta de Diretórios Web"
-    category = "Seguran?a e An?lise"
+    category = "Segurança e Análise"
     description = (
         "Descoberta de diretórios e arquivos expostos por meio de uma wordlist interna "
         "de caminhos reais, com controle de threads, atraso, códigos HTTP e filtro de tamanho"

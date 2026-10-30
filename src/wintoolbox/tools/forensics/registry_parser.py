@@ -510,7 +510,7 @@ class RegistryParserTool(Tool):
 
     id = "forensics.registry_parser"
     name = "Analisador do Registro"
-    category = "Seguran?a e An?lise"
+    category = "Segurança e Análise"
     description = (
         "Lê SAM, SYSTEM e SOFTWARE em execução com winreg e hives offline "
         "com regipy, sempre em modo somente leitura"

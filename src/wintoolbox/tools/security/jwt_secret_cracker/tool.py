@@ -60,7 +60,7 @@ class JWTSecretCrackerTool(Tool):
 
     id = "security.jwt_secret_cracker"
     name = "Quebrador de Segredo JWT (HMAC)"
-    category = "Seguran?a e An?lise"
+    category = "Segurança e Análise"
     description = (
         "Testa segredos HS256, HS384 e HS512 contra um JWT usando wordlist ou força bruta, "
         "com validação de expiração e geração de token de teste."

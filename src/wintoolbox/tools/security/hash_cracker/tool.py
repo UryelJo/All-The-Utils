@@ -60,7 +60,7 @@ class HashCrackerTool(Tool):
 
     id = "security.hash_cracker"
     name = "Quebrador de Hashes (Wordlist e Força Bruta)"
-    category = "Seguran?a e An?lise"
+    category = "Segurança e Análise"
     description = (
         "Testa senhas contra hashes MD5, SHA, NTLM e outros formatos usando wordlist "
         "ou força bruta, com modo Hashcat opcional."

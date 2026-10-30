@@ -833,7 +833,7 @@ class SubdomainEnumTool(Tool):
 
     id = "web.subdomain_enum"
     name = "Enumeração de Subdomínios"
-    category = "Seguran?a e An?lise"
+    category = "Segurança e Análise"
     description = (
         "Descoberta de subdomínios por wordlist interna, com concorrência controlada, "
         "detecção de wildcard, checagem HTTP opcional e exportação CSV"

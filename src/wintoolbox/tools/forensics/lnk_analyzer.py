@@ -619,7 +619,7 @@ class LnkAnalyzerTool(FileTool):
 
     id = "forensics.lnk_analyzer"
     name = "Analisador de Atalhos LNK"
-    category = "Seguran?a e An?lise"
+    category = "Segurança e Análise"
     description = (
         "Analisa atalhos MS-SHLLINK com parser nativo para extrair destino, "
         "argumentos, diretório de trabalho, timestamps, serial de volume, "

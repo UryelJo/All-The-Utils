@@ -37,7 +37,7 @@ class HashIdentifierTool(Tool):
 
     id = "security.hash_identify"
     name = "Identificador de Tipo de Hash"
-    category = "Seguran?a e An?lise"
+    category = "Segurança e Análise"
     description = (
         "Detecta o algoritmo provável de um hash por análise de formato, "
         "comprimento, prefixo e codificação."

@@ -22,7 +22,7 @@ _log = get_logger("security.pwned_check.ui")
 class PwnedCheckTool(Tool):
     id = "security.pwned_check"
     name = "Verificador de Senhas Vazadas"
-    category = "Seguran?a e An?lise"
+    category = "Segurança e Análise"
     description = "Consulta anônima e segura (k-anonimato HIBP) para verificar se uma senha foi exposta em vazamentos de dados públicos"
     keywords = ["senha", "vazamento", "have i been pwned", "pwned", "seguranca", "breach", "credencial", "k-anonimato"]
 

@@ -208,7 +208,7 @@ class PacketCrafterTool(Tool):
 
     id = "network.packet_crafter"
     name = "Construtor e Envio de Pacotes"
-    category = "Seguran?a e An?lise"
+    category = "Segurança e Análise"
     description = (
         "Monta e envia pacotes ICMP, TCP, UDP e DNS com flags, payload e latência, "
         "executa traceroute por TTL e exporta o histórico em TXT ou PCAP"

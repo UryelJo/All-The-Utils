@@ -899,7 +899,7 @@ class DomainIntelTool(Tool):
 
     id = "osint.domain_intel"
     name = "Inteligência de Domínio"
-    category = "Seguran?a e An?lise"
+    category = "Segurança e Análise"
     description = (
         "Consolida WHOIS nativo (porta 43), registros DNS, certificado TLS, tecnologias "
         "detectadas nos cabeçalhos e HTML e dorks de reconhecimento em um único laudo"

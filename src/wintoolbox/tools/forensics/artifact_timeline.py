@@ -544,7 +544,7 @@ class ArtifactTimelineTool(Tool):
 
     id = "forensics.artifact_timeline"
     name = "Linha do Tempo de Artefatos"
-    category = "Seguran?a e An?lise"
+    category = "Segurança e Análise"
     description = (
         "Consolida eventos do Windows, Prefetch, Amcache e RecentDocs em uma "
         "linha do tempo ordenada, com exportação CSV e XLSX"

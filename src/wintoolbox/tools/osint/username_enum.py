@@ -560,7 +560,7 @@ class UsernameEnumTool(Tool):
 
     id = "osint.username_enum"
     name = "Enumeração de Nome de Usuário"
-    category = "Seguran?a e An?lise"
+    category = "Segurança e Análise"
     description = (
         "Verifica, em paralelo e sem autenticação, em quais de mais de cem sites públicos "
         "o nome de usuário informado possui perfil, com marcadores para reduzir falsos positivos"

@@ -31,3 +31,12 @@ import wintoolbox.tools.system.event_viewer
 import wintoolbox.tools.system.devices
 import wintoolbox.tools.system.fonts_manager
 import wintoolbox.tools.system.wsl_manager
+import wintoolbox.tools.system.persistence_scan
+import wintoolbox.tools.system.defender_audit
+import wintoolbox.tools.system.firewall_audit
+import wintoolbox.tools.system.credential_audit
+import wintoolbox.tools.system.dns_leak_test
+import wintoolbox.tools.system.keylogger_detect
+import wintoolbox.tools.system.rootkit_detect
+import wintoolbox.tools.system.webrtc_leak
+

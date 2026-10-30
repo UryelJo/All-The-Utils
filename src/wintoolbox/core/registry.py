@@ -239,37 +239,39 @@ CANONICAL_CATEGORIES: Dict[str, str] = {
     "hash": "Codificação e Hash",
 
     # Segurança
-    "segurança": "Segurança",
-    "seguranca": "Segurança",
-    "segurança e auditoria": "Segurança",
-    "security": "Segurança",
+    "segurança e análise": "Segurança e Análise",
+    "seguranca e analise": "Segurança e Análise",
+    "segurança": "Segurança e Análise",
+    "seguranca": "Segurança e Análise",
+    "segurança e auditoria": "Segurança e Análise",
+    "security": "Segurança e Análise",
 
     # Criptografia
-    "criptografia": "Criptografia",
-    "crypto": "Criptografia",
-    "criptografia e esteganografia": "Criptografia",
+    "criptografia": "Segurança e Análise",
+    "crypto": "Segurança e Análise",
+    "criptografia e esteganografia": "Segurança e Análise",
 
     # Web
-    "web": "Web",
-    "ofensiva web": "Web",
-    "testes web": "Web",
+    "web": "Segurança e Análise",
+    "ofensiva web": "Segurança e Análise",
+    "testes web": "Segurança e Análise",
 
     # Forense
-    "forense": "Forense",
-    "forensics": "Forense",
-    "análise forense": "Forense",
-    "analise forense": "Forense",
+    "forense": "Segurança e Análise",
+    "forensics": "Segurança e Análise",
+    "análise forense": "Segurança e Análise",
+    "analise forense": "Segurança e Análise",
 
     # OSINT
-    "osint": "OSINT",
-    "inteligência de fontes abertas": "OSINT",
-    "inteligencia de fontes abertas": "OSINT",
+    "osint": "Segurança e Análise",
+    "inteligência de fontes abertas": "Segurança e Análise",
+    "inteligencia de fontes abertas": "Segurança e Análise",
 
     # Engenharia reversa
-    "reverse engineering": "Reverse Engineering",
-    "engenharia reversa": "Reverse Engineering",
-    "rev": "Reverse Engineering",
-    "reversing": "Reverse Engineering",
+    "reverse engineering": "Segurança e Análise",
+    "engenharia reversa": "Segurança e Análise",
+    "rev": "Segurança e Análise",
+    "reversing": "Segurança e Análise",
 }
 
 

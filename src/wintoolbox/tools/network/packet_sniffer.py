@@ -256,7 +256,7 @@ class PacketSnifferTool(Tool):
 
     id = "network.packet_sniffer"
     name = "Captura e Análise de Pacotes"
-    category = "Seguran?a e An?lise"
+    category = "Segurança e Análise"
     description = (
         "Captura ao vivo com filtro BPF, dissecação de TCP, UDP, ICMP, DNS, HTTP e "
         "TLS SNI, estatísticas em tempo real e exportação em PCAP"

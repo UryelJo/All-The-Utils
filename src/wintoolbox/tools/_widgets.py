@@ -149,12 +149,14 @@ class PainelOpcoes(QWidget):
         return linha
 
 
-def criar_saida_texto(altura: int = 240, parent: Optional[QWidget] = None) -> QPlainTextEdit:
+def criar_saida_texto(altura: Union[int, QWidget] = 240, parent: Optional[QWidget] = None) -> QPlainTextEdit:
     """Área monoespaçada somente leitura para resultados e logs."""
+    if isinstance(altura, QWidget):
+        parent, altura = altura, 240
     caixa = QPlainTextEdit(parent)
     caixa.setReadOnly(True)
     caixa.setFont(QFont("Cascadia Mono, Consolas", 9))
-    caixa.setMinimumHeight(altura)
+    caixa.setMinimumHeight(int(altura))
     caixa.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
     return caixa
 
