@@ -1,24 +1,27 @@
 """
 Ferramenta: Gerenciador de Inicialização do Windows.
-Listagem, adição e remoção de programas iniciados com o Windows.
+Listagem com status Ativo/Desativado, ícones, seleção múltipla por checkbox, ativação/desativação em lote e remoção.
 """
 import os
 import subprocess
-from typing import Optional
+from typing import List, Optional
+from PySide6.QtCore import QPoint, Qt
 from PySide6.QtWidgets import (
-    QCheckBox, QDialog, QFileDialog, QFormLayout, QHBoxLayout,
-    QHeaderView, QLabel, QLineEdit, QMessageBox, QPushButton,
-    QTableWidget, QTableWidgetItem, QVBoxLayout, QWidget
+    QCheckBox, QComboBox, QDialog, QFileDialog, QFormLayout, QHBoxLayout,
+    QLabel, QLineEdit, QMenu, QMessageBox, QPushButton, QVBoxLayout, QWidget
 )
 
-from wintoolbox.core.elevation import is_admin, request_elevation
+from wintoolbox.core.elevation import is_admin, prompt_elevation_dialog
 from wintoolbox.core.registry import Tool, register
 from wintoolbox.tools.system.startup_manager.logic import (
-    add_registry_startup_item, list_startup_items, remove_startup_item
+    add_registry_startup_item,
+    list_startup_items,
+    remove_startup_item,
+    set_multiple_startup_items_enabled,
 )
-from wintoolbox.ui.widgets.sortable_table import (
-    SmartTableWidgetItem, enable_sorting_on_table, batch_table_update
-)
+from wintoolbox.ui.theme import get_current_tokens
+from wintoolbox.ui.widgets.data_table import Column, DataTableView
+from wintoolbox.ui.widgets.tool_header import make_tool_header
 
 
 @register
@@ -26,11 +29,19 @@ class StartupManagerTool(Tool):
     id = "system.startup_manager"
     name = "Gerenciador de Inicialização"
     category = "Sistema"
-    description = "Gerenciamento de programas que iniciam automaticamente com o Windows (Registro e Startup)"
+    description = "Gerenciamento de programas que iniciam com o Windows: ativar, desativar ou remover em lote"
     keywords = ["startup", "inicialização", "boot", "run", "programas", "msconfig", "auto", "iniciar"]
 
     def build_view(self, parent: Optional[QWidget] = None) -> QWidget:
         return StartupManagerView(self, parent)
+
+
+COLUMNS = [
+    Column("name", "Programa", width=220, tooltip=True, icon_key="exe_path", fallback_icon=True),
+    Column("status_label", "Status", width=110),
+    Column("command", "Comando / Caminho", stretch=True, tooltip=True),
+    Column("location", "Origem / Localização", width=210),
+]
 
 
 class StartupManagerView(QWidget):
@@ -43,12 +54,29 @@ class StartupManagerView(QWidget):
 
     def _build_ui(self):
         layout = QVBoxLayout(self)
-        layout.setContentsMargins(12, 12, 12, 12)
+        layout.setContentsMargins(20, 20, 20, 16)
         layout.setSpacing(10)
+        layout.addWidget(make_tool_header(self.tool))
 
-        # Barra Superior
         top_bar = QHBoxLayout()
         top_bar.setSpacing(8)
+
+        self.chk_select_all = QCheckBox("Marcar Visíveis")
+        self.chk_select_all.toggled.connect(self._on_select_all_toggled)
+        top_bar.addWidget(self.chk_select_all)
+
+        top_bar.addWidget(QLabel("Filtrar:"))
+        self.txt_filter = QLineEdit()
+        self.txt_filter.setClearButtonEnabled(True)
+        self.txt_filter.setPlaceholderText("Nome do programa, caminho ou origem...")
+        self.txt_filter.textChanged.connect(self._apply_filters)
+        top_bar.addWidget(self.txt_filter, stretch=1)
+
+        top_bar.addWidget(QLabel("Estado:"))
+        self.cmb_state = QComboBox()
+        self.cmb_state.addItems(["Todos", "Apenas Ativos", "Apenas Desativados"])
+        self.cmb_state.currentIndexChanged.connect(self._apply_filters)
+        top_bar.addWidget(self.cmb_state)
 
         self.btn_refresh = QPushButton("Atualizar")
         self.btn_refresh.clicked.connect(self._refresh_list)
@@ -59,30 +87,35 @@ class StartupManagerView(QWidget):
         self.btn_add.clicked.connect(self._on_add_item)
         top_bar.addWidget(self.btn_add)
 
-        top_bar.addStretch()
-
         self.lbl_count = QLabel("0 itens")
-        self.lbl_count.setStyleSheet("color: #888890; font-weight: 500;")
+        self.lbl_count.setProperty("class", "secondary")
         top_bar.addWidget(self.lbl_count)
-
         layout.addLayout(top_bar)
 
-        # Tabela
-        self.table = QTableWidget()
-        self.table.setColumnCount(3)
-        self.table.setHorizontalHeaderLabels(["Nome", "Comando / Caminho", "Origem / Localização"])
-        self.table.horizontalHeader().setSectionResizeMode(0, QHeaderView.ResizeToContents)
-        self.table.horizontalHeader().setSectionResizeMode(1, QHeaderView.Stretch)
-        self.table.horizontalHeader().setSectionResizeMode(2, QHeaderView.ResizeToContents)
-        self.table.setSelectionBehavior(QTableWidget.SelectRows)
-        self.table.setSelectionMode(QTableWidget.SingleSelection)
-        self.table.setAlternatingRowColors(True)
-        enable_sorting_on_table(self.table)
-        layout.addWidget(self.table)
+        self.table = DataTableView(COLUMNS, key="uid", parent=self, checkable=True)
+        self.table.sortByColumn(0, Qt.AscendingOrder)
+        self.table.checkedChanged.connect(self._on_checked_changed)
+        self.table.setContextMenuPolicy(Qt.CustomContextMenu)
+        self.table.customContextMenuRequested.connect(self._on_context_menu)
 
-        # Barra Inferior
+        t = get_current_tokens()
+        self.table.source_model.foreground = lambda rec, key: (
+            (t.status_success if rec.get("is_enabled") else t.status_warning) if key == "status_label" else (
+                t.text_muted if not rec.get("is_enabled") else None
+            )
+        )
+        layout.addWidget(self.table, stretch=1)
+
         bottom_bar = QHBoxLayout()
         bottom_bar.setSpacing(8)
+
+        self.btn_enable = QPushButton("Ativar")
+        self.btn_enable.clicked.connect(lambda: self._on_set_enabled(True))
+        bottom_bar.addWidget(self.btn_enable)
+
+        self.btn_disable = QPushButton("Desativar")
+        self.btn_disable.clicked.connect(lambda: self._on_set_enabled(False))
+        bottom_bar.addWidget(self.btn_disable)
 
         self.btn_open_file = QPushButton("Abrir Local do Arquivo")
         self.btn_open_file.clicked.connect(self._on_open_file_location)
@@ -92,74 +125,143 @@ class StartupManagerView(QWidget):
 
         self.btn_remove = QPushButton("Remover da Inicialização")
         self.btn_remove.setProperty("class", "danger")
-        self.btn_remove.setStyleSheet("background-color: #dc3545; color: white;")
+        self.btn_remove.setStyleSheet("background-color: #dc3545; color: white; font-weight: bold;")
         self.btn_remove.clicked.connect(self._on_remove_item)
         bottom_bar.addWidget(self.btn_remove)
 
         layout.addLayout(bottom_bar)
 
-    def _get_selected_item(self) -> Optional[dict]:
-        row = self.table.currentRow()
-        if row >= 0:
-            it = self.table.item(row, 0)
-            if it:
-                d = it.data(Qt.UserRole)
-                if isinstance(d, dict):
-                    return d
-        selected = self.table.selectedItems()
-        if selected:
-            row = selected[0].row()
-            it = self.table.item(row, 0)
-            if it:
-                d = it.data(Qt.UserRole)
-                if isinstance(d, dict):
-                    return d
-            if 0 <= row < len(self._raw_items):
-                return self._raw_items[row]
-        return None
-
     def _refresh_list(self):
         self._raw_items = list_startup_items()
-        with batch_table_update(self.table):
-            self.table.setRowCount(len(self._raw_items))
-            for row, item in enumerate(self._raw_items):
-                self.table.setItem(row, 0, SmartTableWidgetItem(item["name"], user_data=item))
-                self.table.setItem(row, 1, SmartTableWidgetItem(item["command"]))
-                self.table.setItem(row, 2, SmartTableWidgetItem(item["location"]))
+        self.table.set_records(self._raw_items)
+        self._apply_filters()
 
-        self.lbl_count.setText(f"{len(self._raw_items)} programas na inicialização")
+    def _apply_filters(self):
+        idx = self.cmb_state.currentIndex()
+        if idx == 1:
+            self.table.proxy.set_predicate(lambda r: bool(r.get("is_enabled", True)))
+        elif idx == 2:
+            self.table.proxy.set_predicate(lambda r: not bool(r.get("is_enabled", True)))
+        else:
+            self.table.proxy.set_predicate(None)
+        self.table.proxy.set_text_filter(self.txt_filter.text())
+        self._update_count()
 
-    def _on_remove_item(self):
-        item = self._get_selected_item()
-        if not item:
-            QMessageBox.information(self, "Aviso", "Selecione um item na lista para remover.")
+    def _on_select_all_toggled(self, checked: bool):
+        self.table.set_all_visible_checked(checked)
+
+    def _on_checked_changed(self, count: int):
+        suffix = f" Marcados ({count})" if count > 0 else ""
+        self.btn_enable.setText(f"Ativar{suffix}")
+        self.btn_disable.setText(f"Desativar{suffix}")
+        self.btn_remove.setText(f"Remover{suffix}" if count > 0 else "Remover da Inicialização")
+        self._update_count()
+
+    def _update_count(self):
+        total = len(self._raw_items)
+        active = sum(1 for r in self._raw_items if r.get("is_enabled"))
+        inactive = total - active
+        checked = len(self.table.checked_records())
+        txt = f"{total} programas ({active} ativos, {inactive} desativados)"
+        if checked > 0:
+            txt += f" | {checked} marcado(s)"
+        self.lbl_count.setText(txt)
+
+    def _on_context_menu(self, pos: QPoint):
+        rec = self.table.record_at_pos(pos)
+        if not rec:
             return
 
+        is_checked = self.table.is_record_checked(rec)
+        checked_records = self.table.checked_records()
+        targets = checked_records if checked_records else [rec]
+        label_suffix = f" ({len(targets)} itens)" if len(targets) > 1 else f" '{rec['name']}'"
+
+        menu = QMenu(self)
+        act_toggle = menu.addAction("Desmarcar Item" if is_checked else "Marcar Item")
+        menu.addSeparator()
+        act_enable = menu.addAction(f"Ativar na Inicialização{label_suffix}")
+        act_disable = menu.addAction(f"Desativar na Inicialização{label_suffix}")
+        menu.addSeparator()
+        act_open = menu.addAction("Abrir Local do Executável")
+        act_remove = menu.addAction(f"Remover Definitivamente{label_suffix}")
+
+        chosen = menu.exec(self.table.viewport().mapToGlobal(pos))
+        if chosen is None:
+            return
+        if chosen == act_toggle:
+            self.table.toggle_record_checked(rec)
+        elif chosen == act_enable:
+            self._apply_enabled_to_targets(targets, True)
+        elif chosen == act_disable:
+            self._apply_enabled_to_targets(targets, False)
+        elif chosen == act_open:
+            self._open_file_for_item(rec)
+        elif chosen == act_remove:
+            self._remove_targets(targets)
+
+    def _on_set_enabled(self, enabled: bool):
+        targets = self.table.target_records()
+        if not targets:
+            QMessageBox.information(self, "Aviso", "Selecione ou marque pelo menos um programa na lista.")
+            return
+        self._apply_enabled_to_targets(targets, enabled)
+
+    def _apply_enabled_to_targets(self, targets: List[dict], enabled: bool):
+        needs_hklm = any(t.get("root") == "HKLM" for t in targets)
+        if needs_hklm and not is_admin():
+            if prompt_elevation_dialog(
+                self,
+                tool_name=self.tool.name,
+                reason="Alterar programas de inicialização de 'Todos os Usuários' (HKLM) requer privilégios de Administrador.",
+            ):
+                return
+
+        ok, msg = set_multiple_startup_items_enabled(targets, enabled)
+        if ok:
+            self.table.clear_checked()
+            self.chk_select_all.blockSignals(True)
+            self.chk_select_all.setChecked(False)
+            self.chk_select_all.blockSignals(False)
+            self._refresh_list()
+            QMessageBox.information(self, "Sucesso", msg)
+        elif not is_admin():
+            prompt_elevation_dialog(self, tool_name=self.tool.name, reason=msg)
+        else:
+            QMessageBox.critical(self, "Erro", msg)
+
+    def _on_remove_item(self):
+        targets = self.table.target_records()
+        if not targets:
+            QMessageBox.information(self, "Aviso", "Selecione ou marque pelo menos um item na lista para remover.")
+            return
+        self._remove_targets(targets)
+
+    def _remove_targets(self, targets: List[dict]):
+        desc = f"'{targets[0]['name']}'" if len(targets) == 1 else f"{len(targets)} programas selecionados"
         confirm = QMessageBox.question(
             self,
             "Confirmar Remoção",
-            f"Deseja realmente remover '{item['name']}' da inicialização automática?",
-            QMessageBox.Yes | QMessageBox.No
+            f"Deseja realmente remover {desc} da inicialização automática?",
+            QMessageBox.Yes | QMessageBox.No,
         )
         if confirm != QMessageBox.Yes:
             return
 
-        ok, msg = remove_startup_item(item)
-        if ok:
-            QMessageBox.information(self, "Sucesso", msg)
-            self._refresh_list()
+        errors = []
+        for item in targets:
+            ok, msg = remove_startup_item(item)
+            if not ok:
+                errors.append(msg)
+
+        self.table.clear_checked()
+        self._refresh_list()
+        if not errors:
+            QMessageBox.information(self, "Sucesso", "Item(ns) removido(s) com sucesso.")
+        elif not is_admin():
+            prompt_elevation_dialog(self, tool_name=self.tool.name, reason="\n".join(errors[:3]))
         else:
-            if not is_admin():
-                ans = QMessageBox.question(
-                    self,
-                    "Privilégios Necessários",
-                    f"{msg}\n\nDeseja reiniciar o aplicativo como Administrador?",
-                    QMessageBox.Yes | QMessageBox.No
-                )
-                if ans == QMessageBox.Yes:
-                    request_elevation()
-            else:
-                QMessageBox.critical(self, "Erro", msg)
+            QMessageBox.critical(self, "Erro", "\n".join(errors[:4]))
 
     def _on_add_item(self):
         dialog = QDialog(self)
@@ -172,8 +274,11 @@ class StartupManagerView(QWidget):
         txt_path = QLineEdit()
 
         btn_browse = QPushButton("Procurar...")
+
         def _browse():
-            f, _ = QFileDialog.getOpenFileName(dialog, "Selecionar Executável", "", "Executáveis (*.exe *.bat *.cmd);;Todos os Arquivos (*.*)")
+            f, _ = QFileDialog.getOpenFileName(
+                dialog, "Selecionar Executável", "", "Executáveis (*.exe *.bat *.cmd);;Todos os Arquivos (*.*)"
+            )
             if f:
                 txt_path.setText(f)
                 if not txt_name.text():
@@ -208,6 +313,8 @@ class StartupManagerView(QWidget):
                 QMessageBox.information(dialog, "Sucesso", msg)
                 dialog.accept()
                 self._refresh_list()
+            elif not is_admin() and chk_all.isChecked():
+                prompt_elevation_dialog(dialog, tool_name=self.tool.name, reason=msg)
             else:
                 QMessageBox.critical(dialog, "Erro", msg)
 
@@ -219,19 +326,15 @@ class StartupManagerView(QWidget):
         dialog.exec()
 
     def _on_open_file_location(self):
-        item = self._get_selected_item()
+        item = self.table.current_record()
         if not item:
             QMessageBox.information(self, "Aviso", "Selecione um item na lista.")
             return
+        self._open_file_for_item(item)
 
-        cmd = item["command"].strip('"').split('"')[0]
-
-        # Extrai caminho se for executável com argumentos
-        parts = cmd.split()
-        exe = parts[0] if parts else cmd
-        exe = exe.strip('"')
-
-        if os.path.exists(exe):
+    def _open_file_for_item(self, item: dict):
+        exe = item.get("exe_path") or ""
+        if exe and os.path.exists(exe):
             subprocess.Popen(f'explorer /select,"{exe}"')
         else:
-            QMessageBox.warning(self, "Aviso", f"Não foi possível localizar o arquivo físico:\n{exe}")
+            QMessageBox.warning(self, "Aviso", f"Não foi possível localizar o arquivo físico:\n{exe or item.get('command', '')}")

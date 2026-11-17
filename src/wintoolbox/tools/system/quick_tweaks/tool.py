@@ -14,7 +14,6 @@ from wintoolbox.tools.system.quick_tweaks.logic import (
 )
 
 
-@register
 class QuickTweaksTool(Tool):
     id = "system.quick_tweaks"
     name = "Ajustes Rápidos do Windows"

@@ -1,13 +1,13 @@
 """
 Interface gráfica do Analisador de Travamentos e Telas Azuis (BSODs).
+Exibe datas formatadas e o aplicativo ou driver vinculado à falha.
 """
 import os
-from pathlib import Path
-from typing import Any, Dict, List, Optional
+from typing import Optional
 from PySide6.QtCore import Qt
 from PySide6.QtWidgets import (
-    QFrame, QHBoxLayout, QHeaderView, QLabel, QLineEdit,
-    QPushButton, QTabWidget, QTableWidget, QTableWidgetItem,
+    QHBoxLayout, QHeaderView, QLabel, QLineEdit,
+    QPushButton, QTabWidget, QTableWidget,
     QTextEdit, QVBoxLayout, QWidget
 )
 
@@ -15,11 +15,10 @@ from wintoolbox.core.logging_setup import get_logger
 from wintoolbox.core.registry import Tool, register
 from wintoolbox.core.tasks import TaskRunner
 from wintoolbox.tools.system.crash_analyzer.logic import (
-    BUGCHECK_DESCRIPTIONS, explain_bugcheck_code, list_minidump_files,
-    query_system_crash_events
+    BUGCHECK_DESCRIPTIONS, list_minidump_files, query_system_crash_events
 )
 from wintoolbox.ui.widgets.sortable_table import (
-    SmartTableWidgetItem, enable_sorting_on_table, batch_table_update
+    SmartTableWidgetItem, batch_table_update, enable_sorting_on_table
 )
 from wintoolbox.ui.widgets.toast import show_toast
 from wintoolbox.ui.widgets.tool_header import ToolHeader
@@ -32,8 +31,8 @@ class CrashAnalyzerTool(Tool):
     id = "system.crash_analyzer"
     name = "Analisador de Travamentos e BSODs"
     category = "Sistema"
-    description = "Investigação de desligamentos inesperados (evento 41), telas azuis, erros WHEA e arquivos Minidump"
-    keywords = ["bsod", "tela azul", "travamento", "crash", "minidump", "kernel power", "41", "whea", "dump"]
+    description = "Investigação de desligamentos inesperados (evento 41), telas azuis, falhas de aplicativos e arquivos Minidump"
+    keywords = ["bsod", "tela azul", "travamento", "crash", "minidump", "kernel power", "41", "whea", "dump", "app"]
 
     def build_view(self, parent: Optional[QWidget] = None) -> QWidget:
         return CrashAnalyzerView(self, parent)
@@ -70,7 +69,6 @@ class CrashAnalyzerView(QWidget):
         self._setup_dictionary_tab()
         layout.addWidget(self.tabs, stretch=1)
 
-        # Carrega dados
         self._refresh_all_async()
 
     def _setup_events_tab(self) -> None:
@@ -79,12 +77,17 @@ class CrashAnalyzerView(QWidget):
         lay.setContentsMargins(8, 12, 8, 8)
         lay.setSpacing(10)
 
-        self.table_events = QTableWidget(0, 4)
-        self.table_events.setHorizontalHeaderLabels(["Data e Hora", "ID", "Tipo do Travamento", "Resumo"])
+        self.table_events = QTableWidget(0, 5)
+        self.table_events.setHorizontalHeaderLabels([
+            "Data e Hora", "ID", "Tipo do Travamento", "Aplicativo / Módulo Causador", "Resumo"
+        ])
         self.table_events.horizontalHeader().setSectionResizeMode(0, QHeaderView.ResizeToContents)
         self.table_events.horizontalHeader().setSectionResizeMode(1, QHeaderView.ResizeToContents)
         self.table_events.horizontalHeader().setSectionResizeMode(2, QHeaderView.ResizeToContents)
-        self.table_events.horizontalHeader().setSectionResizeMode(3, QHeaderView.Stretch)
+        self.table_events.horizontalHeader().setSectionResizeMode(3, QHeaderView.ResizeToContents)
+        self.table_events.horizontalHeader().setSectionResizeMode(4, QHeaderView.Stretch)
+        self.table_events.setSelectionBehavior(QTableWidget.SelectRows)
+        self.table_events.setAlternatingRowColors(True)
         self.table_events.itemSelectionChanged.connect(self._on_event_selected)
         enable_sorting_on_table(self.table_events)
         lay.addWidget(self.table_events, stretch=2)
@@ -95,7 +98,7 @@ class CrashAnalyzerView(QWidget):
         self.txt_detail.setMaximumHeight(130)
         lay.addWidget(self.txt_detail, stretch=1)
 
-        self.tabs.addTab(tab, "Eventos de Falha (Kernel-Power e BSOD)")
+        self.tabs.addTab(tab, "Eventos de Falha (Aplicativos, Kernel-Power e BSOD)")
 
     def _setup_minidumps_tab(self) -> None:
         tab = QWidget()
@@ -141,7 +144,6 @@ class CrashAnalyzerView(QWidget):
         enable_sorting_on_table(self.table_dict)
         lay.addWidget(self.table_dict)
 
-        # Preenche dicionário padrão
         self._populate_dictionary("")
 
         self.tabs.addTab(tab, "Dicionário de Códigos BSOD")
@@ -172,10 +174,10 @@ class CrashAnalyzerView(QWidget):
 
     def _refresh_all_async(self) -> None:
         self.btn_refresh.setEnabled(False)
-        self.lbl_status.setText("Consultando logs do sistema e arquivos de despejo...")
+        self.lbl_status.setText("Consultando logs do sistema, falhas de aplicativos e despejos...")
 
         def _worker():
-            evs = query_system_crash_events(50)
+            evs = query_system_crash_events(60)
             dumps = list_minidump_files()
             return evs, dumps
 
@@ -184,17 +186,18 @@ class CrashAnalyzerView(QWidget):
             self.btn_refresh.setEnabled(True)
             self._events_cache = evs
 
-            # Preenche eventos
             with batch_table_update(self.table_events):
                 self.table_events.setRowCount(len(evs))
                 for row, e in enumerate(evs):
                     self.table_events.setItem(row, 0, SmartTableWidgetItem(e["time"], user_data=e))
                     eid = e.get("id", 0)
-                    self.table_events.setItem(row, 1, SmartTableWidgetItem(str(eid), sort_value=int(eid) if str(eid).isdigit() else eid))
+                    self.table_events.setItem(
+                        row, 1, SmartTableWidgetItem(str(eid), sort_value=int(eid) if str(eid).isdigit() else eid)
+                    )
                     self.table_events.setItem(row, 2, SmartTableWidgetItem(e["category"]))
-                    self.table_events.setItem(row, 3, SmartTableWidgetItem(e["explanation"]))
+                    self.table_events.setItem(row, 3, SmartTableWidgetItem(e.get("faulting_app", "Sistema")))
+                    self.table_events.setItem(row, 4, SmartTableWidgetItem(e["explanation"]))
 
-            # Preenche dumps
             with batch_table_update(self.table_dumps):
                 self.table_dumps.setRowCount(len(dumps))
                 for row, d in enumerate(dumps):
@@ -205,7 +208,7 @@ class CrashAnalyzerView(QWidget):
 
             self.lbl_status.setText(f"{len(evs)} evento(s) de falha e {len(dumps)} arquivo(s) de dump encontrados.")
 
-        def _on_error(err):
+        def _on_error(_err):
             self.btn_refresh.setEnabled(True)
             self.lbl_status.setText("Erro ao consultar logs de travamentos.")
             show_toast(self, "Falha na análise de travamentos", is_error=True)
@@ -219,7 +222,10 @@ class CrashAnalyzerView(QWidget):
             if it:
                 e = it.data(Qt.UserRole)
                 if isinstance(e, dict):
-                    self.txt_detail.setText(e.get("raw_message", ""))
+                    app_info = e.get("faulting_app", "")
+                    raw_msg = e.get("raw_message", "")
+                    prefix = f"Aplicativo / Módulo Causador: {app_info}\nData/Hora: {e.get('time', '-')}\n\n" if app_info else ""
+                    self.txt_detail.setText(f"{prefix}{raw_msg}")
                     return
         if row >= 0 and hasattr(self, "_events_cache") and row < len(self._events_cache):
             self.txt_detail.setText(self._events_cache[row]["raw_message"])

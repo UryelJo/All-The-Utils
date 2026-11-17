@@ -9,6 +9,7 @@ from PySide6.QtWidgets import (
     QVBoxLayout, QWidget
 )
 
+from wintoolbox.core.elevation import bind_admin_prompt_on_show, is_admin, prompt_elevation_dialog
 from wintoolbox.core.logging_setup import get_logger
 from wintoolbox.core.registry import Tool, register
 from wintoolbox.core.tasks import TaskRunner
@@ -91,6 +92,12 @@ class RestorePointsView(QWidget):
         enable_sorting_on_table(self.table)
         layout.addWidget(self.table, stretch=1)
 
+        bind_admin_prompt_on_show(
+            self,
+            tool_name=self.tool.name,
+            reason="Consultar e criar Pontos de Restauração do Sistema (Volume Shadow Copy) exige privilégios de Administrador.",
+        )
+
         self._load_points_async()
 
     def _load_points_async(self) -> None:
@@ -124,6 +131,14 @@ class RestorePointsView(QWidget):
         TaskRunner.run(_worker, on_success=_on_done, on_error=_on_error)
 
     def _create_point_async(self) -> None:
+        if not is_admin():
+            prompt_elevation_dialog(
+                self,
+                tool_name=self.tool.name,
+                reason="A criação de Pontos de Restauração do Windows requer privilégios de Administrador.",
+            )
+            return
+
         desc = self.txt_desc.text().strip()
         if not desc:
             show_toast(self, "Digite uma descrição para o ponto de restauração.", is_error=True)

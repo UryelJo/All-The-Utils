@@ -1,18 +1,19 @@
 """
-Lógica pura de análise de travamentos do Windows, telas azuis (BSODs), erros WHEA e desligamentos inesperados.
+Lógica pura de análise de travamentos do Windows, telas azuis (BSODs), erros de aplicativos,
+erros WHEA e desligamentos inesperados.
 Totalmente desacoplada de bibliotecas de interface visual.
 """
 from datetime import datetime
-import os
+import json
 from pathlib import Path
+import re
 import subprocess
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, List
 
 from wintoolbox.core.logging_setup import get_logger
 
 _log = get_logger("system.crash_analyzer")
 
-# Tabela semântica dos principais códigos de parada (BugCheck Codes) da Microsoft
 BUGCHECK_DESCRIPTIONS: Dict[int, str] = {
     0x0000000A: "IRQL_NOT_LESS_OR_EQUAL — Driver tentou acessar memória inválida em IRQL alto.",
     0x0000001A: "MEMORY_MANAGEMENT — Erro crítico na gestão de memória RAM do sistema.",
@@ -43,6 +44,103 @@ def explain_bugcheck_code(code_num: int) -> str:
     return f"Código de parada 0x{code_num:08X} (consulte a base de conhecimento da Microsoft para este código específico)."
 
 
+def format_crash_timestamp(raw_val: Any) -> str:
+    """
+    Converte datas serializadas pelo PowerShell/JSON (como '/Date(1794022269145)/' ou ISO)
+    para o formato legível brasileiro 'dd/MM/yyyy HH:mm:ss'.
+    """
+    s = str(raw_val or "").strip()
+    if not s:
+        return "-"
+
+    # Trata formato Microsoft JSON: /Date(1794022269145)/ ou /Date(1794022269145-0300)/
+    m = re.search(r"/Date\((-?\d+)(?:[+-]\d+)?\)/", s)
+    if m:
+        try:
+            ms = int(m.group(1))
+            dt = datetime.fromtimestamp(ms / 1000.0)
+            return dt.strftime("%d/%m/%Y %H:%M:%S")
+        except Exception:
+            pass
+
+    # Trata ISO 8601: 2026-10-30T14:22:10...
+    if "T" in s and re.match(r"^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}", s):
+        try:
+            clean_iso = s.split(".")[0].replace("Z", "")
+            dt = datetime.strptime(clean_iso[:19], "%Y-%m-%dT%H:%M:%S")
+            return dt.strftime("%d/%m/%Y %H:%M:%S")
+        except Exception:
+            pass
+
+    return s
+
+
+def extract_faulting_app_or_module(message: str, provider: str = "", event_id: int = 0) -> str:
+    """
+    Extrai da mensagem do evento o aplicativo (.exe), biblioteca (.dll) ou driver (.sys)
+    que causou o travamento ou tela azul.
+    """
+    msg = (message or "").strip()
+    app_name = ""
+    mod_name = ""
+
+    # 1. Padrão Application Error (ID 1000) em PT-BR e EN-US
+    m_app = re.search(
+        r"(?:Nome do aplicativo com falha|Faulting application name|Aplicativo com falha)\s*:\s*([^\r\n,;]+)",
+        msg,
+        re.IGNORECASE,
+    )
+    if m_app:
+        val = m_app.group(1).strip()
+        if val and val.lower() not in ("unknown", "desconhecido"):
+            app_name = Path(val).name
+
+    m_mod = re.search(
+        r"(?:Nome do m[óo]dulo com falha|Faulting module name|M[óo]dulo com falha)\s*:\s*([^\r\n,;]+)",
+        msg,
+        re.IGNORECASE,
+    )
+    if m_mod:
+        val = m_mod.group(1).strip()
+        if val and val.lower() not in ("unknown", "desconhecido"):
+            mod_name = Path(val).name
+
+    if app_name and mod_name and app_name.lower() != mod_name.lower():
+        return f"{app_name} ({mod_name})"
+    if app_name:
+        return app_name
+    if mod_name:
+        return mod_name
+
+    # 2. Padrão Application Hang (ID 1002): "O programa X.exe versão Y parou de interagir com o Windows"
+    m_hang = re.search(
+        r"(?:O programa|The program)\s+([^\s,]+\.exe)\b",
+        msg,
+        re.IGNORECASE,
+    )
+    if m_hang:
+        return m_hang.group(1).strip()
+
+    # 3. Qualquer menção direta a driver (.sys) ou executável (.exe) na mensagem
+    m_bin = re.search(r"\b([a-zA-Z0-9_\-\.]+\.(?:sys|exe|dll))\b", msg, re.IGNORECASE)
+    if m_bin:
+        found = m_bin.group(1)
+        if found.lower() not in ("explorer.exe", "svchost.exe") or event_id in (1000, 1002):
+            return found
+
+    # 4. Fallbacks semânticos por tipo de evento
+    if event_id == 41 or "kernel-power" in (provider or "").lower():
+        return "Sistema / Energia (Kernel-Power)"
+    if event_id == 1001 or "bugcheck" in (provider or "").lower() or "wer" in (provider or "").lower():
+        return "Kernel / Driver (BSOD)"
+    if "whea" in (provider or "").lower():
+        return "Hardware Físico (WHEA)"
+    if event_id == 6008:
+        return "Sistema Operacional (EventLog)"
+
+    return provider or "Sistema"
+
+
 def list_minidump_files() -> List[Dict[str, Any]]:
     """Localiza e lista arquivos de despejo de memória (Minidumps) em C:\\Windows\\Minidump."""
     minidumps: List[Dict[str, Any]] = []
@@ -62,7 +160,6 @@ def list_minidump_files() -> List[Dict[str, Any]]:
         except Exception as exc:
             _log.warning("Falha ao ler diretório de minidumps: %s", exc)
 
-    # Verifica também o MEMORY.DMP completo se existir
     full_dump = Path("C:/Windows/MEMORY.DMP")
     if full_dump.exists():
         try:
@@ -82,22 +179,29 @@ def list_minidump_files() -> List[Dict[str, Any]]:
 
 def query_system_crash_events(max_events: int = 50) -> List[Dict[str, Any]]:
     """
-    Consulta o Log de Eventos do Windows (System) por eventos críticos de falha:
-    - ID 41 (Kernel-Power: reinício sem desligamento prévio limpo)
-    - ID 1001 (BugCheck: registro da BSOD com código de erro)
-    - ID 6008 (Desligamento inesperado)
-    - Provedor WHEA-Logger (Erros de hardware de CPU/PCIe)
+    Consulta o Log de Eventos do Windows (System e Application) por eventos críticos de falha:
+    - System: ID 41 (Kernel-Power), ID 1001 (BugCheck/BSOD), ID 6008 (Desligamento inesperado)
+    - Application: ID 1000 (Application Error / Crash de App), ID 1002 (Application Hang / App Travado)
     """
     events: List[Dict[str, Any]] = []
 
     ps_script = f"""
-    $events = Get-WinEvent -FilterHashtable @{{
+    $sysEvents = @(Get-WinEvent -FilterHashtable @{{
         LogName = 'System';
         Id = 41, 1001, 6008;
-    }} -MaxEvents {max_events} -ErrorAction SilentlyContinue |
-    Select-Object Id, TimeCreated, ProviderName, Message
+    }} -MaxEvents {max_events} -ErrorAction SilentlyContinue)
 
-    $events | ConvertTo-Json -Compress
+    $appEvents = @(Get-WinEvent -FilterHashtable @{{
+        LogName = 'Application';
+        Id = 1000, 1002;
+    }} -MaxEvents {max_events} -ErrorAction SilentlyContinue)
+
+    $all = ($sysEvents + $appEvents) | Sort-Object TimeCreated -Descending | Select-Object -First {max_events}
+    $all | Select-Object Id,
+        @{{Name='TimeFormatted'; Expression={{$_.TimeCreated.ToString('dd/MM/yyyy HH:mm:ss')}}}},
+        TimeCreated,
+        ProviderName,
+        Message | ConvertTo-Json -Compress
     """
 
     try:
@@ -114,25 +218,23 @@ def query_system_crash_events(max_events: int = 50) -> List[Dict[str, Any]]:
         if not stdout:
             return []
 
-        import json
         raw = json.loads(stdout)
         event_list = [raw] if isinstance(raw, dict) else raw
 
         for ev in event_list:
             eid = int(ev.get("Id", 0))
             msg = str(ev.get("Message", "")).strip()
+            provider = str(ev.get("ProviderName", "System")).strip()
 
-            # Converte data / timestamp
-            time_raw = ev.get("TimeCreated", "")
-            time_str = str(time_raw)
+            raw_time = ev.get("TimeFormatted") or ev.get("TimeCreated") or ""
+            time_str = format_crash_timestamp(raw_time)
+            faulting_app = extract_faulting_app_or_module(msg, provider=provider, event_id=eid)
 
-            # Interpretação amigável do evento
             if eid == 41:
-                category = "Reinicio Inesperado (Kernel-Power)"
-                explanation = "O sistema reiniciou sem desligar corretamente primeiro. Causado por queda de energia, travamento ou BSOD."
+                category = "Reinício Inesperado (Kernel-Power)"
+                explanation = "O sistema reiniciou sem desligar limpa e previamente (queda de energia, reset forçado ou BSOD)."
             elif eid == 1001:
                 category = "Tela Azul (BugCheck / BSOD)"
-                # Tenta extrair código Bugcheck
                 explanation = "O computador foi reinicializado após uma verificação de erro (Blue Screen of Death)."
                 for line in msg.splitlines():
                     if "0x" in line:
@@ -140,7 +242,13 @@ def query_system_crash_events(max_events: int = 50) -> List[Dict[str, Any]]:
                         break
             elif eid == 6008:
                 category = "Desligamento Inesperado"
-                explanation = "O desligamento anterior do sistema às foi inesperado."
+                explanation = "O desligamento anterior do sistema foi inesperado."
+            elif eid == 1000:
+                category = "Falha de Aplicativo (Crash)"
+                explanation = f"O aplicativo '{faulting_app}' encerrou inesperadamente devido a uma exceção não tratada."
+            elif eid == 1002:
+                category = "Travamento de Aplicativo (Hang)"
+                explanation = f"O aplicativo '{faulting_app}' parou de responder (Congelamento / Não Está Respondendo)."
             else:
                 category = f"Evento {eid}"
                 explanation = msg[:200]
@@ -149,7 +257,8 @@ def query_system_crash_events(max_events: int = 50) -> List[Dict[str, Any]]:
                 "id": eid,
                 "time": time_str,
                 "category": category,
-                "provider": ev.get("ProviderName", "System"),
+                "faulting_app": faulting_app,
+                "provider": provider,
                 "explanation": explanation,
                 "raw_message": msg
             })

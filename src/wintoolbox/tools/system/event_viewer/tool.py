@@ -11,6 +11,7 @@ from PySide6.QtWidgets import (
     QSplitter, QTextEdit, QVBoxLayout, QWidget
 )
 
+from wintoolbox.core.elevation import is_admin, prompt_elevation_dialog
 from wintoolbox.core.registry import Tool, register
 from wintoolbox.core.tasks import TaskRunner
 from wintoolbox.ui.widgets.data_table import Column, DataTableView
@@ -116,10 +117,17 @@ class EventViewerTool(Tool):
         return container
 
     def _run_query(self) -> None:
+        log_name = self.cmb_log.currentText()
+        if log_name == "Security" and not is_admin():
+            if prompt_elevation_dialog(
+                None,
+                tool_name=self.name,
+                reason="A leitura do canal de auditoria 'Security' do Windows exige privilégios de Administrador.",
+            ):
+                return
+
         self.btn_query.setEnabled(False)
         self.lbl_status.setText("Consultando eventos do Windows via PowerShell...")
-
-        log_name = self.cmb_log.currentText()
         sev_text = self.cmb_severity.currentText()
         if sev_text == "Apenas Erros":
             sev = "ErrorsOnly"

@@ -30,6 +30,8 @@ from wintoolbox.tools.system.task_scheduler.logic import list_scheduled_tasks
 def test_phase_7_tools_registered():
     """Valida se todas as 10 ferramentas da Fase 7 estão devidamente registradas."""
     expected_ids = [
+        "system.tools",
+        "system.monitor",
         "system.process_manager",
         "system.services_manager",
         "system.startup_manager",
@@ -38,7 +40,6 @@ def test_phase_7_tools_registered():
         "system.uninstaller",
         "system.power_manager",
         "system.driver_backup",
-        "system.quick_tweaks",
         "system.task_scheduler",
     ]
     all_tools = {t.id: t for t in get_all_tools()}
@@ -166,3 +167,112 @@ def test_task_scheduler_logic():
     """Valida listagem de tarefas agendadas."""
     tasks = list_scheduled_tasks(hide_microsoft=True)
     assert isinstance(tasks, list)
+
+
+def test_driver_backup_pnputil_parser():
+    """Valida que Classe do Dispositivo, Data e Versão são extraídos em PT-BR e EN-US."""
+    from wintoolbox.tools.system.driver_backup.logic import parse_pnputil_drivers_output
+
+    sample_pt = (
+        "Utilitário de Gerenciamento de Drivers PnP da Microsoft\n\n"
+        "Nome publicado:            oem12.inf\n"
+        "Nome original:             nv_dispi.inf\n"
+        "Nome do provedor:          NVIDIA\n"
+        "Nome da classe:            Adaptadores de vídeo\n"
+        "GUID da classe:            {4d36e968-e325-11ce-bfc1-08002be10318}\n"
+        "Versão e data do driver:   10/15/2025 32.0.15.6603\n"
+        "Nome do signatário:        Microsoft Windows Hardware Compatibility Publisher\n"
+    )
+    parsed = parse_pnputil_drivers_output(sample_pt)
+    assert len(parsed) == 1
+    drv = parsed[0]
+    assert drv["published_name"] == "oem12.inf"
+    assert drv["original_name"] == "nv_dispi.inf"
+    assert drv["provider"] == "NVIDIA"
+    assert drv["class_name"] == "Adaptadores de vídeo"
+    assert drv["date"] == "15/10/2025"
+    assert drv["version"] == "32.0.15.6603"
+
+
+def test_crash_analyzer_date_and_app_extraction():
+    """Valida formatação de /Date(...)/ e extração do aplicativo/módulo causador."""
+    from wintoolbox.tools.system.crash_analyzer.logic import (
+        extract_faulting_app_or_module,
+        format_crash_timestamp,
+    )
+
+    formatted = format_crash_timestamp("/Date(1794022269145)/")
+    assert "/Date" not in formatted
+    assert len(formatted) == 19
+    assert formatted[2] == "/" and formatted[5] == "/"
+
+    msg_pt = (
+        "Nome do aplicativo com falha: Explorer.EXE, versão: 10.0.26100.1\n"
+        "Nome do módulo com falha: Windows.UI.Xaml.dll, versão: 10.0.26100.1"
+    )
+    app_mod = extract_faulting_app_or_module(msg_pt, provider="Application Error", event_id=1000)
+    assert app_mod == "Explorer.EXE (Windows.UI.Xaml.dll)"
+
+    msg_hang = "O programa chrome.exe versão 130.0.0.1 parou de interagir com o Windows e foi fechado."
+    assert extract_faulting_app_or_module(msg_hang, event_id=1002) == "chrome.exe"
+
+
+def test_disk_health_diagnosis_and_tooltips():
+    """Valida geração do diagnóstico explicativo de saúde do disco e tooltips SMART."""
+    from wintoolbox.tools.system.disk_health.logic import (
+        SMART_PARAMETER_TOOLTIPS,
+        build_disk_health_diagnosis,
+    )
+
+    diag = build_disk_health_diagnosis({
+        "health_status": "Healthy",
+        "operational_status": "OK",
+        "temperature_c": 39,
+        "wear_percent": 3,
+        "read_errors": 0,
+        "write_errors": 0,
+    })
+    assert "Healthy" in diag
+    assert "39 °C" in diag
+    assert "97% de vida útil restante" in diag
+    assert "zero erros" in diag
+    assert "temperature_c" in SMART_PARAMETER_TOOLTIPS
+    assert "wear_percent" in SMART_PARAMETER_TOOLTIPS
+
+
+def test_windows_features_numeric_state_parser():
+    """Valida que State numérico do Get-WindowsOptionalFeature (2=Enabled, 0=Disabled) é interpretado."""
+    from wintoolbox.tools.system.windows_features.logic import parse_features_json
+
+    raw_json = '[{"FeatureName":"Microsoft-Hyper-V-All","State":2,"DisplayName":"Hyper-V","Description":"Virtualização"},{"FeatureName":"TelnetClient","State":0,"DisplayName":"Cliente Telnet","Description":"Telnet"}]'
+    feats = parse_features_json(raw_json)
+    assert len(feats) == 2
+    assert feats[0].name == "Microsoft-Hyper-V-All"
+    assert feats[0].is_enabled is True
+    assert feats[1].name == "TelnetClient"
+    assert feats[1].is_enabled is False
+
+
+def test_license_and_privacy_os_validation():
+    """Valida formato de chave de produto Win10/11 e detecção de SO no módulo de privacidade."""
+    from wintoolbox.tools.system.license_info.logic import (
+        WINDOWS_10_11_EDITION_KEYS,
+        validate_product_key_format,
+    )
+    from wintoolbox.tools.system.privacy.logic import (
+        detect_windows_os_version,
+        get_all_privacy_statuses,
+    )
+
+    assert len(WINDOWS_10_11_EDITION_KEYS) >= 7
+    for entry in WINDOWS_10_11_EDITION_KEYS:
+        assert validate_product_key_format(entry["key"]) is True
+    assert validate_product_key_format("INVALID-KEY") is False
+
+    os_info = detect_windows_os_version()
+    assert os_info["os_tag"] in ("win10", "win11")
+    filtered = get_all_privacy_statuses(filter_by_os=True)
+    assert len(filtered) >= 10
+    for item in filtered:
+        assert os_info["os_tag"] in item["supported_os"]
+

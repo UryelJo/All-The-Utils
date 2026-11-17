@@ -22,7 +22,6 @@ from wintoolbox.tools.system.hardware_info.logic import (
 )
 
 
-@register
 class HardwareInfoTool(Tool):
     id = "system.hardware_info"
     name = "Informações de Hardware"
@@ -34,7 +33,7 @@ class HardwareInfoTool(Tool):
         super().__init__()
         self._inventory: Optional[HardwareInventory] = None
 
-    def build_ui(self) -> QWidget:
+    def build_ui(self, auto_load: bool = True) -> QWidget:
         container = QWidget()
         main_layout = QVBoxLayout(container)
         main_layout.setContentsMargins(16, 16, 16, 16)
@@ -153,8 +152,8 @@ class HardwareInfoTool(Tool):
 
         main_layout.addWidget(self.tabs)
 
-        # Inicia carregamento dos dados
-        self._load_hardware_info()
+        if auto_load:
+            self._load_hardware_info()
         return container
 
     def _load_hardware_info(self) -> None:

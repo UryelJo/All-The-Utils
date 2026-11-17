@@ -22,7 +22,6 @@ from wintoolbox.ui.widgets.tool_header import ToolHeader
 _log = get_logger("system.repair_center.ui")
 
 
-@register
 class RepairCenterTool(Tool):
     id = "system.repair_center"
     name = "Central de Reparos do Windows"

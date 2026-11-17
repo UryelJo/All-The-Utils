@@ -25,7 +25,7 @@ def _fmt_install_date(value: str) -> str:
 
 
 COLUMNS = [
-    Column("name", "Nome do Aplicativo", stretch=True, tooltip=True),
+    Column("name", "Nome do Aplicativo", stretch=True, tooltip=True, icon_key="icon_path", fallback_icon=True),
     Column("version", "Versão", width=120),
     Column("publisher", "Publicador", width=220, tooltip=True),
     Column("size_mb", "Tamanho (MB)", align="right", width=105,

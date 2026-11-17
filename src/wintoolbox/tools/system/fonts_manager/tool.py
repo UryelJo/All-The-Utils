@@ -106,7 +106,7 @@ class FontsManagerTool(Tool):
             "THE QUICK BROWN FOX JUMPS OVER THE LAZY DOG.\n"
             "0123456789 - @#$%&*() [] {}"
         )
-        self.txt_sample.setStyleSheet("background-color: #ffffff; border: 1px solid #cbd5e1; border-radius: 6px;")
+        self.txt_sample.setProperty("class", "card")
         self._update_sample_font()
         preview_layout.addWidget(self.txt_sample)
 

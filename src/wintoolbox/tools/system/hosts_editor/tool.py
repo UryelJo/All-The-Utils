@@ -1,21 +1,24 @@
 """
 Ferramenta: Editor Seguro do Arquivo Hosts do Windows.
-Gerenciamento de redirecionamentos locais, bloqueios de domínio, backup e flush DNS.
+Gerenciamento de redirecionamentos locais, bloqueios de domínio, backup e ordenação por colunas.
 """
-from pathlib import Path
 from typing import List, Optional
 from PySide6.QtCore import Qt
 from PySide6.QtWidgets import (
     QDialog, QFormLayout, QHBoxLayout, QHeaderView, QLabel,
-    QLineEdit, QMessageBox, QPushButton, QTableWidget, QTableWidgetItem,
+    QLineEdit, QListWidget, QMessageBox, QPushButton, QTableWidget, QTableWidgetItem,
     QVBoxLayout, QWidget
 )
 
-from wintoolbox.core.elevation import is_admin, request_elevation
+from wintoolbox.core.elevation import is_admin, prompt_elevation_dialog
 from wintoolbox.core.registry import Tool, register
 from wintoolbox.tools.system.hosts_editor.logic import (
     flush_dns_cache, list_hosts_backups, read_hosts_file, restore_hosts_backup, save_hosts_file
 )
+from wintoolbox.ui.widgets.sortable_table import (
+    SmartTableWidgetItem, batch_table_update, enable_sorting_on_table
+)
+from wintoolbox.ui.widgets.tool_header import make_tool_header
 
 
 @register
@@ -23,7 +26,7 @@ class HostsEditorTool(Tool):
     id = "system.hosts_editor"
     name = "Editor do Arquivo Hosts"
     category = "Sistema"
-    description = "Editor seguro do arquivo hosts do Windows com backup automático, alternância de hosts e Flush DNS"
+    description = "Editor seguro do arquivo hosts do Windows com backup automático e alternância rápida de entradas"
     keywords = ["hosts", "dns", "ip", "redirecionar", "bloqueio", "dominio", "localhost", "rede"]
 
     def build_view(self, parent: Optional[QWidget] = None) -> QWidget:
@@ -40,8 +43,9 @@ class HostsEditorView(QWidget):
 
     def _build_ui(self):
         layout = QVBoxLayout(self)
-        layout.setContentsMargins(12, 12, 12, 12)
+        layout.setContentsMargins(20, 20, 20, 16)
         layout.setSpacing(10)
+        layout.addWidget(make_tool_header(self.tool))
 
         # Barra Superior
         top_bar = QHBoxLayout()
@@ -56,27 +60,34 @@ class HostsEditorView(QWidget):
         self.btn_add.clicked.connect(self._on_add_entry)
         top_bar.addWidget(self.btn_add)
 
-        top_bar.addStretch()
+        top_bar.addWidget(QLabel("Filtrar:"))
+        self.txt_filter = QLineEdit()
+        self.txt_filter.setClearButtonEnabled(True)
+        self.txt_filter.setPlaceholderText("Filtrar por IP, domínio ou comentário...")
+        self.txt_filter.textChanged.connect(self._apply_filter)
+        top_bar.addWidget(self.txt_filter, stretch=1)
 
-        self.btn_flush_dns = QPushButton("Limpar Cache DNS (Flush DNS)")
-        self.btn_flush_dns.clicked.connect(self._on_flush_dns)
-        top_bar.addWidget(self.btn_flush_dns)
+        self.lbl_count = QLabel("0 entradas")
+        self.lbl_count.setProperty("class", "secondary")
+        top_bar.addWidget(self.lbl_count)
 
         layout.addLayout(top_bar)
 
-        # Tabela
+        # Tabela com Ordenação em Todas as Colunas
         self.table = QTableWidget()
         self.table.setColumnCount(4)
         self.table.setHorizontalHeaderLabels(["Ativo", "Endereço IP", "Domínio / Hostname", "Comentário"])
         self.table.horizontalHeader().setSectionResizeMode(0, QHeaderView.ResizeToContents)
-        self.table.horizontalHeader().setSectionResizeMode(1, QHeaderView.ResizeToContents)
+        self.table.horizontalHeader().setSectionResizeMode(1, QHeaderView.Interactive)
+        self.table.setColumnWidth(1, 160)
         self.table.horizontalHeader().setSectionResizeMode(2, QHeaderView.Stretch)
-        self.table.horizontalHeader().setSectionResizeMode(3, QHeaderView.ResizeToContents)
+        self.table.horizontalHeader().setSectionResizeMode(3, QHeaderView.Interactive)
+        self.table.setColumnWidth(3, 220)
         self.table.setSelectionBehavior(QTableWidget.SelectRows)
         self.table.setSelectionMode(QTableWidget.SingleSelection)
         self.table.setAlternatingRowColors(True)
-        self.table.itemChanged.connect(self._on_table_item_changed)
-        layout.addWidget(self.table)
+        enable_sorting_on_table(self.table)
+        layout.addWidget(self.table, stretch=1)
 
         # Barra Inferior
         bottom_bar = QHBoxLayout()
@@ -101,33 +112,58 @@ class HostsEditorView(QWidget):
         layout.addLayout(bottom_bar)
 
     def _reload_hosts(self):
-        self.table.blockSignals(True)
         self._entries = read_hosts_file()
-        self.table.setRowCount(len(self._entries))
+        self._populate_table(self._entries)
 
-        for row, ent in enumerate(self._entries):
-            # Checkbox de ativo
-            chk_item = QTableWidgetItem()
-            chk_item.setFlags(Qt.ItemIsUserCheckable | Qt.ItemIsEnabled | Qt.ItemIsSelectable)
-            chk_item.setCheckState(Qt.Checked if ent.get("is_enabled", True) else Qt.Unchecked)
-            self.table.setItem(row, 0, chk_item)
+    def _populate_table(self, entries: List[dict]):
+        with batch_table_update(self.table):
+            self.table.setRowCount(len(entries))
+            for row, ent in enumerate(entries):
+                is_on = bool(ent.get("is_enabled", True))
+                chk_item = SmartTableWidgetItem("", sort_value=1 if is_on else 0)
+                chk_item.setFlags(Qt.ItemIsUserCheckable | Qt.ItemIsEnabled | Qt.ItemIsSelectable)
+                chk_item.setCheckState(Qt.Checked if is_on else Qt.Unchecked)
+                self.table.setItem(row, 0, chk_item)
 
-            ip_item = QTableWidgetItem(ent.get("ip", ""))
-            self.table.setItem(row, 1, ip_item)
+                ip_str = ent.get("ip", "")
+                self.table.setItem(row, 1, SmartTableWidgetItem(ip_str, sort_value=ip_str.lower()))
 
-            host_item = QTableWidgetItem(ent.get("hostname", ""))
-            self.table.setItem(row, 2, host_item)
+                host_str = ent.get("hostname", "")
+                self.table.setItem(row, 2, SmartTableWidgetItem(host_str, sort_value=host_str.lower()))
 
-            comm_item = QTableWidgetItem(ent.get("comment", ""))
-            self.table.setItem(row, 3, comm_item)
+                comm_str = ent.get("comment", "")
+                self.table.setItem(row, 3, SmartTableWidgetItem(comm_str, sort_value=comm_str.lower()))
 
-        self.table.blockSignals(False)
+        self._apply_filter()
 
-    def _on_table_item_changed(self, item: QTableWidgetItem):
-        if item.column() == 0:
-            row = item.row()
-            if 0 <= row < len(self._entries):
-                self._entries[row]["is_enabled"] = (item.checkState() == Qt.Checked)
+    def _apply_filter(self):
+        q = self.txt_filter.text().strip().lower() if hasattr(self, "txt_filter") else ""
+        shown = 0
+        total = self.table.rowCount()
+        for r in range(total):
+            ip_txt = (self.table.item(r, 1).text() if self.table.item(r, 1) else "").lower()
+            host_txt = (self.table.item(r, 2).text() if self.table.item(r, 2) else "").lower()
+            comm_txt = (self.table.item(r, 3).text() if self.table.item(r, 3) else "").lower()
+            visible = not q or (q in ip_txt or q in host_txt or q in comm_txt)
+            self.table.setRowHidden(r, not visible)
+            if visible:
+                shown += 1
+        self.lbl_count.setText(f"{total} entradas" if shown == total else f"{shown} de {total} entradas")
+
+    def _collect_entries_from_table(self) -> List[dict]:
+        collected = []
+        for row in range(self.table.rowCount()):
+            chk = self.table.item(row, 0)
+            ip = self.table.item(row, 1)
+            host = self.table.item(row, 2)
+            comm = self.table.item(row, 3)
+            collected.append({
+                "is_enabled": (chk.checkState() == Qt.Checked) if chk else True,
+                "ip": ip.text().strip() if ip else "",
+                "hostname": host.text().strip() if host else "",
+                "comment": comm.text().strip() if comm else "",
+            })
+        return collected
 
     def _on_add_entry(self):
         dialog = QDialog(self)
@@ -160,14 +196,16 @@ class HostsEditorView(QWidget):
             if not ip_val or not host_val:
                 QMessageBox.warning(dialog, "Aviso", "Preencha o IP e o Hostname.")
                 return
-            self._entries.append({
+            current = self._collect_entries_from_table()
+            current.append({
                 "ip": ip_val,
                 "hostname": host_val,
                 "comment": txt_comm.text().strip(),
-                "is_enabled": True
+                "is_enabled": True,
             })
+            self._entries = current
             dialog.accept()
-            self._update_table_view()
+            self._populate_table(self._entries)
 
         btn_ok.clicked.connect(_confirm)
         btn_box.addWidget(btn_cancel)
@@ -176,45 +214,29 @@ class HostsEditorView(QWidget):
 
         dialog.exec()
 
-    def _update_table_view(self):
-        self.table.blockSignals(True)
-        self.table.setRowCount(len(self._entries))
-        for row, ent in enumerate(self._entries):
-            chk_item = QTableWidgetItem()
-            chk_item.setFlags(Qt.ItemIsUserCheckable | Qt.ItemIsEnabled | Qt.ItemIsSelectable)
-            chk_item.setCheckState(Qt.Checked if ent.get("is_enabled", True) else Qt.Unchecked)
-            self.table.setItem(row, 0, chk_item)
-
-            self.table.setItem(row, 1, QTableWidgetItem(ent.get("ip", "")))
-            self.table.setItem(row, 2, QTableWidgetItem(ent.get("hostname", "")))
-            self.table.setItem(row, 3, QTableWidgetItem(ent.get("comment", "")))
-        self.table.blockSignals(False)
-
     def _on_remove_selected(self):
-        selected = self.table.selectedItems()
-        if not selected:
-            QMessageBox.information(self, "Aviso", "Selecione uma linha para remover.")
-            return
+        row = self.table.currentRow()
+        if row < 0:
+            selected = self.table.selectedItems()
+            if not selected:
+                QMessageBox.information(self, "Aviso", "Selecione uma linha para remover.")
+                return
+            row = selected[0].row()
 
-        row = selected[0].row()
-        if 0 <= row < len(self._entries):
-            del self._entries[row]
-            self._update_table_view()
+        self.table.removeRow(row)
+        self._entries = self._collect_entries_from_table()
+        self._apply_filter()
 
     def _on_save_hosts(self):
-        # Sincroniza dados da tabela
-        for row in range(self.table.rowCount()):
-            chk = self.table.item(row, 0)
-            ip = self.table.item(row, 1)
-            host = self.table.item(row, 2)
-            comm = self.table.item(row, 3)
+        if not is_admin():
+            if prompt_elevation_dialog(
+                self,
+                tool_name=self.tool.name,
+                reason="Salvar alterações no arquivo 'C:\\Windows\\System32\\drivers\\etc\\hosts' exige privilégios de Administrador.",
+            ):
+                return
 
-            if row < len(self._entries):
-                self._entries[row]["is_enabled"] = (chk.checkState() == Qt.Checked) if chk else True
-                self._entries[row]["ip"] = ip.text().strip() if ip else ""
-                self._entries[row]["hostname"] = host.text().strip() if host else ""
-                self._entries[row]["comment"] = comm.text().strip() if comm else ""
-
+        self._entries = self._collect_entries_from_table()
         ok, msg = save_hosts_file(self._entries, create_backup=True)
         if ok:
             flush_dns_cache()
@@ -222,23 +244,9 @@ class HostsEditorView(QWidget):
             self._reload_hosts()
         else:
             if not is_admin():
-                ans = QMessageBox.question(
-                    self,
-                    "Privilégios de Administrador Necessários",
-                    f"{msg}\n\nPara salvar o arquivo hosts do sistema é obrigatório privilégios elevados. Deseja reiniciar a aplicação como Administrador?",
-                    QMessageBox.Yes | QMessageBox.No
-                )
-                if ans == QMessageBox.Yes:
-                    request_elevation()
+                prompt_elevation_dialog(self, tool_name=self.tool.name, reason=msg)
             else:
                 QMessageBox.critical(self, "Erro", msg)
-
-    def _on_flush_dns(self):
-        ok, msg = flush_dns_cache()
-        if ok:
-            QMessageBox.information(self, "Flush DNS", msg)
-        else:
-            QMessageBox.warning(self, "Flush DNS", msg)
 
     def _on_restore_backup(self):
         backups = list_hosts_backups()
@@ -252,7 +260,6 @@ class HostsEditorView(QWidget):
         dlg_layout = QVBoxLayout(dialog)
 
         dlg_layout.addWidget(QLabel("Selecione um ponto de backup para restaurar:"))
-        from PySide6.QtWidgets import QListWidget
         list_bks = QListWidget()
         for b in backups:
             list_bks.addItem(b.name)
@@ -277,6 +284,8 @@ class HostsEditorView(QWidget):
                 QMessageBox.information(dialog, "Sucesso", f"{msg}\nCache DNS renovado.")
                 dialog.accept()
                 self._reload_hosts()
+            elif not is_admin():
+                prompt_elevation_dialog(dialog, tool_name=self.tool.name, reason=msg)
             else:
                 QMessageBox.critical(dialog, "Erro", msg)
 

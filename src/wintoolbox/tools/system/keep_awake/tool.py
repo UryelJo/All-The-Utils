@@ -5,22 +5,22 @@ Impede que o Windows suspenda ou desligue a tela durante tarefas longas.
 import time
 from typing import Optional
 
-from PySide6.QtCore import Qt, QTimer
+from PySide6.QtCore import QTimer
 from PySide6.QtWidgets import (
-    QCheckBox, QComboBox, QFrame, QGridLayout,
+    QCheckBox, QComboBox, QFrame,
     QGroupBox, QHBoxLayout, QLabel, QPushButton,
     QRadioButton, QSpinBox, QVBoxLayout, QWidget
 )
 
-from wintoolbox.core.registry import Tool, register
+from wintoolbox.core.registry import Tool
 from wintoolbox.tools.system.keep_awake.logic import (
     apply_keep_awake,
     format_remaining_seconds,
     release_keep_awake,
 )
+from wintoolbox.ui.theme import get_current_tokens
 
 
-@register
 class KeepAwakeTool(Tool):
     id = "system.keep_awake"
     name = "Manter Sistema Acordado"
@@ -39,34 +39,36 @@ class KeepAwakeTool(Tool):
     def build_ui(self) -> QWidget:
         container = QWidget()
         main_layout = QVBoxLayout(container)
-        main_layout.setContentsMargins(24, 24, 24, 24)
-        main_layout.setSpacing(16)
+        main_layout.setContentsMargins(0, 0, 0, 0)
+        main_layout.setSpacing(12)
 
-        # Card de Status Principal
+        # Card de Status Principal (respeitando o tema atual)
         self.status_card = QFrame()
-        self.status_card.setStyleSheet(
-            "background-color: #f1f5f9; border: 1px solid #cbd5e1; border-radius: 8px; padding: 16px;"
-        )
+        self.status_card.setObjectName("Card")
+        self.status_card.setProperty("class", "card")
         card_layout = QVBoxLayout(self.status_card)
-        card_layout.setSpacing(10)
+        card_layout.setContentsMargins(16, 14, 16, 14)
+        card_layout.setSpacing(8)
 
         self.lbl_status_title = QLabel("Status: Inativo")
-        self.lbl_status_title.setStyleSheet("font-size: 16px; font-weight: 600; color: #475569;")
+        t = get_current_tokens()
+        self.lbl_status_title.setStyleSheet(f"font-size: 15px; font-weight: 600; color: {t.text_primary};")
         card_layout.addWidget(self.lbl_status_title)
 
         self.lbl_status_desc = QLabel("O sistema segue as regras normais de economia de energia e suspensão do Windows.")
-        self.lbl_status_desc.setStyleSheet("color: #64748b; font-size: 12px;")
+        self.lbl_status_desc.setProperty("class", "secondary")
         card_layout.addWidget(self.lbl_status_desc)
 
         self.lbl_timer_countdown = QLabel("")
-        self.lbl_timer_countdown.setStyleSheet("font-size: 20px; font-weight: 700; color: #0284c7;")
+        self.lbl_timer_countdown.setStyleSheet(f"font-size: 18px; font-weight: 700; color: {t.accent};")
         self.lbl_timer_countdown.setVisible(False)
         card_layout.addWidget(self.lbl_timer_countdown)
 
         # Botão Principal de Alternância
         self.btn_toggle = QPushButton("Ativar Modo Acordado")
-        self.btn_toggle.setFixedHeight(42)
-        self.btn_toggle.setStyleSheet("font-size: 14px; font-weight: 600;")
+        self.btn_toggle.setProperty("class", "primary")
+        self.btn_toggle.setFixedHeight(36)
+        self.btn_toggle.setStyleSheet("font-size: 13px; font-weight: 600;")
         self.btn_toggle.clicked.connect(self._toggle_active)
         card_layout.addWidget(self.btn_toggle)
 
@@ -75,7 +77,7 @@ class KeepAwakeTool(Tool):
         # Painel de Modo de Operação
         grp_mode = QGroupBox("Duração da Ativação")
         mode_layout = QVBoxLayout(grp_mode)
-        mode_layout.setSpacing(10)
+        mode_layout.setSpacing(8)
 
         self.rb_indefinite = QRadioButton("Manter acordado indefinidamente (até desativação manual)")
         self.rb_indefinite.setChecked(True)
@@ -129,8 +131,6 @@ class KeepAwakeTool(Tool):
         targets_layout.addWidget(self.chk_keep_system)
 
         main_layout.addWidget(grp_targets)
-        main_layout.addStretch()
-
         return container
 
     def _on_mode_changed(self) -> None:
@@ -160,12 +160,10 @@ class KeepAwakeTool(Tool):
             return
 
         self._is_active = True
+        t = get_current_tokens()
         self.btn_toggle.setText("Desativar Modo Acordado")
-        self.status_card.setStyleSheet(
-            "background-color: #f0fdf4; border: 1px solid #86efac; border-radius: 8px; padding: 16px;"
-        )
         self.lbl_status_title.setText("Status: Ativo (Protegendo contra suspensão)")
-        self.lbl_status_title.setStyleSheet("font-size: 16px; font-weight: 600; color: #15803d;")
+        self.lbl_status_title.setStyleSheet(f"font-size: 15px; font-weight: 700; color: {t.status_success};")
 
         if self.rb_timed.isChecked():
             preset_text = self.cmb_presets.currentText()
@@ -198,12 +196,10 @@ class KeepAwakeTool(Tool):
         self._target_end_time = None
         self._countdown_timer.stop()
 
+        t = get_current_tokens()
         self.btn_toggle.setText("Ativar Modo Acordado")
-        self.status_card.setStyleSheet(
-            "background-color: #f1f5f9; border: 1px solid #cbd5e1; border-radius: 8px; padding: 16px;"
-        )
         self.lbl_status_title.setText("Status: Inativo")
-        self.lbl_status_title.setStyleSheet("font-size: 16px; font-weight: 600; color: #475569;")
+        self.lbl_status_title.setStyleSheet(f"font-size: 15px; font-weight: 600; color: {t.text_primary};")
         self.lbl_timer_countdown.setVisible(False)
 
     def _on_tick(self) -> None:

@@ -13,12 +13,6 @@ from wintoolbox.core.logging_setup import get_logger
 _log = get_logger("process_manager")
 
 
-# --- Snapshot nativo -------------------------------------------------------------
-# psutil abre cada processo individualmente (OpenProcess + consultas): ~1,2 s para
-# ~280 processos com memória/status/threads. NtQuerySystemInformation devolve nome,
-# memória, threads, handles e tempos de CPU de todos os processos numa única chamada
-# (é o que o Gerenciador de Tarefas usa): poucos milissegundos.
-
 class _UNICODE_STRING(ctypes.Structure):
     _fields_ = [("Length", ctypes.c_ushort), ("MaximumLength", ctypes.c_ushort), ("Buffer", ctypes.c_void_p)]
 
@@ -58,6 +52,27 @@ class _SYSTEM_PROCESS_INFORMATION(ctypes.Structure):
 
 _SYSTEM_PROCESS_INFORMATION_CLASS = 5
 _STATUS_INFO_LENGTH_MISMATCH = 0xC0000004
+_PROCESS_QUERY_LIMITED_INFORMATION = 0x1000
+
+
+def _query_process_exe_fast(pid: int) -> str:
+    """Obtém o caminho completo do executável via QueryFullProcessImageNameW (rápido e funciona sem admin)."""
+    if pid <= 4:
+        return ""
+    kernel32 = ctypes.windll.kernel32
+    handle = kernel32.OpenProcess(_PROCESS_QUERY_LIMITED_INFORMATION, False, pid)
+    if not handle:
+        return ""
+    try:
+        buf = ctypes.create_unicode_buffer(1024)
+        size = ctypes.c_ulong(1024)
+        if kernel32.QueryFullProcessImageNameW(handle, 0, buf, ctypes.byref(size)):
+            return buf.value
+        return ""
+    except Exception:
+        return ""
+    finally:
+        kernel32.CloseHandle(handle)
 
 
 def _native_snapshot() -> List[Dict[str, Any]]:
@@ -129,13 +144,14 @@ def _psutil_snapshot() -> List[Dict[str, Any]]:
 class ProcessSampler:
     """
     Amostrador de processos: CPU% calculado entre amostras (normalizado pelo total de
-    núcleos, como no Gerenciador de Tarefas) e cache de usuário por (pid, criação).
+    núcleos, como no Gerenciador de Tarefas) e cache de usuário e caminho por (pid, criação).
     """
 
     def __init__(self) -> None:
         self._prev_cpu: Dict[tuple, int] = {}
         self._prev_ts: Optional[float] = None
         self._users: Dict[tuple, str] = {}
+        self._exes: Dict[tuple, str] = {}
         self._cpu_count = psutil.cpu_count(logical=True) or 1
         self._native = True
 
@@ -168,6 +184,7 @@ class ProcessSampler:
                 "pid": pid,
                 "ppid": p["ppid"],
                 "name": p["name"],
+                "exe": self._exe_path(key),
                 "cpu_percent": round(min(cpu_pct, 100.0), 1),
                 "memory_mb": round(p["memory"] / (1024 * 1024), 1),
                 "private_mb": round(p["private"] / (1024 * 1024), 1),
@@ -178,19 +195,24 @@ class ProcessSampler:
 
         self._prev_cpu = cur_cpu
         self._prev_ts = now
-        # Descarta usuários de processos que já terminaram
+        # Descarta cache de processos que já terminaram
         self._users = {k: v for k, v in self._users.items() if k in cur_cpu}
+        self._exes = {k: v for k, v in self._exes.items() if k in cur_cpu}
         return result
 
     def _username(self, key: tuple) -> str:
         if key not in self._users:
             try:
                 user = psutil.Process(key[0]).username() or ""
-                # "DOMINIO\usuario" -> "usuario" (mais legível na tabela)
                 self._users[key] = user.rsplit("\\", 1)[-1]
             except Exception:
                 self._users[key] = ""
         return self._users[key]
+
+    def _exe_path(self, key: tuple) -> str:
+        if key not in self._exes:
+            self._exes[key] = _query_process_exe_fast(key[0])
+        return self._exes[key]
 
 
 def list_running_processes(filter_text: str = "") -> List[Dict[str, Any]]:
@@ -201,8 +223,12 @@ def list_running_processes(filter_text: str = "") -> List[Dict[str, Any]]:
     filter_norm = filter_text.strip().lower()
     processes = ProcessSampler().sample()
     if filter_norm:
-        processes = [p for p in processes if filter_norm in p["name"].lower()
-                     or filter_norm in str(p["pid"]) or filter_norm in p["username"].lower()]
+        processes = [
+            p for p in processes
+            if filter_norm in p["name"].lower()
+            or filter_norm in str(p["pid"])
+            or filter_norm in p["username"].lower()
+        ]
     processes.sort(key=lambda p: p["memory_mb"], reverse=True)
     return processes
 
@@ -216,7 +242,7 @@ def terminate_process(pid: int, kill_tree: bool = False) -> Dict[str, Any]:
     except psutil.NoSuchProcess:
         return {"success": False, "message": f"Processo com PID {pid} não foi encontrado."}
     except psutil.AccessDenied:
-        return {"success": False, "message": f"Acesso negado ao tentar acessar o PID {pid}. Execute como administrador."}
+        return {"success": False, "access_denied": True, "message": f"Acesso negado ao tentar acessar o PID {pid}. Execute como administrador."}
 
     killed_count = 0
     try:
@@ -229,17 +255,61 @@ def terminate_process(pid: int, kill_tree: bool = False) -> Dict[str, Any]:
                 except (psutil.NoSuchProcess, psutil.AccessDenied):
                     pass
 
+        proc_name = parent.name()
         parent.kill()
         killed_count += 1
         return {
             "success": True,
-            "message": f"Processo '{parent.name()}' (PID {pid}) encerrado com sucesso. Total de processos finalizados: {killed_count}.",
+            "message": f"Processo '{proc_name}' (PID {pid}) encerrado com sucesso. Total de processos finalizados: {killed_count}.",
             "killed_count": killed_count,
         }
     except psutil.AccessDenied:
-        return {"success": False, "message": f"Permissão insuficiente para finalizar o PID {pid}."}
+        return {"success": False, "access_denied": True, "message": f"Permissão insuficiente para finalizar o PID {pid}."}
     except Exception as e:
         return {"success": False, "message": f"Erro ao finalizar processo: {str(e)}"}
+
+
+def terminate_multiple_processes(pids: List[int], kill_tree: bool = False) -> Dict[str, Any]:
+    """
+    Encerra múltiplos processos em lote pelos seus PIDs.
+    """
+    if not pids:
+        return {"success": False, "message": "Nenhum processo informado."}
+
+    total_killed = 0
+    errors: List[str] = []
+    access_denied = False
+
+    for pid in pids:
+        res = terminate_process(pid, kill_tree=kill_tree)
+        if res.get("success"):
+            total_killed += int(res.get("killed_count", 1))
+        else:
+            errors.append(res.get("message", f"Falha no PID {pid}"))
+            if res.get("access_denied"):
+                access_denied = True
+
+    if total_killed > 0 and not errors:
+        return {
+            "success": True,
+            "killed_count": total_killed,
+            "message": f"{len(pids)} processo(s) selecionado(s) encerrado(s) com sucesso (total finalizado: {total_killed}).",
+        }
+    elif total_killed > 0 and errors:
+        return {
+            "success": True,
+            "partial": True,
+            "access_denied": access_denied,
+            "killed_count": total_killed,
+            "message": f"{total_killed} processo(s) finalizado(s), mas ocorreram {len(errors)} falha(s):\n" + "\n".join(errors[:5]),
+        }
+    else:
+        return {
+            "success": False,
+            "access_denied": access_denied,
+            "killed_count": 0,
+            "message": "Não foi possível finalizar os processos selecionados:\n" + "\n".join(errors[:5]),
+        }
 
 
 def get_process_details(pid: int) -> Dict[str, Any]:
@@ -272,6 +342,6 @@ def get_process_details(pid: int) -> Dict[str, Any]:
     except psutil.NoSuchProcess:
         return {"success": False, "message": f"Processo {pid} já foi finalizado."}
     except psutil.AccessDenied:
-        return {"success": False, "message": f"Acesso negado aos detalhes do processo {pid}."}
+        return {"success": False, "access_denied": True, "message": f"Acesso negado aos detalhes do processo {pid}."}
     except Exception as e:
         return {"success": False, "message": str(e)}

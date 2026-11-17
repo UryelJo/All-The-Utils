@@ -2,6 +2,9 @@
 Lógica pura para listagem e desinstalação de programas instalados no Windows via Registro.
 Isolada de interface gráfica.
 """
+import os
+from pathlib import Path
+import re
 import subprocess
 from typing import Any, Dict, List, Tuple
 import winreg
@@ -12,6 +15,46 @@ UNINSTALL_ROOTS = [
     (winreg.HKEY_LOCAL_MACHINE, r"Software\Wow6432Node\Microsoft\Windows\CurrentVersion\Uninstall", "Sistema (32-bit)"),
     (winreg.HKEY_CURRENT_USER, r"Software\Microsoft\Windows\CurrentVersion\Uninstall", "Usuário"),
 ]
+
+
+def _resolve_program_icon_path(display_icon: str, install_loc: str, uninstall_str: str) -> str:
+    """Resolve o caminho de arquivo (.exe ou .ico) para extração do ícone do programa."""
+    # 1. Tenta DisplayIcon direto
+    raw_icon = os.path.expandvars((display_icon or "").strip().strip('"'))
+    if raw_icon:
+        if "," in raw_icon and not os.path.exists(raw_icon):
+            raw_icon = raw_icon.rsplit(",", 1)[0].strip().strip('"')
+        if os.path.exists(raw_icon):
+            return raw_icon
+
+    # 2. Tenta extrair executável do UninstallString (se não for msiexec genérico)
+    raw_uninst = os.path.expandvars((uninstall_str or "").strip())
+    if raw_uninst and "msiexec" not in raw_uninst.lower():
+        if raw_uninst.startswith('"'):
+            end_q = raw_uninst.find('"', 1)
+            if end_q > 1:
+                cand = raw_uninst[1:end_q]
+                if os.path.exists(cand):
+                    return cand
+        m = re.match(r"^([a-zA-Z]:\\[^\r\n]*?\.exe)\b", raw_uninst, re.IGNORECASE)
+        if m and os.path.exists(m.group(1)):
+            return m.group(1)
+
+    # 3. Tenta localizar .exe principal dentro de InstallLocation
+    loc = os.path.expandvars((install_loc or "").strip().strip('"'))
+    if loc and os.path.isdir(loc):
+        try:
+            p_loc = Path(loc)
+            exes = [
+                f for f in p_loc.glob("*.exe")
+                if not f.name.lower().startswith(("unins", "update", "crash"))
+            ]
+            if exes:
+                return str(exes[0])
+        except Exception:
+            pass
+
+    return ""
 
 
 def list_installed_programs(filter_text: str = "") -> List[Dict[str, Any]]:
@@ -58,6 +101,8 @@ def list_installed_programs(filter_text: str = "") -> List[Dict[str, Any]]:
                             install_date = _val("InstallDate")
                             uninstall_str = _val("UninstallString")
                             quiet_uninstall_str = _val("QuietUninstallString")
+                            display_icon = _val("DisplayIcon")
+                            install_location = _val("InstallLocation")
 
                             # Tamanho estimado em KB para MB
                             raw_size = _val("EstimatedSize")
@@ -70,6 +115,8 @@ def list_installed_programs(filter_text: str = "") -> List[Dict[str, Any]]:
                                 if filter_norm not in display_name.lower() and filter_norm not in publisher.lower():
                                     continue
 
+                            icon_path = _resolve_program_icon_path(display_icon, install_location, uninstall_str)
+
                             programs.append({
                                 "name": display_name,
                                 "version": version or "-",
@@ -78,6 +125,7 @@ def list_installed_programs(filter_text: str = "") -> List[Dict[str, Any]]:
                                 "size_mb": size_mb,
                                 "uninstall_string": uninstall_str,
                                 "quiet_uninstall_string": quiet_uninstall_str,
+                                "icon_path": icon_path,
                                 "arch": arch,
                                 "key_id": app_guid,
                             })
@@ -99,7 +147,6 @@ def run_uninstaller(uninstall_cmd: str) -> Tuple[bool, str]:
         return False, "Comando de desinstalação não disponível para este aplicativo."
 
     try:
-        # Se for msiexec com /I ou /X, executa normalmente
         subprocess.Popen(cmd, shell=True)
         return True, "Assistente de desinstalação iniciado com sucesso."
     except Exception as e:

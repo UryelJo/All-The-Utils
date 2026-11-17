@@ -19,7 +19,6 @@ from wintoolbox.ui.widgets.tool_header import ToolHeader
 _log = get_logger("system.context_menu.ui")
 
 
-@register
 class ContextMenuTool(Tool):
     id = "system.context_menu"
     name = "Menu de Contexto do Windows 11"
