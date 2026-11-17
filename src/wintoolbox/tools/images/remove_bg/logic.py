@@ -1,11 +1,13 @@
 """
-Lógica pura para remoção de fundo de imagens (Chroma Key, fundo sólido e detecção inteligente de bordas).
+Lógica pura para remoção de fundo de imagens (Chroma Key, fundo sólido e detecção inteligente de bordas)
+com suporte a substituição de fundo por cor sólida ou outra imagem.
 Isolada de qualquer interface gráfica.
 """
+import io
 import math
 from pathlib import Path
-from typing import Optional, Tuple
-from PIL import Image
+from typing import Any, Dict, Optional, Tuple
+from PIL import Image, ImageOps
 
 
 def remove_image_background(
@@ -14,10 +16,13 @@ def remove_image_background(
     mode: str = "auto_corners",
     custom_color: Optional[Tuple[int, int, int]] = None,
     tolerance: int = 35,
-    feather: int = 8
+    feather: int = 8,
+    bg_replacement_mode: str = "transparent",
+    bg_solid_color: Tuple[int, int, int] = (255, 255, 255),
+    bg_custom_image_path: Optional[Path] = None
 ) -> Path:
     """
-    Remove o fundo de uma imagem e salva o resultado com canal alpha (transparência PNG).
+    Remove o fundo de uma imagem e salva o resultado com canal alpha ou com fundo substituído.
     """
     input_path = Path(input_path)
     output_path = Path(output_path)
@@ -26,22 +31,9 @@ def remove_image_background(
     if not input_path.is_file():
         raise FileNotFoundError(f"Arquivo não encontrado: {input_path}")
 
-    # 1. Tenta rembg se instalado no ambiente
-    try:
-        import importlib
-        rembg = importlib.import_module("rembg")
-        with open(input_path, "rb") as inp_f:
-            inp_bytes = inp_f.read()
-            out_bytes = rembg.remove(inp_bytes)
-            with open(output_path, "wb") as out_f:
-                out_f.write(out_bytes)
-            return output_path
-    except Exception:
-        pass
-
-    # 2. Algoritmo inteligente nativo via Pillow
+    # Processamento nativo via Pillow
     with Image.open(input_path) as img_raw:
-        img_rgb = img_raw.convert("RGB")
+        img_rgb = ImageOps.exif_transpose(img_raw).convert("RGB")
         width, height = img_rgb.size
 
         # Determina a cor de referência de fundo
@@ -61,7 +53,6 @@ def remove_image_background(
             target_g = int((c1[1] + c2[1] + c3[1] + c4[1]) / 4)
             target_b = int((c1[2] + c2[2] + c3[2] + c4[2]) / 4)
 
-        # Processamento de pixels em alta velocidade via buffer de bytes
         img_rgba = img_rgb.convert("RGBA")
         raw_bytes = bytearray(img_rgba.tobytes())
 
@@ -85,7 +76,51 @@ def remove_image_background(
                 raw_bytes[i + 3] = max(0, min(255, int(255 * ratio)))
 
         result_img = Image.frombytes("RGBA", (width, height), bytes(raw_bytes))
-        result_img.save(output_path, "PNG", optimize=True)
+
+        # Substituição de Fundo
+        if bg_replacement_mode == "solid":
+            bg = Image.new("RGBA", (width, height), bg_solid_color + (255,))
+            bg.paste(result_img, (0, 0), result_img)
+            result_img = bg
+        elif bg_replacement_mode == "custom_image" and bg_custom_image_path and Path(bg_custom_image_path).is_file():
+            with Image.open(bg_custom_image_path) as bg_raw:
+                bg_fitted = ImageOps.fit(bg_raw.convert("RGBA"), (width, height), method=Image.Resampling.LANCZOS)
+                bg_fitted.paste(result_img, (0, 0), result_img)
+                result_img = bg_fitted
+
+        ext = output_path.suffix.lower()
+        if ext in (".jpg", ".jpeg"):
+            result_img.convert("RGB").save(output_path, "JPEG", quality=95)
+        elif ext == ".webp":
+            result_img.save(output_path, "WEBP", quality=95)
+        else:
+            result_img.save(output_path, "PNG", optimize=True)
 
     return output_path
 
+
+def render_remove_bg_preview(input_path: Path, params: Dict[str, Any]) -> Image.Image:
+    """Gera visualização rápida em memória."""
+    import tempfile
+    with tempfile.NamedTemporaryFile(suffix=".png", delete=False) as tmp:
+        tmp_path = Path(tmp.name)
+    try:
+        remove_image_background(
+            input_path=input_path,
+            output_path=tmp_path,
+            mode=params.get("mode", "auto_corners"),
+            custom_color=params.get("custom_color"),
+            tolerance=int(params.get("tolerance", 35)),
+            feather=int(params.get("feather", 8)),
+            bg_replacement_mode=params.get("bg_replacement_mode", "transparent"),
+            bg_solid_color=params.get("bg_solid_color", (255, 255, 255)),
+            bg_custom_image_path=params.get("bg_custom_image_path"),
+        )
+        with Image.open(tmp_path) as im:
+            return im.copy()
+    finally:
+        if tmp_path.exists():
+            try:
+                tmp_path.unlink()
+            except Exception:
+                pass

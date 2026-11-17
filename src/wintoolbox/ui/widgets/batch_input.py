@@ -1,20 +1,20 @@
 """
 Widget de Entrada de Lote (Batch Input Widget).
-Suporta Empty State com Dropzone visual tracejada, chips de extensões aceitas,
-seleção de arquivos individuais, pastas com ToggleSwitch recursivo, remoção individual
-de itens e Drag & Drop direto do Windows Explorer.
+Suporta Empty State com Dropzone visual tracejada, tooltip informativo de formatos aceitos,
+seleção de arquivos individuais e pastas, modo de visualização em Ícones / Miniaturas
+com navegação em pastas e modo de Tabela detalhada, e Drag & Drop direto do Windows Explorer.
 """
 from pathlib import Path
-from typing import List, Optional
-from PySide6.QtCore import Qt, Signal
+from typing import List, Optional, Set
+from PySide6.QtCore import QSize, Qt, Signal
+from PySide6.QtGui import QIcon, QPixmap
 from PySide6.QtWidgets import (
-    QFileDialog, QFrame, QHBoxLayout, QHeaderView, QLabel,
-    QPushButton, QStackedWidget, QTableWidget, QTableWidgetItem,
-    QVBoxLayout, QWidget
+    QApplication, QFileDialog, QFrame, QHBoxLayout, QHeaderView,
+    QLabel, QListWidget, QListWidgetItem, QPushButton, QStackedWidget,
+    QStyle, QTableWidget, QVBoxLayout, QWidget
 )
 
 from wintoolbox.core.batch import DiscoveredFile, SourceItem, discover_files
-from wintoolbox.ui.icons import get_glyph, get_icon_font
 from wintoolbox.ui.widgets.sortable_table import (
     SmartTableWidgetItem, enable_sorting_on_table, batch_table_update
 )
@@ -31,14 +31,15 @@ class _ClickableDropFrame(QFrame):
         self.setCursor(Qt.PointingHandCursor)
 
     def mousePressEvent(self, event) -> None:
-        if event.button() == Qt.LeftButton:
+        if event.button() == Qt.MouseButton.LeftButton:
             self.clicked.emit()
         super().mousePressEvent(event)
 
 
 class BatchInputWidget(QFrame):
     """Componente de entrada para ferramentas baseadas em arquivos."""
-    files_changed = Signal(int)  # Emite contagem de itens
+    files_changed = Signal(int)        # Emite contagem total de itens descobertos
+    active_file_changed = Signal(Path)  # Emite o caminho do arquivo selecionado/ativo para preview
 
     def __init__(self, allowed_extensions: Optional[List[str]] = None, parent: Optional[QWidget] = None):
         super().__init__(parent)
@@ -47,6 +48,8 @@ class BatchInputWidget(QFrame):
         self.allowed_extensions = set(allowed_extensions) if allowed_extensions else None
         self.sources: List[SourceItem] = []
         self._discovered_cache: List[DiscoveredFile] = []
+        self._current_nav_folder: Optional[Path] = None
+        self._view_mode: str = "icons"  # 'icons' ou 'table'
 
         self._build_ui()
 
@@ -55,63 +58,105 @@ class BatchInputWidget(QFrame):
         layout.setContentsMargins(16, 14, 16, 14)
         layout.setSpacing(10)
 
-        # Cabeçalho da seção com chips de extensões suportadas
+        # Cabeçalho da seção com tooltip discreto de formatos suportados
         hdr_row = QHBoxLayout()
         lbl_header = QLabel("1. Arquivos e Pastas de Origem")
         lbl_header.setProperty("class", "section-title")
         hdr_row.addWidget(lbl_header)
+
         hdr_row.addStretch()
 
         if self.allowed_extensions:
-            exts_sorted = sorted(self.allowed_extensions)[:7]
-            for ext in exts_sorted:
-                chip = QLabel(ext.upper())
-                chip.setProperty("class", "ext-chip")
-                hdr_row.addWidget(chip)
-            if len(self.allowed_extensions) > 7:
-                more = QLabel(f"+{len(self.allowed_extensions) - 7}")
-                more.setProperty("class", "ext-chip")
-                hdr_row.addWidget(more)
+            exts_list = sorted(self.allowed_extensions)
+            exts_str = ", ".join(ext.upper().lstrip(".") for ext in exts_list)
+            lbl_formats = QLabel(f"Formatos suportados ({len(exts_list)})")
+            lbl_formats.setToolTip(f"Formatos aceitos ({len(exts_list)} tipos):\n{exts_str}")
+            lbl_formats.setStyleSheet("font-size: 11px; color: #8F96A0; text-decoration: underline;")
+            lbl_formats.setCursor(Qt.CursorShape.PointingHandCursor)
+            hdr_row.addWidget(lbl_formats)
+
+        # Botão para alternar modo de exibição (Ícones / Tabela)
+        self.btn_toggle_view = QPushButton("Lista")
+        self.btn_toggle_view.setFixedHeight(24)
+        self.btn_toggle_view.setStyleSheet("font-size: 11px; padding: 2px 8px;")
+        self.btn_toggle_view.setToolTip("Alternar entre modo Ícones e Tabela detalhada")
+        self.btn_toggle_view.clicked.connect(self._toggle_view_mode)
+        hdr_row.addWidget(self.btn_toggle_view)
 
         layout.addLayout(hdr_row)
 
-        # Stack que alterna entre Dropzone Vazia (0) e Tabela Populada (1)
+        # Barra de navegação em pastas (visível apenas quando navegando dentro de uma pasta)
+        self.nav_bar = QWidget()
+        nav_layout = QHBoxLayout(self.nav_bar)
+        nav_layout.setContentsMargins(0, 0, 0, 0)
+        nav_layout.setSpacing(6)
+
+        self.btn_nav_back = QPushButton("< Voltar à raiz")
+        self.btn_nav_back.setFixedHeight(24)
+        self.btn_nav_back.setStyleSheet("font-size: 11px; padding: 2px 8px;")
+        self.btn_nav_back.clicked.connect(self._on_nav_back)
+        nav_layout.addWidget(self.btn_nav_back)
+
+        self.lbl_nav_path = QLabel("")
+        self.lbl_nav_path.setStyleSheet("font-size: 11px; color: #A0A5AD;")
+        nav_layout.addWidget(self.lbl_nav_path, stretch=1)
+
+        self.nav_bar.setVisible(False)
+        layout.addWidget(self.nav_bar)
+
+        # Stack de Visualização:
+        # 0: Dropzone Vazia
+        # 1: Tabela Detalhada
+        # 2: Grade de Ícones / Miniaturas (Windows Explorer style)
         self.view_stack = QStackedWidget()
-        self.view_stack.setFixedHeight(145)
+        self.view_stack.setFixedHeight(220)
 
         # Visão 0: Empty Dropzone Visual
         self.drop_frame = _ClickableDropFrame()
         df_layout = QVBoxLayout(self.drop_frame)
         df_layout.setContentsMargins(16, 14, 16, 14)
-        df_layout.setSpacing(4)
-        df_layout.setAlignment(Qt.AlignCenter)
+        df_layout.setSpacing(6)
+        df_layout.setAlignment(Qt.AlignmentFlag.AlignCenter)
 
         lbl_drop_title = QLabel("Arraste e solte arquivos ou pastas aqui")
         lbl_drop_title.setStyleSheet("font-weight: 600; font-size: 13px;")
-        lbl_drop_title.setAlignment(Qt.AlignCenter)
+        lbl_drop_title.setAlignment(Qt.AlignmentFlag.AlignCenter)
         df_layout.addWidget(lbl_drop_title)
 
         lbl_drop_sub = QLabel("Ou clique nesta área para procurar arquivos no computador")
         lbl_drop_sub.setProperty("class", "secondary")
-        lbl_drop_sub.setAlignment(Qt.AlignCenter)
+        lbl_drop_sub.setAlignment(Qt.AlignmentFlag.AlignCenter)
         df_layout.addWidget(lbl_drop_sub)
 
         self.drop_frame.clicked.connect(self._on_add_files)
         self.view_stack.addWidget(self.drop_frame)
 
-        # Visão 1: Tabela de Origens com botão de remover individual
+        # Visão 1: Tabela Detalhada
         self.table = QTableWidget(0, 4)
         self.table.setHorizontalHeaderLabels(["Caminho de Origem", "Tipo", "Subpastas", ""])
-        self.table.horizontalHeader().setSectionResizeMode(0, QHeaderView.Stretch)
-        self.table.horizontalHeader().setSectionResizeMode(1, QHeaderView.ResizeToContents)
-        self.table.horizontalHeader().setSectionResizeMode(2, QHeaderView.ResizeToContents)
-        self.table.horizontalHeader().setSectionResizeMode(3, QHeaderView.Fixed)
-        self.table.setColumnWidth(3, 64)
+        self.table.horizontalHeader().setSectionResizeMode(0, QHeaderView.ResizeMode.Stretch)
+        self.table.horizontalHeader().setSectionResizeMode(1, QHeaderView.ResizeMode.ResizeToContents)
+        self.table.horizontalHeader().setSectionResizeMode(2, QHeaderView.ResizeMode.ResizeToContents)
+        self.table.horizontalHeader().setSectionResizeMode(3, QHeaderView.ResizeMode.Fixed)
+        self.table.setColumnWidth(3, 70)
         self.table.verticalHeader().setVisible(False)
-        self.table.setSelectionBehavior(QTableWidget.SelectRows)
+        self.table.setSelectionBehavior(QTableWidget.SelectionBehavior.SelectRows)
         self.table.setAlternatingRowColors(True)
+        self.table.itemClicked.connect(self._on_table_item_clicked)
         enable_sorting_on_table(self.table)
         self.view_stack.addWidget(self.table)
+
+        # Visão 2: Grade de Ícones / Miniaturas
+        self.icon_list = QListWidget()
+        self.icon_list.setViewMode(QListWidget.ViewMode.IconMode)
+        self.icon_list.setIconSize(QSize(64, 64))
+        self.icon_list.setGridSize(QSize(96, 96))
+        self.icon_list.setResizeMode(QListWidget.ResizeMode.Adjust)
+        self.icon_list.setWordWrap(True)
+        self.icon_list.setMovement(QListWidget.Movement.Static)
+        self.icon_list.itemClicked.connect(self._on_icon_item_clicked)
+        self.icon_list.itemDoubleClicked.connect(self._on_icon_item_double_clicked)
+        self.view_stack.addWidget(self.icon_list)
 
         layout.addWidget(self.view_stack)
 
@@ -133,8 +178,8 @@ class BatchInputWidget(QFrame):
 
         action_layout.addSpacing(16)
 
-        # Interruptor de recursão estilo Windows 11
-        self.chk_recursive = ToggleSwitch("Incluir subpastas (recursivo)")
+        # Interruptor de recursão (texto simplificado conforme solicitado)
+        self.chk_recursive = ToggleSwitch("Incluir subpastas")
         self.chk_recursive.setChecked(False)
         self.chk_recursive.toggled.connect(self._on_recursive_toggled)
         action_layout.addWidget(self.chk_recursive)
@@ -146,6 +191,20 @@ class BatchInputWidget(QFrame):
         self.lbl_summary = QLabel("Nenhum arquivo ou pasta adicionado. Arraste itens aqui.")
         self.lbl_summary.setProperty("class", "secondary")
         layout.addWidget(self.lbl_summary)
+
+    def _toggle_view_mode(self) -> None:
+        if self._view_mode == "icons":
+            self._view_mode = "table"
+            self.btn_toggle_view.setText("Ícones")
+        else:
+            self._view_mode = "icons"
+            self.btn_toggle_view.setText("Lista")
+        self._refresh_views()
+
+    def _on_nav_back(self) -> None:
+        self._current_nav_folder = None
+        self.nav_bar.setVisible(False)
+        self._refresh_views()
 
     def dragEnterEvent(self, event) -> None:
         if event.mimeData().hasUrls():
@@ -178,7 +237,7 @@ class BatchInputWidget(QFrame):
         for src in self.sources:
             if src.is_dir:
                 src.recursive = checked
-        self._refresh_table()
+        self._refresh_views()
         self._update_discovered()
 
     def add_paths(self, paths: List[Path]) -> None:
@@ -192,31 +251,42 @@ class BatchInputWidget(QFrame):
             if not any(s.path == item.path for s in self.sources):
                 self.sources.append(item)
 
-        self._refresh_table()
+        self._refresh_views()
         self._update_discovered()
 
     def remove_source(self, item: SourceItem) -> None:
-        """Remove uma origem específica da lista pelo objeto com segurança."""
         if item in self.sources:
             self.sources.remove(item)
-            self._refresh_table()
+            self._refresh_views()
             self._update_discovered()
 
     def remove_source_at(self, index: int) -> None:
-        """Remove uma origem específica da tabela pelo índice."""
         if 0 <= index < len(self.sources):
             self.sources.pop(index)
-            self._refresh_table()
+            self._refresh_views()
             self._update_discovered()
 
     def clear(self) -> None:
         self.sources.clear()
         self._discovered_cache.clear()
-        self._refresh_table()
+        self._current_nav_folder = None
+        self.nav_bar.setVisible(False)
+        self._refresh_views()
         self._update_discovered()
 
+    def _refresh_views(self) -> None:
+        if not self.sources:
+            self.view_stack.setCurrentIndex(0)
+            return
+
+        if self._view_mode == "table" and not self._current_nav_folder:
+            self.view_stack.setCurrentIndex(1)
+            self._refresh_table()
+        else:
+            self.view_stack.setCurrentIndex(2)
+            self._refresh_icons()
+
     def _refresh_table(self) -> None:
-        self.view_stack.setCurrentIndex(1 if self.sources else 0)
         with batch_table_update(self.table):
             self.table.setRowCount(len(self.sources))
             for row, src in enumerate(self.sources):
@@ -241,6 +311,91 @@ class BatchInputWidget(QFrame):
                 btn_del.clicked.connect(lambda _, s=src: self.remove_source(s))
                 self.table.setCellWidget(row, 3, btn_del)
 
+    def _refresh_icons(self) -> None:
+        self.icon_list.clear()
+        style = QApplication.style()
+
+        if self._current_nav_folder:
+            # Mostra itens dentro da pasta navegada
+            self.nav_bar.setVisible(True)
+            self.lbl_nav_path.setText(f"Explorando: {self._current_nav_folder}")
+
+            try:
+                entries = sorted(list(self._current_nav_folder.iterdir()), key=lambda e: (not e.is_dir(), e.name.lower()))
+            except Exception:
+                entries = []
+
+            for entry in entries:
+                if entry.is_dir():
+                    icon = style.standardIcon(QStyle.StandardPixmap.SP_DirIcon)
+                    item = QListWidgetItem(icon, entry.name)
+                    item.setData(Qt.ItemDataRole.UserRole, entry)
+                    self.icon_list.addItem(item)
+                elif entry.is_file():
+                    ext = entry.suffix.lower()
+                    if not self.allowed_extensions or ext in self.allowed_extensions or ext.lstrip('.') in self.allowed_extensions:
+                        icon = self._get_file_icon(entry)
+                        item = QListWidgetItem(icon, entry.name)
+                        item.setData(Qt.ItemDataRole.UserRole, entry)
+                        self.icon_list.addItem(item)
+        else:
+            self.nav_bar.setVisible(False)
+            # Mostra as origens raiz (arquivos e pastas adicionadas)
+            for src in self.sources:
+                p = src.path
+                if src.is_dir:
+                    icon = style.standardIcon(QStyle.StandardPixmap.SP_DirIcon)
+                    label = f"{p.name}/\n(Pasta)"
+                else:
+                    icon = self._get_file_icon(p)
+                    label = p.name
+
+                item = QListWidgetItem(icon, label)
+                item.setData(Qt.ItemDataRole.UserRole, p)
+                self.icon_list.addItem(item)
+
+    def _get_file_icon(self, path: Path) -> QIcon:
+        ext = path.suffix.lower()
+        img_exts = {".png", ".jpg", ".jpeg", ".webp", ".bmp", ".gif", ".ico", ".tiff", ".tif", ".avif", ".apng"}
+        if ext in img_exts and path.is_file():
+            try:
+                pix = QPixmap(str(path))
+                if not pix.isNull():
+                    scaled = pix.scaled(64, 64, Qt.AspectRatioMode.KeepAspectRatio, Qt.TransformationMode.SmoothTransformation)
+                    return QIcon(scaled)
+            except Exception:
+                pass
+        return QApplication.style().standardIcon(QStyle.StandardPixmap.SP_FileIcon)
+
+    def _on_table_item_clicked(self, item: SmartTableWidgetItem) -> None:
+        row = item.row()
+        if 0 <= row < len(self.sources):
+            src = self.sources[row]
+            if not src.is_dir:
+                self.active_file_changed.emit(src.path)
+            elif self._discovered_cache:
+                for disc in self._discovered_cache:
+                    if disc.source_path.is_relative_to(src.path):
+                        self.active_file_changed.emit(disc.source_path)
+                        break
+
+    def _on_icon_item_clicked(self, item: QListWidgetItem) -> None:
+        data = item.data(Qt.ItemDataRole.UserRole)
+        if isinstance(data, Path):
+            if data.is_file():
+                self.active_file_changed.emit(data)
+            elif data.is_dir() and self._discovered_cache:
+                for disc in self._discovered_cache:
+                    if disc.source_path.is_relative_to(data):
+                        self.active_file_changed.emit(disc.source_path)
+                        break
+
+    def _on_icon_item_double_clicked(self, item: QListWidgetItem) -> None:
+        data = item.data(Qt.ItemDataRole.UserRole)
+        if isinstance(data, Path) and data.is_dir():
+            self._current_nav_folder = data
+            self._refresh_icons()
+
     def _update_discovered(self) -> None:
         self._discovered_cache = discover_files(self.sources, self.allowed_extensions)
         total = len(self._discovered_cache)
@@ -255,6 +410,10 @@ class BatchInputWidget(QFrame):
                 ext_counts[ext] = ext_counts.get(ext, 0) + 1
             ext_summary = ", ".join(f"{ext}: {cnt}" for ext, cnt in sorted(ext_counts.items()))
             self.lbl_summary.setText(f"{total} arquivo(s) localizados (~{mb:.1f} MB) | Tipos: {ext_summary}")
+
+            # Notifica o primeiro arquivo descoberto como ativo para preview
+            if self._discovered_cache:
+                self.active_file_changed.emit(self._discovered_cache[0].source_path)
 
         self.files_changed.emit(total)
 

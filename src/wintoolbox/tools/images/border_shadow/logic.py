@@ -237,3 +237,22 @@ def process_image_border_shadow(
             result.save(output_path, "PNG")
 
     return output_path
+
+
+def render_border_shadow_preview(source_path: Path, params: dict) -> Image.Image:
+    """Gera o mockup em memória para visualização instantânea."""
+    with Image.open(source_path) as im:
+        return compose_mockup(
+            image=im,
+            corner_radius=int(params.get("corner_radius", 16)),
+            border_width=int(params.get("border_width", 1)),
+            border_hex=str(params.get("border_hex", "#d0d7de")),
+            shadow_blur=int(params.get("shadow_blur", 24)),
+            shadow_offset_y=int(params.get("shadow_offset_y", 12)),
+            shadow_opacity=float(params.get("shadow_opacity", 0.35)),
+            padding=int(params.get("padding", 40)),
+            background_mode=str(params.get("background_mode", "transparent")),
+            bg_color_hex=str(params.get("bg_color_hex", "#f6f8fa")),
+            gradient_preset=params.get("gradient_preset"),
+        )
+

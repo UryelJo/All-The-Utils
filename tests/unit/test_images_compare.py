@@ -10,6 +10,7 @@ from wintoolbox.tools.images.compare.logic import (
     calculate_metrics,
     create_slider_composition,
     generate_diff_heatmap,
+    generate_diff_overlay,
 )
 
 
@@ -68,3 +69,18 @@ def test_generate_diff_heatmap():
     assert heatmap.getpixel((5, 5)) != (0, 0, 0)
     # Pixel sem diferença deve ser preto puro
     assert heatmap.getpixel((0, 0)) == (0, 0, 0)
+
+
+def test_generate_diff_overlay_ghost_base():
+    """Valida o efeito real de overlay de diferenças com fundo fantasma."""
+    img_a = Image.new("RGB", (20, 20), (100, 100, 100))
+    img_b = Image.new("RGB", (20, 20), (100, 100, 100))
+    img_b.putpixel((10, 10), (255, 255, 255))
+
+    overlay = generate_diff_overlay(img_a, img_b, amplification=3.0, show_ghost_base=True)
+    assert overlay.size == (20, 20)
+    # Ponto alterado deve ter destaque em tom de magenta
+    pix_mod = overlay.getpixel((10, 10))
+    assert pix_mod[0] > 150  # Vermelho alto
+    assert pix_mod[2] > 100  # Azul/magenta alto
+

@@ -101,3 +101,52 @@ def apply_image_effects_and_adjustments(src: Path, dst: Path, params: Dict[str, 
             working_im.save(dst, format="WEBP", quality=90)
         else:
             working_im.save(dst)
+
+
+def render_effects_preview(src: Path, params: Dict[str, Any]) -> Image.Image:
+    """Aplica efeitos e ajustes diretamente em memória para pré-visualização rápida."""
+    brightness = float(params.get("brightness", 1.0))
+    contrast = float(params.get("contrast", 1.0))
+    saturation = float(params.get("saturation", 1.0))
+    sharpness = float(params.get("sharpness", 1.0))
+    effect = params.get("effect", "Nenhum")
+    blur_radius = float(params.get("blur_radius", 2.0))
+
+    with Image.open(src) as im:
+        working_im = im.copy()
+
+        if effect == "Preto e Branco (Tons de Cinza)":
+            working_im = ImageOps.grayscale(working_im).convert("RGB")
+        elif effect == "Sépia Vintage":
+            working_im = apply_sepia(working_im)
+        elif effect == "Inversão de Cores (Negativo)":
+            if working_im.mode in ("RGBA", "LA"):
+                r, g, b, a = working_im.convert("RGBA").split()
+                rgb_inv = ImageOps.invert(Image.merge("RGB", (r, g, b)))
+                r2, g2, b2 = rgb_inv.split()
+                working_im = Image.merge("RGBA", (r2, g2, b2, a))
+            else:
+                working_im = ImageOps.invert(working_im.convert("RGB"))
+        elif effect == "Desfoque Gaussiano":
+            working_im = working_im.filter(ImageFilter.GaussianBlur(radius=blur_radius))
+        elif effect == "Auto-Contraste Dinâmico":
+            if working_im.mode != "RGB":
+                working_im = ImageOps.autocontrast(working_im.convert("RGB"))
+            else:
+                working_im = ImageOps.autocontrast(working_im)
+        elif effect == "Detecção de Bordas (Contorno)":
+            working_im = working_im.filter(ImageFilter.FIND_EDGES)
+        elif effect == "Realce de Detalhes":
+            working_im = working_im.filter(ImageFilter.DETAIL)
+
+        if brightness != 1.0:
+            working_im = ImageEnhance.Brightness(working_im).enhance(brightness)
+        if contrast != 1.0:
+            working_im = ImageEnhance.Contrast(working_im).enhance(contrast)
+        if saturation != 1.0 and working_im.mode in ("RGB", "RGBA"):
+            working_im = ImageEnhance.Color(working_im).enhance(saturation)
+        if sharpness != 1.0:
+            working_im = ImageEnhance.Sharpness(working_im).enhance(sharpness)
+
+        return working_im
+

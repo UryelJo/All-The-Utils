@@ -79,6 +79,12 @@ class FileToolPage(QWidget):
         self.options_widget = self.tool.build_options(content)
         if self.options_widget:
             self.options_widget.setProperty("class", "card")
+            if hasattr(self.options_widget, "on_active_file_changed"):
+                self.input_widget.active_file_changed.connect(self.options_widget.on_active_file_changed)
+            if hasattr(self.options_widget, "on_files_changed"):
+                self.input_widget.files_changed.connect(self.options_widget.on_files_changed)
+            if hasattr(self.options_widget, "set_input_widget"):
+                self.options_widget.set_input_widget(self.input_widget)
             layout.addWidget(self.options_widget)
 
         # 3. Widget de Destino e Políticas de Saída

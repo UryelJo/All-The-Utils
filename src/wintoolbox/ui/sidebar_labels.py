@@ -23,7 +23,7 @@ SIDEBAR_SHORT_LABELS: Dict[str, str] = {
     "images.gif_tools": "Montador e Extrator GIF",
     "images.collage": "Colagens e Montagens",
     "images.color_picker": "Conta-Gotas e Cores",
-    "images.qrcode": "Gerador e Leitor QR Code",
+    "images.qrcode": "QR Code e Cód. Barras",
     "images.screenshot": "Captura de Tela",
     "images.ocr": "OCR (Texto em Imagem)",
     "images.remove_bg": "Remover Fundo",

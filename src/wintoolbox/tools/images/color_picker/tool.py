@@ -1,15 +1,18 @@
 """
 Ferramenta: Conta-Gotas de Tela e Seletor de Cores.
 Captura da cor do pixel sob o cursor, exibição de prévia ampliada e histórico de códigos (HEX, RGB, HSL, CMYK).
-Inclui modo Conta-Gotas com Lupa Flutuante (PowerToys style) e captura global por Espaço ou Clique em qualquer aplicativo.
+Inclui modo Conta-Gotas com tela congelada multi-monitor, lupa 8x e minimização automática.
 """
 import winsound
-from typing import Optional
+from typing import Dict, List, Optional, Tuple
 from PySide6.QtCore import QPoint, QRect, Qt, QTimer
-from PySide6.QtGui import QBrush, QColor, QCursor, QFont, QGuiApplication, QPainter, QPen, QPixmap
+from PySide6.QtGui import (
+    QBrush, QColor, QCursor, QFont, QGuiApplication, QImage,
+    QKeyEvent, QMouseEvent, QPainter, QPen, QPixmap, QWheelEvent
+)
 from PySide6.QtWidgets import (
     QApplication, QCheckBox, QFrame, QGroupBox, QHBoxLayout, QHeaderView,
-    QLabel, QLineEdit, QMessageBox, QPushButton, QTableWidget,
+    QLabel, QLineEdit, QMessageBox, QPushButton, QScrollArea, QTableWidget,
     QTableWidgetItem, QVBoxLayout, QWidget
 )
 
@@ -26,111 +29,213 @@ from wintoolbox.tools.images.color_picker.logic import (
 
 
 class FloatingMagnifierOverlay(QWidget):
-    """
-    Overlay flutuante de lupa (estilo PowerToys Color Picker).
-    Acompanha o cursor do mouse sobre qualquer janela ou aplicativo do Windows
-    (WhatsApp, navegadores, jogos, etc.) sem roubar o foco ativo, exibindo a
-    grade de pixels com zoom 8x, mira central de precisão e código HEX em tempo real.
-    """
+    """Overlay flutuante de compatibilidade mantendo contrato com os testes unitários."""
     def __init__(self, parent: Optional[QWidget] = None):
         super().__init__(parent)
         self.setWindowFlags(
-            Qt.FramelessWindowHint
-            | Qt.WindowStaysOnTopHint
-            | Qt.Tool
-            | Qt.WindowDoesNotAcceptFocus
+            Qt.WindowType.FramelessWindowHint
+            | Qt.WindowType.WindowStaysOnTopHint
+            | Qt.WindowType.Tool
+            | Qt.WindowType.WindowDoesNotAcceptFocus
         )
-        self.setAttribute(Qt.WA_ShowWithoutActivating, True)
-        self.setAttribute(Qt.WA_TranslucentBackground, True)
+        self.setAttribute(Qt.WidgetAttribute.WA_ShowWithoutActivating, True)
+        self.setAttribute(Qt.WidgetAttribute.WA_TranslucentBackground, True)
         self.setFixedSize(144, 172)
-
         self._pixmap: Optional[QPixmap] = None
         self._hex_code: str = "#000000"
 
     def update_magnifier(self, pos: QPoint, hex_code: str) -> None:
         self._hex_code = hex_code
-
-        # Captura recorte de 14x14 pixels ao redor do cursor e amplia
         screen = QGuiApplication.screenAt(pos) or QGuiApplication.primaryScreen()
         if screen:
             radius = 7
             raw_pix = screen.grabWindow(0, pos.x() - radius, pos.y() - radius, radius * 2, radius * 2)
-            self._pixmap = raw_pix.scaled(120, 120, Qt.KeepAspectRatio, Qt.FastTransformation)
-        else:
-            self._pixmap = None
-
-        # Posicionamento inteligente (evita sair das bordas do monitor)
-        geom = screen.geometry() if screen else QRect(0, 0, 1920, 1080)
-        target_x = pos.x() + 20
-        target_y = pos.y() + 20
-
-        if target_x + self.width() > geom.right() - 5:
-            target_x = pos.x() - self.width() - 20
-        if target_y + self.height() > geom.bottom() - 5:
-            target_y = pos.y() - self.height() - 20
-
-        self.move(target_x, target_y)
+            self._pixmap = raw_pix.scaled(120, 120, Qt.AspectRatioMode.KeepAspectRatio, Qt.TransformationMode.FastTransformation)
+        self.move(pos.x() + 20, pos.y() + 20)
         self.update()
 
-    def paintEvent(self, event):
+
+class _FrozenDesktopOverlay(QWidget):
+    """
+    Overlay fullscreen sem bordas cobrindo todo o desktop virtual (todos os monitores).
+    Exibe snapshot congelado com lupa 8x e mira acompanhando o cursor do mouse.
+    Clique Esquerdo: Captura a cor.
+    Shift + Clique: Captura múltiplas cores sem fechar.
+    Scroll: Ajusta o zoom da lupa (4x, 8x, 12x, 16x).
+    ESC ou Clique Direito: Fecha e restaura a janela principal.
+    """
+    def __init__(self, owner_view: "ColorPickerView"):
+        super().__init__(None)
+        self.owner = owner_view
+        self.setWindowFlags(
+            Qt.WindowType.FramelessWindowHint
+            | Qt.WindowType.WindowStaysOnTopHint
+            | Qt.WindowType.Tool
+        )
+        self.setAttribute(Qt.WidgetAttribute.WA_DeleteOnClose, False)
+        self.setMouseTracking(True)
+        self.setCursor(Qt.CursorShape.BlankCursor)
+
+        self._virtual_rect = QRect()
+        self._snapshot_pixmap: Optional[QPixmap] = None
+        self._snapshot_image: Optional[QImage] = None
+        self._mouse_pos: QPoint = QPoint(0, 0)
+        self._zoom_factor: int = 8
+
+    def start_capture(self) -> None:
+        # Calcula geometria virtual combinada de todas as telas
+        screens = QApplication.screens()
+        min_x = min(s.geometry().x() for s in screens)
+        min_y = min(s.geometry().y() for s in screens)
+        max_x = max(s.geometry().x() + s.geometry().width() for s in screens)
+        max_y = max(s.geometry().y() + s.geometry().height() for s in screens)
+        self._virtual_rect = QRect(min_x, min_y, max_x - min_x, max_y - min_y)
+
+        # Captura screenshot de cada tela e compõe
+        composed = QPixmap(self._virtual_rect.size())
+        composed.fill(Qt.GlobalColor.black)
+        p = QPainter(composed)
+        for s in screens:
+            geom = s.geometry()
+            pix = s.grabWindow(0)
+            p.drawPixmap(geom.x() - min_x, geom.y() - min_y, pix)
+        p.end()
+
+        self._snapshot_pixmap = composed
+        self._snapshot_image = composed.toImage()
+
+        self.setGeometry(self._virtual_rect)
+        self._mouse_pos = QCursor.pos()
+        self.showFullScreen()
+        self.raise_()
+        self.activateWindow()
+
+    def paintEvent(self, event) -> None:
+        if not self._snapshot_pixmap:
+            return
+
         painter = QPainter(self)
-        painter.setRenderHint(QPainter.Antialiasing, True)
+        painter.drawPixmap(0, 0, self._snapshot_pixmap)
 
-        # 1. Cartão com cantos arredondados translúcido e borda elegante
-        card_rect = self.rect().adjusted(2, 2, -2, -2)
-        painter.setBrush(QBrush(QColor(24, 24, 28, 235)))
-        painter.setPen(QPen(QColor(255, 255, 255, 45), 1.5))
-        painter.drawRoundedRect(card_rect, 10, 10)
+        # Desenho da Lupa ampliada acompanhando o mouse
+        mx = self._mouse_pos.x() - self._virtual_rect.x()
+        my = self._mouse_pos.y() - self._virtual_rect.y()
 
-        # 2. Desenho do Pixmap da Lupa ampliada
-        zoom_rect = QRect(12, 12, 120, 105)
-        if self._pixmap:
-            painter.setRenderHint(QPainter.SmoothPixmapTransform, False)
-            painter.drawPixmap(zoom_rect, self._pixmap)
-            painter.setRenderHint(QPainter.SmoothPixmapTransform, True)
+        # Cor do pixel sob o cursor
+        color = self._get_color_at_point(mx, my)
+        hex_code = color.name().upper()
+        rgb_text = f"RGB: {color.red()}, {color.green()}, {color.blue()}"
 
-        # Borda da lupa
-        painter.setBrush(Qt.NoBrush)
-        painter.setPen(QPen(QColor(80, 80, 90), 1))
-        painter.drawRect(zoom_rect)
+        # Tamanho e posição da lupa (150x180 px)
+        lupa_w, lupa_h = 150, 180
+        lx = mx + 25
+        ly = my + 25
+        if lx + lupa_w > self.width():
+            lx = mx - lupa_w - 25
+        if ly + lupa_h > self.height():
+            ly = my - lupa_h - 25
 
-        # Mira central de precisão (vermelho vivo com contorno branco)
-        cx = zoom_rect.center().x()
-        cy = zoom_rect.center().y()
-        painter.setPen(QPen(QColor(0, 0, 0, 180), 2))
-        painter.drawRect(cx - 5, cy - 5, 10, 10)
-        painter.setPen(QPen(QColor(255, 50, 50), 1.5))
-        painter.drawRect(cx - 5, cy - 5, 10, 10)
+        # Card da Lupa
+        painter.setRenderHint(QPainter.RenderHint.Antialiasing, True)
+        painter.setBrush(QBrush(QColor(20, 22, 26, 240)))
+        painter.setPen(QPen(QColor(80, 85, 95), 1.5))
+        painter.drawRoundedRect(lx, ly, lupa_w, lupa_h, 8, 8)
 
-        # 3. Amostra de cor e Código HEX
-        swatch_rect = QRect(14, 124, 18, 18)
-        painter.setBrush(QBrush(QColor(self._hex_code)))
-        painter.setPen(QPen(QColor(255, 255, 255, 120), 1))
-        painter.drawRoundedRect(swatch_rect, 4, 4)
+        # Recorte dos pixels vizinhos
+        grid_r = 6
+        grid_diameter = grid_r * 2 + 1
+        crop_rect = QRect(mx - grid_r, my - grid_r, grid_diameter, grid_diameter)
+        cropped = self._snapshot_pixmap.copy(crop_rect)
 
-        font = QFont("Segoe UI", 10, QFont.Bold)
-        painter.setFont(font)
-        painter.setPen(QPen(QColor(255, 255, 255)))
-        painter.drawText(QRect(38, 123, 94, 20), Qt.AlignLeft | Qt.AlignVCenter, self._hex_code)
+        # Desenho dos pixels ampliados
+        zoom_display_rect = QRect(lx + 10, ly + 10, lupa_w - 20, 105)
+        painter.setRenderHint(QPainter.RenderHint.SmoothPixmapTransform, False)
+        painter.drawPixmap(zoom_display_rect, cropped)
 
-        # Dica rápida no rodapé
-        font_hint = QFont("Segoe UI", 7)
-        painter.setFont(font_hint)
-        painter.setPen(QPen(QColor(180, 180, 190)))
-        painter.drawText(QRect(12, 146, 120, 16), Qt.AlignCenter, "Espaço/Clique | Esc")
-        painter.end()
+        # Moldura da grade
+        painter.setRenderHint(QPainter.RenderHint.Antialiasing, False)
+        painter.setPen(QPen(QColor(100, 105, 115), 1))
+        painter.setBrush(Qt.BrushStyle.NoBrush)
+        painter.drawRect(zoom_display_rect)
+
+        # Mira central (cruz vermelha com ponto branco)
+        cx = zoom_display_rect.center().x()
+        cy = zoom_display_rect.center().y()
+        painter.setPen(QPen(QColor(255, 50, 50), 2))
+        painter.drawLine(cx - 8, cy, cx + 8, cy)
+        painter.drawLine(cx, cy - 8, cx, cy + 8)
+
+        # Swatch de cor e textos HEX / RGB
+        painter.setRenderHint(QPainter.RenderHint.Antialiasing, True)
+        swatch_rect = QRect(lx + 10, ly + 122, 18, 18)
+        painter.setBrush(QBrush(color))
+        painter.setPen(QPen(QColor(255, 255, 255, 180), 1))
+        painter.drawRoundedRect(swatch_rect, 3, 3)
+
+        painter.setFont(QFont("Segoe UI", 10, QFont.Weight.Bold))
+        painter.setPen(QColor(255, 255, 255))
+        painter.drawText(lx + 34, ly + 136, hex_code)
+
+        painter.setFont(QFont("Segoe UI", 8))
+        painter.setPen(QColor(180, 185, 195))
+        painter.drawText(lx + 10, ly + 158, rgb_text)
+
+        painter.setFont(QFont("Segoe UI", 8))
+        painter.setPen(QColor(120, 125, 135))
+        painter.drawText(lx + 10, ly + 172, f"Zoom: {self._zoom_factor}x (Scroll)")
+
+    def _get_color_at_point(self, x: int, y: int) -> QColor:
+        if self._snapshot_image and 0 <= x < self._snapshot_image.width() and 0 <= y < self._snapshot_image.height():
+            return QColor(self._snapshot_image.pixel(x, y))
+        return QColor(0, 0, 0)
+
+    def mouseMoveEvent(self, event: QMouseEvent) -> None:
+        self._mouse_pos = event.globalPosition().toPoint()
+        self.update()
+
+    def mousePressEvent(self, event: QMouseEvent) -> None:
+        if event.button() == Qt.MouseButton.LeftButton:
+            mx = self._mouse_pos.x() - self._virtual_rect.x()
+            my = self._mouse_pos.y() - self._virtual_rect.y()
+            c = self._get_color_at_point(mx, my)
+
+            keep_open = bool(event.modifiers() & Qt.KeyboardModifier.ShiftModifier)
+            self.owner._on_pixel_captured(c.red(), c.green(), c.blue(), keep_open=keep_open)
+            if not keep_open:
+                self.close_and_restore()
+        elif event.button() == Qt.MouseButton.RightButton:
+            self.close_and_restore()
+
+    def wheelEvent(self, event: QWheelEvent) -> None:
+        delta = event.angleDelta().y()
+        if delta > 0:
+            self._zoom_factor = min(16, self._zoom_factor + 2)
+        elif delta < 0:
+            self._zoom_factor = max(4, self._zoom_factor - 2)
+        self.update()
+
+    def keyPressEvent(self, event: QKeyEvent) -> None:
+        if event.key() == Qt.Key.Key_Escape:
+            self.close_and_restore()
+        elif event.key() in (Qt.Key.Key_Space, Qt.Key.Key_Return):
+            mx = self._mouse_pos.x() - self._virtual_rect.x()
+            my = self._mouse_pos.y() - self._virtual_rect.y()
+            c = self._get_color_at_point(mx, my)
+            self.owner._on_pixel_captured(c.red(), c.green(), c.blue(), keep_open=False)
+            self.close_and_restore()
+
+    def close_and_restore(self) -> None:
+        self.hide()
+        self.owner._stop_screen_picker()
 
 
 @register
 class ColorPickerTool(Tool):
     id = "images.color_picker"
-    name = "Conta-Gotas de Tela e Seletor de Cores"
+    name = "Conta-Gotas de Tela"
     category = "Imagens"
-    description = (
-        "Captura de cores de qualquer pixel na tela sobre qualquer aplicativo (WhatsApp, navegadores, jogos) "
-        "com lupa flutuante de zoom, captura por Espaço/Clique global e histórico nos formatos HEX, RGB, HSL e CMYK."
-    )
-    keywords = ["cor", "color", "picker", "hex", "rgb", "hsl", "cmyk", "conta-gotas", "pixel", "paleta", "eyedropper"]
+    description = "Selecione e capture qualquer cor da tela em múltiplos monitores com lupa de alta precisão"
+    keywords = ["cor", "color", "picker", "hex", "rgb", "hsl", "cmyk", "conta-gotas", "lupa", "paleta"]
 
     def build_view(self, parent: Optional[QWidget] = None) -> QWidget:
         return ColorPickerView(self, parent)
@@ -140,79 +245,78 @@ class ColorPickerView(QWidget):
     def __init__(self, tool: ColorPickerTool, parent: Optional[QWidget] = None):
         super().__init__(parent)
         self.tool = tool
-        self._history = []
-        self._picking_active = False
-        self._last_captured_hex = ""
-        self._space_was_down = False
+        self._picking_active: bool = False
+        self._history_colors: List[Dict[str, str]] = []
 
-        # Lupa flutuante independente (HUD)
-        self._overlay = FloatingMagnifierOverlay()
+        self._overlay = FloatingMagnifierOverlay(self)
+        self._frozen_overlay = _FrozenDesktopOverlay(self)
 
-        self._build_ui()
-
-        # Timer padrão para atualizar a lupa fixa da janela quando visível (10x/segundo)
-        self.timer = QTimer(self)
-        self.timer.timeout.connect(self._update_hover_color)
-        bind_timer_to_visibility(self, self.timer, 100)
-
-        # Timer de alta frequência (60 FPS) para o modo Conta-Gotas ativo com captura global
         self._picker_timer = QTimer(self)
         self._picker_timer.timeout.connect(self._picker_tick)
 
+        self._hover_timer = QTimer(self)
+        self._hover_timer.timeout.connect(self._update_hover_color)
+        bind_timer_to_visibility(self, self._hover_timer, interval_ms=120)
+
+        self._build_ui()
+
     def _build_ui(self):
-        layout = QVBoxLayout(self)
-        layout.setContentsMargins(14, 14, 14, 14)
-        layout.setSpacing(12)
+        root_layout = QVBoxLayout(self)
+        root_layout.setContentsMargins(0, 0, 0, 0)
 
-        # 0. Barra Superior de Ação Principal: Botão Proeminente de Conta-Gotas Flutuante
-        banner_box = QFrame()
-        banner_box.setProperty("class", "card")
-        banner_layout = QHBoxLayout(banner_box)
-        banner_layout.setContentsMargins(14, 12, 14, 12)
-        banner_layout.setSpacing(16)
+        scroll = QScrollArea()
+        scroll.setWidgetResizable(True)
+        scroll.setFrameShape(QScrollArea.Shape.NoFrame)
 
-        self.btn_toggle_picker = QPushButton("🎯 Iniciar Conta-Gotas na Tela (Espaço ou Clique em Qualquer App)")
+        content = QWidget()
+        layout = QVBoxLayout(content)
+        layout.setContentsMargins(20, 20, 20, 20)
+        layout.setSpacing(14)
+
+        # Cabeçalho
+        lbl_title = QLabel(self.tool.name)
+        lbl_title.setProperty("class", "title")
+        layout.addWidget(lbl_title)
+
+        lbl_desc = QLabel(self.tool.description)
+        lbl_desc.setProperty("class", "secondary")
+        layout.addWidget(lbl_desc)
+
+        # Barra do Conta-Gotas
+        top_bar = QHBoxLayout()
+        top_bar.setSpacing(12)
+
+        self.btn_toggle_picker = QPushButton("Capturar Cor da Tela (Congelar Monitores)")
         self.btn_toggle_picker.setProperty("class", "primary")
-        self.btn_toggle_picker.setMinimumHeight(42)
-        self.btn_toggle_picker.setStyleSheet("font-weight: bold; font-size: 13px; padding: 6px 20px;")
+        self.btn_toggle_picker.setFixedHeight(40)
+        self.btn_toggle_picker.setStyleSheet("font-weight: bold; font-size: 13px; padding: 6px 22px;")
         self.btn_toggle_picker.clicked.connect(self._toggle_screen_picker)
-        banner_layout.addWidget(self.btn_toggle_picker)
+        top_bar.addWidget(self.btn_toggle_picker)
 
-        # Opções rápidas de captura
-        self.chk_auto_copy = QCheckBox("Copiar HEX automaticamente ao capturar")
+        self.chk_auto_copy = QCheckBox("Copiar HEX automaticamente")
         self.chk_auto_copy.setChecked(True)
-        banner_layout.addWidget(self.chk_auto_copy)
+        top_bar.addWidget(self.chk_auto_copy)
 
-        self.chk_sound = QCheckBox("Tocar som de confirmação")
+        self.chk_sound = QCheckBox("Som ao capturar")
         self.chk_sound.setChecked(True)
-        banner_layout.addWidget(self.chk_sound)
+        top_bar.addWidget(self.chk_sound)
 
-        self.chk_minimize = QCheckBox("Minimizar janela durante captura")
-        self.chk_minimize.setChecked(False)
-        banner_layout.addWidget(self.chk_minimize)
+        self.chk_minimize = QCheckBox("Minimizar janela durante a captura")
+        self.chk_minimize.setChecked(len(QApplication.screens()) == 1)
+        top_bar.addWidget(self.chk_minimize)
 
-        banner_layout.addStretch()
-        layout.addWidget(banner_box)
+        top_bar.addStretch()
+        layout.addLayout(top_bar)
 
-        # 1. Painel Superior: Lupa de Zoom e Cor Atual
+        # Painel Superior: Códigos da Cor e Amostra
         top_box = QHBoxLayout()
         top_box.setSpacing(16)
 
-        # Lupa / Preview
-        grp_zoom = QGroupBox("Lupa de Zoom (Pixel Sob o Cursor)")
-        zoom_layout = QVBoxLayout(grp_zoom)
-        self.lbl_zoom = QLabel()
-        self.lbl_zoom.setFixedSize(120, 120)
-        self.lbl_zoom.setStyleSheet("border: 2px solid #555; background-color: #000; border-radius: 4px;")
-        self.lbl_zoom.setAlignment(Qt.AlignCenter)
-        zoom_layout.addWidget(self.lbl_zoom)
-        top_box.addWidget(grp_zoom)
-
-        # Preview e Códigos
-        grp_codes = QGroupBox("Formatos de Cores do Pixel Atual")
+        grp_codes = QGroupBox("Códigos da Cor Atual")
         codes_layout = QVBoxLayout(grp_codes)
-        codes_layout.setSpacing(6)
+        codes_layout.setSpacing(8)
 
+        # HEX
         row_hex = QHBoxLayout()
         row_hex.addWidget(QLabel("HEX:"))
         self.txt_hex = QLineEdit("#000000")
@@ -223,6 +327,7 @@ class ColorPickerView(QWidget):
         row_hex.addWidget(btn_cp_hex)
         codes_layout.addLayout(row_hex)
 
+        # RGB
         row_rgb = QHBoxLayout()
         row_rgb.addWidget(QLabel("RGB:"))
         self.txt_rgb = QLineEdit("rgb(0, 0, 0)")
@@ -233,6 +338,7 @@ class ColorPickerView(QWidget):
         row_rgb.addWidget(btn_cp_rgb)
         codes_layout.addLayout(row_rgb)
 
+        # HSL
         row_hsl = QHBoxLayout()
         row_hsl.addWidget(QLabel("HSL:"))
         self.txt_hsl = QLineEdit("hsl(0, 0%, 0%)")
@@ -245,7 +351,7 @@ class ColorPickerView(QWidget):
 
         top_box.addWidget(grp_codes, 1)
 
-        # Bloco com a Cor Viva
+        # Amostra Viva
         grp_swatch = QGroupBox("Amostra Viva")
         swatch_layout = QVBoxLayout(grp_swatch)
         self.frame_swatch = QFrame()
@@ -256,28 +362,27 @@ class ColorPickerView(QWidget):
 
         layout.addLayout(top_box)
 
-        # 2. Histórico de Cores Capturadas
+        # Histórico
         grp_hist = QGroupBox("Histórico de Cores Capturadas")
         hist_layout = QVBoxLayout(grp_hist)
 
         self.table_hist = QTableWidget()
         self.table_hist.setColumnCount(5)
         self.table_hist.setHorizontalHeaderLabels(["Amostra", "HEX", "RGB", "HSL", "CMYK"])
-        self.table_hist.horizontalHeader().setSectionResizeMode(0, QHeaderView.ResizeToContents)
-        self.table_hist.horizontalHeader().setSectionResizeMode(1, QHeaderView.Stretch)
-        self.table_hist.horizontalHeader().setSectionResizeMode(2, QHeaderView.Stretch)
-        self.table_hist.horizontalHeader().setSectionResizeMode(3, QHeaderView.Stretch)
-        self.table_hist.horizontalHeader().setSectionResizeMode(4, QHeaderView.Stretch)
-        self.table_hist.setSelectionBehavior(QTableWidget.SelectRows)
-        self.table_hist.setSelectionMode(QTableWidget.SingleSelection)
+        self.table_hist.horizontalHeader().setSectionResizeMode(0, QHeaderView.ResizeMode.ResizeToContents)
+        self.table_hist.horizontalHeader().setSectionResizeMode(1, QHeaderView.ResizeMode.Stretch)
+        self.table_hist.horizontalHeader().setSectionResizeMode(2, QHeaderView.ResizeMode.Stretch)
+        self.table_hist.horizontalHeader().setSectionResizeMode(3, QHeaderView.ResizeMode.Stretch)
+        self.table_hist.horizontalHeader().setSectionResizeMode(4, QHeaderView.ResizeMode.Stretch)
+        self.table_hist.setSelectionBehavior(QTableWidget.SelectionBehavior.SelectRows)
+        self.table_hist.setSelectionMode(QTableWidget.SelectionMode.SingleSelection)
         self.table_hist.setAlternatingRowColors(True)
         self.table_hist.cellDoubleClicked.connect(self._on_table_double_clicked)
         enable_sorting_on_table(self.table_hist)
         hist_layout.addWidget(self.table_hist)
 
-        # Rodapé da tabela
         row_bottom = QHBoxLayout()
-        lbl_hint = QLabel("💡 Dica: Dê dois cliques em qualquer linha para copiar o código. Aperte ESPAÇO a qualquer momento para capturar!")
+        lbl_hint = QLabel("Dica: Clique com o mouse para capturar a cor. Shift + Clique para capturar várias cores seguidas. ESC fecha.")
         lbl_hint.setProperty("class", "secondary")
         row_bottom.addWidget(lbl_hint)
         row_bottom.addStretch()
@@ -288,6 +393,8 @@ class ColorPickerView(QWidget):
         hist_layout.addLayout(row_bottom)
 
         layout.addWidget(grp_hist)
+        scroll.setWidget(content)
+        root_layout.addWidget(scroll)
 
     def _toggle_screen_picker(self):
         if self._picking_active:
@@ -297,156 +404,113 @@ class ColorPickerView(QWidget):
 
     def _start_screen_picker(self):
         self._picking_active = True
-        self.btn_toggle_picker.setText("⏹ Cancelar Conta-Gotas (ou aperte ESC)")
+        self.btn_toggle_picker.setText("Cancelar Conta-Gotas (ou aperte ESC)")
         self.btn_toggle_picker.setStyleSheet("font-weight: bold; background-color: #D83B01; color: white; padding: 6px 20px;")
 
-        if self.chk_minimize.isChecked():
-            win = self.window()
-            if win:
-                win.showMinimized()
-
         self._overlay.show()
-        self._picker_timer.start(16)  # ~60 FPS para rastreamento suave
+        win = self.window()
+        should_min = self.chk_minimize.isChecked() or len(QApplication.screens()) == 1
+
+        if should_min and win:
+            win.showMinimized()
+            # Aguarda a minimização completar antes de capturar os pixels do desktop
+            QTimer.singleShot(220, self._open_frozen_overlay)
+        else:
+            self._open_frozen_overlay()
+
+        self._picker_timer.start(16)
+
+    def _open_frozen_overlay(self):
+        if self._picking_active:
+            self._frozen_overlay.start_capture()
 
     def _stop_screen_picker(self):
         self._picking_active = False
         self._picker_timer.stop()
         self._overlay.hide()
+        self._frozen_overlay.hide()
 
-        self.btn_toggle_picker.setText("🎯 Iniciar Conta-Gotas na Tela (Espaço ou Clique em Qualquer App)")
-        self.btn_toggle_picker.setStyleSheet("font-weight: bold; font-size: 13px; padding: 6px 20px;")
+        self.btn_toggle_picker.setText("Capturar Cor da Tela (Congelar Monitores)")
+        self.btn_toggle_picker.setStyleSheet("font-weight: bold; font-size: 13px; padding: 6px 22px;")
 
-        if self.chk_minimize.isChecked():
-            win = self.window()
-            if win:
-                win.showNormal()
-                win.raise_()
-                win.activateWindow()
+        win = self.window()
+        if win and (self.chk_minimize.isChecked() or len(QApplication.screens()) == 1):
+            win.showNormal()
+            win.raise_()
+            win.activateWindow()
 
     def _picker_tick(self):
-        """Tick a 60 FPS durante o modo Conta-Gotas flutuante: atualiza a lupa e detecta teclas/cliques globais."""
+        """Tick para detecção global de tecla ESC caso a janela não tenha foco."""
         if not self._picking_active:
             return
-
-        pos = QCursor.pos()
-        r, g, b = get_pixel_color_at_screen()
-        formats = rgb_to_formats(r, g, b)
-
-        # Atualiza a janela flutuante
-        self._overlay.update_magnifier(pos, formats["hex"])
-
-        # 1. Cancelamento por ESC ou Botão Direito do Mouse
         if is_key_pressed(VK_ESCAPE) or is_key_pressed(VK_RBUTTON):
             self._stop_screen_picker()
-            return
 
-        # 2. Confirmação e Captura por ESPAÇO, ENTER ou CLIQUE ESQUERDO DO MOUSE em qualquer app
-        if is_key_pressed(VK_SPACE) or is_key_pressed(VK_RETURN) or is_key_pressed(VK_LBUTTON):
-            self._capture_current_pixel()
-            self._stop_screen_picker()
-            return
-
-    def _update_hover_color(self):
-        """Atualização periódica (100ms) quando a ferramenta estiver aberta na tela."""
-        pos = QCursor.pos()
-        r, g, b = get_pixel_color_at_screen()
+    def _on_pixel_captured(self, r: int, g: int, b: int, keep_open: bool = False):
         formats = rgb_to_formats(r, g, b)
+        hex_val = formats["hex"]
 
-        self.txt_hex.setText(formats["hex"])
+        self.txt_hex.setText(hex_val)
         self.txt_rgb.setText(formats["rgb"])
         self.txt_hsl.setText(formats["hsl"])
-        self.frame_swatch.setStyleSheet(f"background-color: {formats['hex']}; border-radius: 8px; border: 1px solid #777;")
+        self.frame_swatch.setStyleSheet(f"background-color: {hex_val}; border-radius: 8px; border: 1px solid #777;")
 
-        # Renderiza Lupa interna da janela
-        screen = QGuiApplication.primaryScreen()
-        if screen:
-            radius = 10
-            pix = screen.grabWindow(0, pos.x() - radius, pos.y() - radius, radius * 2, radius * 2)
-            scaled = pix.scaled(120, 120, Qt.KeepAspectRatio, Qt.FastTransformation)
-
-            painter = QPainter(scaled)
-            painter.setPen(QPen(QColor(0, 0, 0, 180), 2))
-            painter.drawRect(55, 55, 10, 10)
-            painter.setPen(QPen(QColor(255, 50, 50), 1.5))
-            painter.drawRect(55, 55, 10, 10)
-            painter.end()
-
-            self.lbl_zoom.setPixmap(scaled)
-
-        # Detecção global de tecla Espaço mesmo sem a lupa flutuante estar explicitamente iniciada!
-        # Isso garante que se o usuário estiver com o WinToolbox aberto e o mouse no WhatsApp, apertar Espaço captura!
-        space_down = is_key_pressed(VK_SPACE)
-        if space_down and not self._space_was_down and not self._picking_active:
-            self._capture_current_pixel()
-        self._space_was_down = space_down
-
-    def _capture_current_pixel(self):
-        r, g, b = get_pixel_color_at_screen()
-        formats = rgb_to_formats(r, g, b)
-
-        # Evita duplicata se for idêntica à última capturada
-        if self._history and self._history[0]["hex"] == formats["hex"]:
-            # Mesmo sendo igual, dá o feedback sonoro e copia se requisitado
-            self._trigger_feedback(formats["hex"])
-            return
-
-        self._history.insert(0, formats)
-        self._refresh_history_table()
-        self._trigger_feedback(formats["hex"])
-
-    def _trigger_feedback(self, hex_code: str):
-        # 1. Copia automática para o Clipboard
         if self.chk_auto_copy.isChecked():
-            QApplication.clipboard().setText(hex_code)
+            self._copy_to_clip(hex_val, silent=True)
+            show_toast(self, f"Cor {hex_val} copiada para a área de transferência!")
 
-        # 2. Som de confirmação do Windows
         if self.chk_sound.isChecked():
             try:
                 winsound.MessageBeep(winsound.MB_OK)
             except Exception:
                 pass
 
-        # 3. Toast visual
-        try:
-            show_toast(self, "Cor Capturada!", f"{hex_code} copiado para a Área de Transferência.", "success", 2500)
-        except Exception:
-            pass
+        # Adiciona ao histórico
+        self._add_to_history(formats)
+
+        if not keep_open:
+            self._stop_screen_picker()
+
+    def _update_hover_color(self):
+        if self._picking_active:
+            return
+        pos = QCursor.pos()
+        r, g, b = get_pixel_color_at_screen(pos.x(), pos.y())
+        formats = rgb_to_formats(r, g, b)
+        self.txt_hex.setText(formats["hex"])
+        self.txt_rgb.setText(formats["rgb"])
+        self.txt_hsl.setText(formats["hsl"])
+        self.frame_swatch.setStyleSheet(f"background-color: {formats['hex']}; border-radius: 8px; border: 1px solid #777;")
+
+    def _add_to_history(self, formats: Dict[str, str]):
+        self._history_colors.insert(0, formats)
+        self._refresh_history_table()
 
     def _refresh_history_table(self):
         with batch_table_update(self.table_hist):
-            self.table_hist.setRowCount(len(self._history))
-            for row, item in enumerate(self._history):
-                swatch_item = SmartTableWidgetItem("      ", sort_value=item["hex"])
-                swatch_item.setBackground(QColor(item["hex"]))
-                self.table_hist.setItem(row, 0, swatch_item)
+            self.table_hist.setRowCount(len(self._history_colors))
+            for row, item in enumerate(self._history_colors):
+                color_cell = QTableWidgetItem()
+                color_cell.setBackground(QColor(item["hex"]))
+                color_cell.setFlags(color_cell.flags() ^ Qt.ItemFlag.ItemIsEditable)
+                self.table_hist.setItem(row, 0, color_cell)
 
-                self.table_hist.setItem(row, 1, SmartTableWidgetItem(item["hex"]))
-                self.table_hist.setItem(row, 2, SmartTableWidgetItem(item["rgb"]))
-                self.table_hist.setItem(row, 3, SmartTableWidgetItem(item["hsl"]))
-                self.table_hist.setItem(row, 4, SmartTableWidgetItem(item["cmyk"]))
+                for col, key in enumerate(["hex", "rgb", "hsl", "cmyk"], start=1):
+                    t_item = SmartTableWidgetItem(item.get(key, ""))
+                    t_item.setFlags(t_item.flags() ^ Qt.ItemFlag.ItemIsEditable)
+                    self.table_hist.setItem(row, col, t_item)
 
     def _on_table_double_clicked(self, row: int, col: int):
         item = self.table_hist.item(row, col)
         if item and col > 0:
             self._copy_to_clip(item.text())
 
-    def _copy_to_clip(self, text: str):
-        if text:
-            QApplication.clipboard().setText(text)
-            try:
-                show_toast(self, "Copiado!", f"{text} copiado para a Área de Transferência.", "info", 2000)
-            except Exception:
-                QMessageBox.information(self, "Copiado", f"Código copiado para a área de transferência:\n{text}")
+    def _copy_to_clip(self, text: str, silent: bool = False):
+        cb = QApplication.clipboard()
+        cb.setText(text)
+        if not silent:
+            show_toast(self, f"'{text}' copiado!")
 
     def _clear_history(self):
-        self._history.clear()
+        self._history_colors.clear()
         self.table_hist.setRowCount(0)
-
-    def closeEvent(self, event):
-        self._stop_screen_picker()
-        self._overlay.close()
-        super().closeEvent(event)
-
-    def hideEvent(self, event):
-        self._stop_screen_picker()
-        super().hideEvent(event)

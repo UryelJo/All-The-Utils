@@ -29,7 +29,7 @@ _log = get_logger("media.subtitles.ui")
 class SubtitlesTool(Tool):
     id = "media.subtitles"
     name = "Editor e Conversor de Legendas (SRT / VTT)"
-    category = "Imagens"
+    category = "Áudio e Vídeo"
     description = "Editor e conversor de legendas: converte entre formatos SRT e WebVTT, ajusta sincronia de tempo com atraso/adiantamento (Time Shift) e edita textos de diálogos."
     keywords = ["legendas", "subtitles", "srt", "vtt", "webvtt", "sincronia", "time shift", "atraso", "filme", "video"]
 

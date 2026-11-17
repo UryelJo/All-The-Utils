@@ -29,7 +29,7 @@ EXTRA_EXTENSION_MAPPING = {
     ".tga": ["images.convert", "images.resize", "pdf.images_to_pdf"],
     ".dds": ["images.convert", "images.resize"],
     ".jp2": ["images.convert", "images.resize", "pdf.images_to_pdf"],
-    ".icns": ["images.convert", "images.favicon"],
+    ".icns": ["images.convert"],
     ".heif": ["images.convert", "images.exif", "images.compress", "images.resize", "pdf.images_to_pdf"],
     ".avif": ["images.convert", "images.compress", "images.resize", "pdf.images_to_pdf"],
     ".gif": ["images.gif_tools", "images.convert"],

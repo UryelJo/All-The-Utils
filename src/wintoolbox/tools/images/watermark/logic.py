@@ -166,3 +166,21 @@ def apply_watermark_to_image(src: Path, dst: Path, params: Dict[str, Any]) -> No
             final_im.save(dst, format="WEBP", quality=90)
         else:
             final_im.save(dst)
+
+
+def render_watermark_preview(src: Path, params: Dict[str, Any]) -> Image.Image:
+    """Gera visualização da marca d'água em memória para a UI com debounce."""
+    import tempfile
+    with tempfile.NamedTemporaryFile(suffix=".png", delete=False) as tmp:
+        tmp_path = Path(tmp.name)
+    try:
+        apply_watermark_to_image(src, tmp_path, params)
+        with Image.open(tmp_path) as im:
+            return im.copy()
+    finally:
+        if tmp_path.exists():
+            try:
+                tmp_path.unlink()
+            except Exception:
+                pass
+

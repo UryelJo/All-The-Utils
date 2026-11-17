@@ -574,7 +574,13 @@ def apply_theme(app: Optional[QApplication], mode: Optional[str] = None, accent_
         image: url("{icons['down_muted']}");
     }}
     QSpinBox, QDoubleSpinBox, QDateTimeEdit {{
-        padding-right: 24px;
+        padding: 4px 28px 4px 10px;
+    }}
+    QSpinBox QLineEdit, QDoubleSpinBox QLineEdit, QDateTimeEdit QLineEdit {{
+        background: transparent;
+        border: none;
+        padding: 0px 4px 0px 2px;
+        min-height: 20px;
     }}
     QSpinBox::up-button, QDoubleSpinBox::up-button, QDateTimeEdit::up-button {{
         subcontrol-origin: border;

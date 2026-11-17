@@ -1,19 +1,25 @@
 """
-Ferramenta: Filtros e Ajustes de Imagem em Lote.
+Ferramenta: Filtros e Ajustes de Imagem em Lote com Preview Dinâmico.
 Implementação completa com contrato FileTool.
 """
 from pathlib import Path
 from typing import Any, Dict, Optional
 from PySide6.QtCore import Qt
 from PySide6.QtWidgets import (
-    QComboBox, QDoubleSpinBox, QFrame, QGridLayout, QHBoxLayout,
-    QLabel, QPushButton, QSlider, QVBoxLayout, QWidget
+    QComboBox, QFrame, QGridLayout, QGroupBox, QHBoxLayout,
+    QLabel, QPushButton, QVBoxLayout, QWidget
 )
 
+from wintoolbox.core.logging_setup import get_logger
 from wintoolbox.core.registry import FileTool, ItemResult, TaskContext, register
 from wintoolbox.tools.images.effects.logic import (
-    IMAGE_EFFECTS, apply_image_effects_and_adjustments
+    IMAGE_EFFECTS, apply_image_effects_and_adjustments, render_effects_preview
 )
+from wintoolbox.ui.widgets.live_preview import ImageLivePreviewPanel
+from wintoolbox.ui.widgets.slider_spin import SliderSpinControl
+
+_log = get_logger("images.effects.ui")
+
 
 @register
 class ImageEffectsTool(FileTool):
@@ -28,126 +34,123 @@ class ImageEffectsTool(FileTool):
 
     def build_options(self, parent: Optional[QWidget] = None) -> QWidget:
         panel = QFrame(parent)
-        layout = QVBoxLayout(panel)
-        layout.setContentsMargins(12, 10, 12, 10)
-        layout.setSpacing(10)
+        main_layout = QHBoxLayout(panel)
+        main_layout.setContentsMargins(12, 12, 12, 12)
+        main_layout.setSpacing(16)
 
-        lbl_header = QLabel("Opções de Ajustes e Filtros")
-        lbl_header.setStyleSheet("font-weight: 600; font-size: 13px;")
-        layout.addWidget(lbl_header)
+        # Coluna da Esquerda: Controles
+        left_col = QWidget()
+        left_layout = QVBoxLayout(left_col)
+        left_layout.setContentsMargins(0, 0, 0, 0)
+        left_layout.setSpacing(10)
 
-        grid = QGridLayout()
-        grid.setHorizontalSpacing(16)
-        grid.setVerticalSpacing(10)
+        grp_filters = QGroupBox("Filtros Artísticos e Efeitos")
+        grid_f = QGridLayout(grp_filters)
+        grid_f.setHorizontalSpacing(12)
+        grid_f.setVerticalSpacing(8)
 
-        # 1. Filtro Artístico
-        grid.addWidget(QLabel("Filtro artístico:"), 0, 0)
+        grid_f.addWidget(QLabel("Filtro:"), 0, 0)
         self.cmb_effect = QComboBox()
         self.cmb_effect.addItems(IMAGE_EFFECTS)
-        self.cmb_effect.currentTextChanged.connect(self._on_effect_changed)
-        grid.addWidget(self.cmb_effect, 0, 1)
+        self.cmb_effect.currentTextChanged.connect(self._on_options_changed)
+        grid_f.addWidget(self.cmb_effect, 0, 1)
 
-        # 2. Raio de Desfoque
-        self.lbl_blur = QLabel("Raio de desfoque (px):")
-        grid.addWidget(self.lbl_blur, 0, 2)
-        self.spin_blur = QDoubleSpinBox()
-        self.spin_blur.setRange(0.5, 30.0)
-        self.spin_blur.setValue(2.5)
-        self.spin_blur.setSingleStep(0.5)
-        grid.addWidget(self.spin_blur, 0, 3)
+        grid_f.addWidget(QLabel("Raio de desfoque:"), 1, 0)
+        self.spin_blur = SliderSpinControl("", 0.5, 30.0, 2.5, step=0.5, decimals=1, suffix=" px")
+        self.spin_blur.valueChanged.connect(self._on_options_changed)
+        grid_f.addWidget(self.spin_blur, 1, 1)
+        left_layout.addWidget(grp_filters)
 
-        # 3. Brilho
-        self.lbl_brightness = QLabel("Brilho (1.0x):")
-        grid.addWidget(self.lbl_brightness, 1, 0)
-        self.slider_brightness = QSlider(Qt.Horizontal)
-        self.slider_brightness.setRange(20, 250)
-        self.slider_brightness.setValue(100)
-        self.slider_brightness.valueChanged.connect(
-            lambda v: self.lbl_brightness.setText(f"Brilho ({v/100:.2f}x):")
-        )
-        grid.addWidget(self.slider_brightness, 1, 1)
+        grp_adjusts = QGroupBox("Ajustes de Cor e Luz")
+        grid_a = QGridLayout(grp_adjusts)
+        grid_a.setHorizontalSpacing(12)
+        grid_a.setVerticalSpacing(8)
 
-        # 4. Contraste
-        self.lbl_contrast = QLabel("Contraste (1.0x):")
-        grid.addWidget(self.lbl_contrast, 1, 2)
-        self.slider_contrast = QSlider(Qt.Horizontal)
-        self.slider_contrast.setRange(20, 250)
-        self.slider_contrast.setValue(100)
-        self.slider_contrast.valueChanged.connect(
-            lambda v: self.lbl_contrast.setText(f"Contraste ({v/100:.2f}x):")
-        )
-        grid.addWidget(self.slider_contrast, 1, 3)
+        grid_a.addWidget(QLabel("Brilho:"), 0, 0)
+        self.slider_brightness = SliderSpinControl("", 0.20, 2.50, 1.00, step=0.05, decimals=2, suffix="x")
+        self.slider_brightness.valueChanged.connect(self._on_options_changed)
+        grid_a.addWidget(self.slider_brightness, 0, 1)
 
-        # 5. Saturação
-        self.lbl_saturation = QLabel("Saturação (1.0x):")
-        grid.addWidget(self.lbl_saturation, 2, 0)
-        self.slider_saturation = QSlider(Qt.Horizontal)
-        self.slider_saturation.setRange(0, 250)
-        self.slider_saturation.setValue(100)
-        self.slider_saturation.valueChanged.connect(
-            lambda v: self.lbl_saturation.setText(f"Saturação ({v/100:.2f}x):")
-        )
-        grid.addWidget(self.slider_saturation, 2, 1)
+        grid_a.addWidget(QLabel("Contraste:"), 1, 0)
+        self.slider_contrast = SliderSpinControl("", 0.20, 2.50, 1.00, step=0.05, decimals=2, suffix="x")
+        self.slider_contrast.valueChanged.connect(self._on_options_changed)
+        grid_a.addWidget(self.slider_contrast, 1, 1)
 
-        # 6. Nitidez
-        self.lbl_sharpness = QLabel("Nitidez (1.0x):")
-        grid.addWidget(self.lbl_sharpness, 2, 2)
-        self.slider_sharpness = QSlider(Qt.Horizontal)
-        self.slider_sharpness.setRange(0, 300)
-        self.slider_sharpness.setValue(100)
-        self.slider_sharpness.valueChanged.connect(
-            lambda v: self.lbl_sharpness.setText(f"Nitidez ({v/100:.2f}x):")
-        )
-        grid.addWidget(self.slider_sharpness, 2, 3)
+        grid_a.addWidget(QLabel("Saturação:"), 2, 0)
+        self.slider_saturation = SliderSpinControl("", 0.00, 2.50, 1.00, step=0.05, decimals=2, suffix="x")
+        self.slider_saturation.valueChanged.connect(self._on_options_changed)
+        grid_a.addWidget(self.slider_saturation, 2, 1)
 
-        # Botão Resetar Sliders
-        btn_reset = QPushButton("Redefinir Ajustes para o Padrão")
-        btn_reset.setFixedWidth(220)
-        btn_reset.clicked.connect(self._reset_sliders)
-        grid.addWidget(btn_reset, 3, 0, 1, 2)
+        grid_a.addWidget(QLabel("Nitidez:"), 3, 0)
+        self.slider_sharpness = SliderSpinControl("", 0.00, 3.00, 1.00, step=0.05, decimals=2, suffix="x")
+        self.slider_sharpness.valueChanged.connect(self._on_options_changed)
+        grid_a.addWidget(self.slider_sharpness, 3, 1)
 
-        layout.addLayout(grid)
-        self._on_effect_changed(self.cmb_effect.currentText())
+        btn_reset = QPushButton("Redefinir Ajustes Padrão")
+        btn_reset.setFixedHeight(26)
+        btn_reset.clicked.connect(self._reset_adjustments)
+        grid_a.addWidget(btn_reset, 4, 0, 1, 2)
+
+        left_layout.addWidget(grp_adjusts)
+        left_layout.addStretch()
+        main_layout.addWidget(left_col, stretch=1)
+
+        # Coluna da Direita: Preview Dinâmico
+        self.preview_panel = ImageLivePreviewPanel("Pré-visualização do Filtro (Antes vs Depois)", panel)
+        self.preview_panel.set_preview_generator(render_effects_preview)
+        main_layout.addWidget(self.preview_panel, stretch=1)
 
         return panel
 
-    def _on_effect_changed(self, eff: str):
-        is_blur = eff == "Desfoque Gaussiano"
-        self.lbl_blur.setVisible(is_blur)
-        self.spin_blur.setVisible(is_blur)
+    def on_active_file_changed(self, path: Path) -> None:
+        self.preview_panel.set_source_file(path)
+        self._update_preview()
 
-    def _reset_sliders(self):
-        self.slider_brightness.setValue(100)
-        self.slider_contrast.setValue(100)
-        self.slider_saturation.setValue(100)
-        self.slider_sharpness.setValue(100)
+    def _on_options_changed(self, *_) -> None:
+        is_blur = self.cmb_effect.currentText() == "Desfoque Gaussiano"
+        self.spin_blur.setEnabled(is_blur)
+        self._update_preview()
+
+    def _reset_adjustments(self) -> None:
+        self.cmb_effect.setCurrentText("Nenhum")
+        self.slider_brightness.setValue(1.00)
+        self.slider_contrast.setValue(1.00)
+        self.slider_saturation.setValue(1.00)
+        self.slider_sharpness.setValue(1.00)
+        self.spin_blur.setValue(2.5)
+        self._update_preview()
+
+    def _update_preview(self) -> None:
+        params = self.get_options()
+        self.preview_panel.update_params(params)
 
     def get_options(self) -> Dict[str, Any]:
         return {
             "effect": self.cmb_effect.currentText(),
-            "blur_radius": self.spin_blur.value(),
-            "brightness": self.slider_brightness.value() / 100.0,
-            "contrast": self.slider_contrast.value() / 100.0,
-            "saturation": self.slider_saturation.value() / 100.0,
-            "sharpness": self.slider_sharpness.value() / 100.0
+            "blur_radius": float(self.spin_blur.value()),
+            "brightness": float(self.slider_brightness.value()),
+            "contrast": float(self.slider_contrast.value()),
+            "saturation": float(self.slider_saturation.value()),
+            "sharpness": float(self.slider_sharpness.value()),
         }
-
-    def output_ext(self, params: Dict[str, Any]) -> str:
-        return ""
 
     def process(self, src: Path, dst: Path, params: Dict[str, Any], ctx: TaskContext) -> ItemResult:
         try:
+            bytes_in = src.stat().st_size
             apply_image_effects_and_adjustments(src, dst, params)
+            bytes_out = dst.stat().st_size if dst.exists() else 0
             return ItemResult(
                 success=True,
                 source_path=src,
                 output_path=dst,
-                message="Filtros e ajustes aplicados com sucesso"
+                message="Filtros aplicados com sucesso",
+                bytes_in=bytes_in,
+                bytes_out=bytes_out,
             )
-        except Exception as e:
+        except Exception as exc:
+            _log.warning("Falha ao aplicar efeitos em '%s': %s", src, exc)
             return ItemResult(
                 success=False,
                 source_path=src,
-                output_path=dst,
-                error=f"Erro ao processar imagem: {str(e)}"
+                error=str(exc),
             )

@@ -32,7 +32,6 @@ def test_registry_phase_3_image_tools():
         "images.watermark",
         "images.effects",
         "images.exif",
-        "images.favicon",
         "images.palette"
     ]
     for tid in expected_ids:

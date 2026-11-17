@@ -1,17 +1,27 @@
 """
-Ferramenta: Otimizador e Compressor de Imagens.
-Implementação completa herdando de FileTool.
+Ferramenta: Otimizador e Compressor de Imagens Profissional.
+Comprime e reduz o tamanho de arquivos em lote com estimativa em tempo real
+e comparação visual de fidelidade.
 """
 from pathlib import Path
 from typing import Any, Dict, Optional
 from PySide6.QtCore import Qt
 from PySide6.QtWidgets import (
-    QCheckBox, QComboBox, QFrame, QGridLayout, QHBoxLayout,
-    QLabel, QSlider, QSpinBox, QVBoxLayout, QWidget
+    QCheckBox, QComboBox, QFrame, QGridLayout, QGroupBox,
+    QHBoxLayout, QLabel, QVBoxLayout, QWidget
 )
 
+from wintoolbox.core.logging_setup import get_logger
 from wintoolbox.core.registry import FileTool, ItemResult, TaskContext, register
-from wintoolbox.tools.images.compress.logic import COMPRESSION_MODES, compress_single_image
+from wintoolbox.tools.images.compress.logic import (
+    COMPRESSION_MODES, compress_single_image,
+    estimate_compressed_size, render_compress_preview
+)
+from wintoolbox.ui.widgets.live_preview import ImageLivePreviewPanel
+from wintoolbox.ui.widgets.slider_spin import SliderSpinControl
+
+_log = get_logger("images.compress.ui")
+
 
 @register
 class ImageCompressorTool(FileTool):
@@ -26,108 +36,149 @@ class ImageCompressorTool(FileTool):
 
     def build_options(self, parent: Optional[QWidget] = None) -> QWidget:
         panel = QFrame(parent)
-        layout = QVBoxLayout(panel)
-        layout.setContentsMargins(12, 10, 12, 10)
-        layout.setSpacing(10)
+        main_layout = QHBoxLayout(panel)
+        main_layout.setContentsMargins(12, 12, 12, 12)
+        main_layout.setSpacing(16)
 
-        lbl_header = QLabel("Opções de Otimização e Compressão")
-        lbl_header.setStyleSheet("font-weight: 600; font-size: 13px;")
-        layout.addWidget(lbl_header)
+        # Coluna Esquerda: Controles e Estimativa
+        left_col = QWidget()
+        left_layout = QVBoxLayout(left_col)
+        left_layout.setContentsMargins(0, 0, 0, 0)
+        left_layout.setSpacing(10)
 
-        grid = QGridLayout()
-        grid.setHorizontalSpacing(16)
-        grid.setVerticalSpacing(10)
+        grp_opts = QGroupBox("Parâmetros de Compressão")
+        grid = QGridLayout(grp_opts)
+        grid.setHorizontalSpacing(14)
+        grid.setVerticalSpacing(8)
 
-        # Modo de Compressão
         grid.addWidget(QLabel("Modo de compressão:"), 0, 0)
         self.cmb_mode = QComboBox()
         self.cmb_mode.addItems(COMPRESSION_MODES)
         self.cmb_mode.currentTextChanged.connect(self._on_mode_changed)
         grid.addWidget(self.cmb_mode, 0, 1)
 
-        # Qualidade (Slider)
-        self.lbl_quality = QLabel("Qualidade (80%):")
-        grid.addWidget(self.lbl_quality, 0, 2)
+        grid.addWidget(QLabel("Qualidade visual:"), 1, 0)
+        self.slider_quality = SliderSpinControl("", 10, 100, 80, suffix="%")
+        self.slider_quality.valueChanged.connect(self._on_params_changed)
+        grid.addWidget(self.slider_quality, 1, 1)
 
-        self.slider_quality = QSlider(Qt.Horizontal)
-        self.slider_quality.setRange(10, 100)
-        self.slider_quality.setValue(80)
-        self.slider_quality.valueChanged.connect(
-            lambda v: self.lbl_quality.setText(f"Qualidade ({v}%):")
-        )
-        grid.addWidget(self.slider_quality, 0, 3)
+        grid.addWidget(QLabel("Meta máxima (KB):"), 2, 0)
+        self.spin_target_kb = SliderSpinControl("", 20, 5000, 300, step=10, suffix=" KB")
+        self.spin_target_kb.valueChanged.connect(self._on_params_changed)
+        grid.addWidget(self.spin_target_kb, 2, 1)
 
-        # Meta de Tamanho (KB)
-        self.lbl_target = QLabel("Tamanho máximo desejado:")
-        grid.addWidget(self.lbl_target, 1, 0)
-        self.spin_target_kb = QSpinBox()
-        self.spin_target_kb.setRange(20, 50000)
-        self.spin_target_kb.setValue(300)
-        self.spin_target_kb.setSuffix(" KB")
-        grid.addWidget(self.spin_target_kb, 1, 1)
-
-        # Checkboxes de otimização
-        box_checks = QHBoxLayout()
-        self.chk_strip_exif = QCheckBox("Remover Metadados EXIF (Economiza espaço)")
+        # Checkboxes
+        box_checks = QVBoxLayout()
+        box_checks.setSpacing(6)
+        self.chk_strip_exif = QCheckBox("Remover metadados EXIF (Economiza espaço)")
         self.chk_strip_exif.setChecked(True)
-        self.chk_quantize = QCheckBox("Quantizar PNG (Paleta de 256 cores)")
-        self.chk_progressive = QCheckBox("JPEG Progressivo")
+        self.chk_strip_exif.toggled.connect(self._on_params_changed)
+
+        self.chk_quantize = QCheckBox("Quantizar PNG para 256 cores (Redução extrema)")
+        self.chk_quantize.toggled.connect(self._on_params_changed)
+
+        self.chk_progressive = QCheckBox("JPEG Progressivo (Carregamento mais rápido na web)")
         self.chk_progressive.setChecked(True)
+        self.chk_progressive.toggled.connect(self._on_params_changed)
 
         box_checks.addWidget(self.chk_strip_exif)
         box_checks.addWidget(self.chk_quantize)
         box_checks.addWidget(self.chk_progressive)
-        grid.addLayout(box_checks, 2, 0, 1, 4)
+        grid.addLayout(box_checks, 3, 0, 1, 2)
 
-        layout.addLayout(grid)
+        left_layout.addWidget(grp_opts)
+
+        # Card de Estimativa de Economia
+        card_est = QFrame()
+        card_est.setProperty("class", "card")
+        card_est.setStyleSheet("QFrame { background-color: #1A1F26; border: 1px solid #2B3542; border-radius: 6px; padding: 10px; }")
+        v_est = QVBoxLayout(card_est)
+        v_est.setSpacing(4)
+
+        lbl_est_title = QLabel("Estimativa de Tamanho e Economia:")
+        lbl_est_title.setStyleSheet("font-weight: 600; font-size: 12px; color: #57A5FF;")
+        v_est.addWidget(lbl_est_title)
+
+        self.lbl_estimation = QLabel("Adicione imagens para ver a estimativa de redução.")
+        self.lbl_estimation.setStyleSheet("font-size: 12px; color: #E0E4E8;")
+        v_est.addWidget(self.lbl_estimation)
+        left_layout.addWidget(card_est)
+
+        left_layout.addStretch()
+        main_layout.addWidget(left_col, stretch=1)
+
+        # Coluna Direita: Preview Dinâmico de Fidelidade
+        self.preview_panel = ImageLivePreviewPanel("Fidelidade Visual (Antes vs Depois)", panel)
+        self.preview_panel.set_preview_generator(render_compress_preview)
+        main_layout.addWidget(self.preview_panel, stretch=1)
+
+        self._active_file: Optional[Path] = None
         self._on_mode_changed(self.cmb_mode.currentText())
-
         return panel
 
-    def _on_mode_changed(self, mode: str):
+    def on_active_file_changed(self, path: Path) -> None:
+        self._active_file = path
+        self.preview_panel.set_source_file(path)
+        self._update_estimation_and_preview()
+
+    def _on_mode_changed(self, mode: str) -> None:
         is_balanced = mode == "Qualidade Visual Balanceada"
         is_target = mode == "Meta de Tamanho Máximo (KB)"
 
-        self.lbl_quality.setVisible(is_balanced)
-        self.slider_quality.setVisible(is_balanced)
+        self.slider_quality.setEnabled(is_balanced)
+        self.spin_target_kb.setEnabled(is_target)
+        self._update_estimation_and_preview()
 
-        self.lbl_target.setVisible(is_target)
-        self.spin_target_kb.setVisible(is_target)
+    def _on_params_changed(self, *_) -> None:
+        self._update_estimation_and_preview()
+
+    def _update_estimation_and_preview(self) -> None:
+        params = self.get_options()
+        self.preview_panel.update_params(params)
+
+        if self._active_file and self._active_file.is_file():
+            try:
+                orig = self._active_file.stat().st_size
+                est = estimate_compressed_size(self._active_file, params)
+                saved = orig - est
+                pct = max(0, int((saved / orig) * 100)) if orig > 0 else 0
+                orig_kb = orig / 1024
+                est_kb = est / 1024
+                self.lbl_estimation.setText(
+                    f"{self._active_file.name}:\n"
+                    f"{orig_kb:.1f} KB → ~{est_kb:.1f} KB (Economia estimada: ~{pct}%)"
+                )
+            except Exception:
+                self.lbl_estimation.setText("Estimativa em cálculo...")
+        else:
+            self.lbl_estimation.setText("Selecione uma imagem na lista para ver a estimativa.")
 
     def get_options(self) -> Dict[str, Any]:
         return {
             "mode": self.cmb_mode.currentText(),
-            "quality": self.slider_quality.value(),
-            "target_kb": self.spin_target_kb.value(),
+            "quality": int(self.slider_quality.value()),
+            "target_kb": int(self.spin_target_kb.value()),
             "strip_exif": self.chk_strip_exif.isChecked(),
             "quantize_png": self.chk_quantize.isChecked(),
-            "progressive_jpeg": self.chk_progressive.isChecked()
+            "progressive_jpeg": self.chk_progressive.isChecked(),
         }
-
-    def output_ext(self, params: Dict[str, Any]) -> str:
-        return ""
 
     def process(self, src: Path, dst: Path, params: Dict[str, Any], ctx: TaskContext) -> ItemResult:
         try:
-            sz_before, sz_after = compress_single_image(src, dst, params)
-            diff_kb = (sz_before - sz_after) / 1024.0
-            pct = ((sz_before - sz_after) / max(sz_before, 1)) * 100.0
-
-            if diff_kb > 0:
-                msg = f"Economia de {diff_kb:.1f} KB ({pct:.1f}% reduzido)"
-            else:
-                msg = f"Tamanho mantido ({sz_after / 1024:.1f} KB)"
-
+            orig_sz, new_sz = compress_single_image(src, dst, params)
+            reduction = max(0, int(((orig_sz - new_sz) / orig_sz) * 100)) if orig_sz > 0 else 0
             return ItemResult(
                 success=True,
                 source_path=src,
                 output_path=dst,
-                message=msg
+                message=f"-{reduction}% ({orig_sz // 1024} KB → {new_sz // 1024} KB)",
+                bytes_in=orig_sz,
+                bytes_out=new_sz,
             )
-        except Exception as e:
+        except Exception as exc:
+            _log.warning("Falha ao comprimir imagem '%s': %s", src, exc)
             return ItemResult(
                 success=False,
                 source_path=src,
-                output_path=dst,
-                error=f"Erro na compressão: {str(e)}"
+                error=str(exc),
             )

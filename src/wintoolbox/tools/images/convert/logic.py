@@ -29,11 +29,11 @@ def ensure_heif_registered() -> bool:
 
 ensure_heif_registered()
 
-# 42 extensões de imagem compatíveis para leitura em lote
+# 43 extensões de imagem compatíveis para leitura em lote
 SUPPORTED_IMAGE_INPUTS: List[str] = [
     # Formatos populares, Web e Desktop
     ".png", ".apng", ".jpg", ".jpeg", ".jpe", ".jfif", ".webp", ".gif",
-    ".bmp", ".dib", ".tif", ".tiff", ".ico", ".cur",
+    ".bmp", ".dib", ".tif", ".tiff", ".ico", ".cur", ".svg",
     # Apple iPhone (HEIF/HEIC), Câmeras Digitais (HIF/MPO) e AV1 (AVIF)
     ".heic", ".heif", ".heics", ".heifs", ".hif", ".avif", ".avifs", ".mpo",
     # Design (Photoshop), Jogos/3D (TGA/DDS), Modernos (QOI), macOS (ICNS) e Técnicos (JPEG2000/Netpbm)
@@ -405,6 +405,29 @@ def _clean_frame_stem(output_path: Path) -> str:
     return stem
 
 
+def _open_image_or_svg(source_path: Path) -> Image.Image:
+    """Abre uma imagem usando Pillow, ou renderiza vetor SVG em alta definição via QtSvg."""
+    if source_path.suffix.lower() == ".svg":
+        from PySide6.QtGui import QImage, QPainter
+        from PySide6.QtSvg import QSvgRenderer
+        renderer = QSvgRenderer(str(source_path))
+        if not renderer.isValid():
+            raise ValueError(f"Arquivo SVG inválido: {source_path.name}")
+        sz = renderer.defaultSize()
+        w = max(16, sz.width() if sz.width() > 0 else 512)
+        h = max(16, sz.height() if sz.height() > 0 else 512)
+        qimg = QImage(w, h, QImage.Format.Format_ARGB32)
+        qimg.fill(0)
+        p = QPainter(qimg)
+        renderer.render(p)
+        p.end()
+        buf = io.BytesIO()
+        qimg.save(buf, "PNG")
+        buf.seek(0)
+        return Image.open(buf)
+    return Image.open(source_path)
+
+
 def convert_single_image(
     source_path: Path,
     output_path: Path,
@@ -441,7 +464,7 @@ def convert_single_image(
     output_path.parent.mkdir(parents=True, exist_ok=True)
     generated_files: List[Path] = []
 
-    with Image.open(source_path) as opened:
+    with _open_image_or_svg(source_path) as opened:
         raw_icc = opened.info.get("icc_profile")
         exif_bytes = _build_exif_bytes(opened, exif_mode)
         total_frames = getattr(opened, "n_frames", 1) or 1

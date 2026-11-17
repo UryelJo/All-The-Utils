@@ -7,107 +7,148 @@ Este documento mantém o inventário detalhado de todas as ferramentas disponív
 ## 1. Imagens e Mídia (`tools/images/`)
 
 ### `images.convert` — Conversão e Otimização de Imagens
-- **Tipo**: `FileTool` (Processamento em Lote Automatizado)
-- **Extensões Suportadas**: `.png`, `.jpg`, `.jpeg`, `.webp`, `.bmp`, `.tiff`, `.ico`, `.heic`, `.heif`, `.avif`
+- **Tipo**: `FileTool` (Processamento em Lote Automatizado) e `Tool` (Painel em Abas)
+- **Extensões Suportadas**: `.png`, `.jpg`, `.jpeg`, `.webp`, `.bmp`, `.tiff`, `.ico`, `.heic`, `.heif`, `.avif`, `.svg`
 - **Formatos de Saída**: WEBP, JPG, PNG, HEIC, HEIF, AVIF, TIFF, BMP, GIF, ICO, ICNS, QOI, TGA, DDS, JP2 (JPEG 2000), PPM, PCX, PDF (18 formatos)
-- **Extensões de Entrada Completas (42 formatos)**: `.png`, `.apng`, `.jpg`, `.jpeg`, `.jpe`, `.jfif`, `.webp`, `.gif`, `.bmp`, `.dib`, `.tif`, `.tiff`, `.ico`, `.cur`, `.heic`, `.heif`, `.heics`, `.heifs`, `.hif`, `.avif`, `.avifs`, `.mpo`, `.psd`, `.qoi`, `.tga`, `.dds`, `.icns`, `.jp2`, `.j2k`, `.jpx`, `.jpf`, `.j2c`, `.ppm`, `.pgm`, `.pbm`, `.pnm`, `.pcx`, `.pfm`, `.sgi`, `.ras`, `.xbm`, `.xpm`
+- **Extensões de Entrada Completas (43 formatos)**: `.png`, `.apng`, `.jpg`, `.jpeg`, `.jpe`, `.jfif`, `.webp`, `.gif`, `.bmp`, `.dib`, `.tif`, `.tiff`, `.ico`, `.cur`, `.heic`, `.heif`, `.heics`, `.heifs`, `.hif`, `.avif`, `.avifs`, `.mpo`, `.psd`, `.qoi`, `.tga`, `.dds`, `.icns`, `.jp2`, `.j2k`, `.jpx`, `.jpf`, `.j2c`, `.ppm`, `.pgm`, `.pbm`, `.pnm`, `.pcx`, `.pfm`, `.sgi`, `.ras`, `.xbm`, `.xpm`, `.svg`
 - **Recursos**:
-  - Seleção de arquivos avulsos ou pastas inteiras com detecção recursiva.
-  - Controle de qualidade (1-100%).
-  - Manutenção de metadados EXIF opcional.
-  - Redimensionamento proporcional (largura/altura máxima).
-  - Suporte bidirecional nativo ao formato Apple iPhone HEIF/HEIC (`.heic`, `.heif`, `.hif`), incluindo modo **Sem Perdas (Lossless GBR bit-exact)** e amostragem de croma (`4:2:0`, `4:2:2`, `4:4:4`).
-  - Gerenciamento colorimétrico ICC via LittleCMS2 (`PIL.ImageCms`): conversão automática de perfis wide-gamut (Apple Display P3 / Adobe RGB / CMYK) para **sRGB** padrão, preservação do perfil ICC original ou remoção completa (`strip`).
-  - Controle de privacidade EXIF em 3 níveis: preservar EXIF completo (corrigindo orientação física via `exif_transpose`), remover apenas coordenadas **GPS** ou limpar todos os metadados.
-  - Extração opcional de todos os quadros de arquivos multi-imagem (sequências `.heics`, `.avifs`, `.gif`, `.apng`, `.tiff`, `.mpo`).
-  - Composição de transparência (canal alfa) sobre cor de fundo hexadecimal configurável (`#RRGGBB`) ao converter para formatos opacos (JPG, BMP, PDF, PPM, PCX).
-  - Gravação atômica (`.tmp_wtbx`) e estratégia de conflito (sobrescrever, renomear numerado, pular).
+  - Seleção de arquivos avulsos ou pastas inteiras com modo Lista e modo Ícones (Miniaturas com navegação de pastas).
+  - Controle de qualidade com `SliderSpinControl` numérico sincronizado.
+  - Opção "Sem perdas" desabilita automaticamente controles de compressão.
+  - Rasterização vetorial nativa de SVG via `QtSvg.QSvgRenderer` em alta resolução.
+  - **Aba Ícones e Favicons**: Geração de arquivo `.ico` multi-resolução para Windows (16, 24, 32, 48, 64, 128, 256 px) e pacote Web Favicon (`site.webmanifest`, tags HTML, ícones Android/Apple) com diretório de saída customizável.
+  - Manutenção de metadados EXIF opcional e gerenciamento colorimétrico LittleCMS2.
+  - Suporte bidirecional a fotos Apple iPhone `.heic`/`.heif` com conversão de perfis P3 para sRGB.
 
-### `images.resize` — Redimensionador e Cortador de Imagens
+### `images.resize` — Redimensionar e Cortar Imagens
 - **Tipo**: `FileTool` (Processamento em Lote Automatizado)
 - **Extensões Suportadas**: `.png`, `.jpg`, `.jpeg`, `.webp`, `.bmp`, `.tiff`, `.ico`, `.heic`, `.heif`, `.avif`
 - **Recursos**:
-  - 4 Modos de dimensionamento: Porcentagem (1-1000%), Largura Máxima, Altura Máxima e Caixa Exata (Largura x Altura).
-  - Modos de Encaixe: Ajustar com Barras (Fit), Preencher e Cortar (Fill / Crop) e Distorcer (Stretch).
-  - Filtros de Interpolação: Lanczos (alta fidelidade), Bicúbica, Bilinear e Vizinho Mais Próximo.
-  - Rotação: 90° horário, 180°, 270° ou Orientação Automática EXIF (`ImageOps.exif_transpose`).
-  - Espelhamento Horizontal e Vertical independentes.
+  - Modos de dimensionamento: Porcentagem (1-1000%), Largura Máxima, Altura Máxima e Caixa Exata.
+  - Proporções pré-definidas com corte interativo: Livre, 1:1 (Quadrado), 16:9, 9:16 (Stories/Reels), 4:5 (Instagram Feed), 4:3, 3:2 e A4.
+  - Rotação angular fina (-45° a +45°) e rotações ortogonais (90°, 180°, 270°).
+  - Pré-visualização dinâmica Antes/Depois via `ImageLivePreviewPanel` e canvas interativo com ROI.
 
-### `images.compress` — Otimizador e Compressor de Imagens
+### `images.compress` — Otimizar e Comprimir Imagens
 - **Tipo**: `FileTool` (Processamento em Lote Automatizado)
 - **Extensões Suportadas**: `.png`, `.jpg`, `.jpeg`, `.webp`, `.heic`, `.heif`, `.avif`
 - **Recursos**:
-  - Modos de Compressão: "Qualidade Visual Balanceada" (slider 10-100%), "Otimização Sem Perdas (Lossless)" e "Meta de Tamanho Máximo em KB" (busca binária de convergência de tamanho).
-  - Quantização de paleta para PNG (redução para 256 cores adaptativas).
-  - Remoção opcional de metadados EXIF para economia máxima de bytes.
-  - Suporte a JPEG progressivo e compressão otimizada de tabelas Huffman.
+  - Estimativa em tempo real de tamanho de saída antes de converter (`2,4 MB → ~420 KB (-82%)`).
+  - Modos: "Qualidade Balanceada", "Sem Perdas (Lossless)" e "Meta de Tamanho em KB".
+  - `SliderSpinControl` para ajuste preciso de qualidade.
+  - Pré-visualização dinâmica Antes/Depois.
 
 ### `images.watermark` — Aplicador de Marca d'Água em Lote
 - **Tipo**: `FileTool` (Processamento em Lote Automatizado)
 - **Extensões Suportadas**: `.png`, `.jpg`, `.jpeg`, `.webp`, `.bmp`, `.tiff`, `.heic`, `.heif`, `.avif`
 - **Recursos**:
-  - Marca de Texto: conteúdo customizado, tamanho de fonte, cor HEX com seletor visual, rotação (-90° a +90°) e suporte a fontes TrueType do sistema.
-  - Marca de Imagem: seleção de logo PNG transparente com escala ajustável (% da imagem base).
-  - Posição: 9 âncoras (inferior, superior, centro) ou "Mosaico Repetido (Tiled)" sobre toda a área da foto.
-  - Opacidade (5% a 100%) e controle de margem/padding das bordas em pixels.
+  - Abas dedicadas: "Marca d'Água em Texto" e "Imagem / Logo (PNG)".
+  - Suporte a seleção de imagem/logo com transparência e escala percentual.
+  - 9 âncoras de posicionamento e mosaico repetido.
+  - Pré-visualização dinâmica Antes/Depois em tempo real.
 
 ### `images.effects` — Filtros e Ajustes de Imagem
 - **Tipo**: `FileTool` (Processamento em Lote Automatizado)
 - **Extensões Suportadas**: `.png`, `.jpg`, `.jpeg`, `.webp`, `.bmp`, `.tiff`, `.heic`, `.heif`, `.avif`
 - **Recursos**:
-  - Sliders com reset em 1 clique: Brilho (0.2x a 2.5x), Contraste (0.2x a 2.5x), Saturação (0.0x a 2.5x) e Nitidez (0.0x a 3.0x).
-  - Filtros Artísticos: Preto e Branco (tons de cinza), Sépia Vintage, Inversão de Cores (negativo), Desfoque Gaussiano com raio configurável, Auto-Contraste Dinâmico, Detecção de Bordas e Realce de Detalhes.
+  - Sliders com reset em 1 clique: Brilho, Contraste, Saturação e Nitidez via `SliderSpinControl`.
+  - Filtros artísticos: Tons de cinza, Sépia, Negativo, Desfoque Gaussiano, Auto-contraste e Detecção de Bordas.
+  - Pré-visualização dinâmica Antes/Depois em tempo real.
 
 ### `images.exif` — Metadados EXIF e Privacidade
 - **Tipo**: `Tool` (Interativo e Lote)
 - **Recursos**:
-  - **Aba Inspecionar**: Detecção de fabricante, modelo da câmera, abertura f/, exposição, ISO, distância focal, data/hora original, coordenadas GPS com link direto para o Google Maps e tabela completa de tags brutas.
-  - **Aba Remoção em Lote**: Anonimização total (remoção de todos os metadados), remoção seletiva de GPS (compatível com JPEG, PNG, WEBP, TIFF, AVIF e fotos Apple iPhone `.heic`/`.heif`/`.hif`), ou renomeação automática de fotos pelo padrão `AAAA-MM-DD_HH-MM-SS` da data de captura.
+  - **Aba Inspecionar**: Hierarquia limpa e espaçada entre Câmera/Modelo, Lente, Dimensões, Exposição, ISO e GPS.
+  - Tabela com tradução amigável de tags conhecidas (Exposição, Balanço de Branco, Orientação).
+  - **Aba Remoção em Lote**: Anonimização total de metadados ou remoção seletiva de GPS com interface `BatchInputWidget`.
 
-### `images.favicon` — Gerador de Ícones e Favicons
+### `images.palette` — Extrator de Paleta de Cores
 - **Tipo**: `Tool`
 - **Recursos**:
-  - Geração de arquivo `.ico` nativo do Windows multi-resolução contendo tamanhos 16x16, 24x24, 32x32, 48x48, 64x64, 128x128 e 256x256 embutidos no mesmo arquivo.
-  - Geração de pacote completo Web Favicon: `favicon.ico`, `favicon-16x16.png`, `favicon-32x32.png`, `apple-touch-icon.png`, `android-chrome-192x192.png`, `android-chrome-512x512.png`, `site.webmanifest` e snippet de código HTML pronto para copiar e colar na tag `<head>`.
-
-### `images.palette` — Extrator de Paleta de Cores Dominantes
-- **Tipo**: `Tool`
-- **Recursos**:
-  - Extração inteligente de 3 a 12 cores predominantes via quantização mediana do Pillow.
-  - Cards com preview visual, códigos HEX, RGB, HSL e porcentagem de presença na imagem.
-  - Botão de cópia rápida por cor e exportação da paleta completa como: Variáveis CSS (`:root`), JSON estruturado ou imagem contínua PNG.
+  - Extração inteligente de cores dominantes via quantização mediana do Pillow.
+  - Swatches interativos com cópia em 1 clique (HEX, RGB, HSL) e exportação em CSS/JSON.
 
 ### `images.gif_tools` — Montador e Extrator de GIF
 - **Tipo**: `Tool` (Painel com Abas)
 - **Recursos**:
-  - **Aba Criar GIF Animado**: Sequenciamento de múltiplas fotos com reordenação manual, ajuste de duração por frame (ms), opções de repetição em loop (infinito ou quantidade fixa) e compilação otimizada com paleta quantizada.
-  - **Aba Extrair Frames**: Decomposição automática de arquivos GIF em todos os seus quadros individuais salvos em PNG, JPEG, WEBP ou BMP.
+  - Player animado integrado com Play/Pause, Step anterior/próximo e slider dinâmico de FPS (1 a 30 fps).
+  - Timeline horizontal de miniaturas de quadros com reordenação, duplicação e exclusão.
+  - Extração seletiva de quadros em formatos PNG, JPEG, WEBP ou BMP.
 
 ### `images.collage` — Colagens e Montagens de Fotos
 - **Tipo**: `Tool` (Painel Interativo)
 - **Recursos**:
-  - Montagem de múltiplas fotos em grade organizada (1 a 10 colunas).
-  - Controle de espaçamento entre células em pixels e seletor visual de cor de fundo com cálculo dinâmico de contraste.
-  - Modos de Encaixe: "Preencher e Cortar (Quadrado uniforme)" ou "Ajustar Completo (Com bordas e proporção original)".
+  - Montagem de múltiplas fotos em grade organizada com seleção de formato final (PNG, JPEG, WEBP).
+  - Detecção inteligente de slots chroma green (`#00FF00`) para inserção automática de fotos sobre templates artísticos.
+  - Salvamento e carregamento de modelos de montagem customizados (`.wtpl.json`).
 
 ### `images.color_picker` — Conta-Gotas de Tela e Seletor de Cores
 - **Tipo**: `Tool` (Painel Interativo em Tempo Real)
 - **Recursos**:
-  - Lupa de zoom 5x em tempo real com retículo de mira mostrando os pixels ao redor do cursor.
-  - Captura instantânea com leitura via API nativa GDI do Windows.
-  - Exibição e cópia em 1 clique em múltiplos formatos: HEX, RGB, HSL, HSV e CMYK.
-  - Histórico de cores capturadas com amostras visuais interativas.
+  - Captura congelada multi-monitor com overlay translúcido.
+  - Lupa amplificadora 8x com retículo de mira e coordenadas em tempo real.
+  - Clique único para capturar e Shift+Clique para histórico multi-amostra.
+  - Cópia instantânea em HEX, RGB, HSL, HSV e CMYK.
 
-### `images.qrcode` — Gerador e Leitor de QR Code
+### `images.qrcode` — QR Code e Códigos de Barras
 - **Tipo**: `Tool` (Painel com Abas)
 - **Recursos**:
-  - **Aba Gerador**: Geração dinâmica de QR Codes a partir de textos, URLs ou chaves PIX com personalização de cores do código e de fundo, ajuste de tamanho e margens, botão "Copiar Imagem" para a área de transferência e salvamento em PNG.
-  - **Aba Leitor**: Leitura e decodificação de QR Codes e códigos de barras (via `zxing-cpp`) a partir de arquivos de imagem no disco ou colados diretamente da área de transferência (Ctrl+V).
+  - **Aba Gerador de QR Code**: Geração dinâmica de QR Codes a partir de textos, URLs ou chaves PIX com personalização de cores do código e de fundo, ajuste de tamanho e margens.
+  - **Aba Código de Barras 1D**: Geração completa de códigos lineares industriais (Code128, EAN-13, EAN-8, Interleaved 2 of 5, Standard 39, UPC-A) com exportação em PNG e vetor SVG.
+  - **Aba Leitor / Decodificador**: Leitura e decodificação automática de QR Codes e códigos de barras a partir de arquivos ou imagens da área de transferência.
 
-### `images.screenshot` — Captura de Tela e Anotações
+### `images.screenshot` — Captura de Tela
 - **Tipo**: `Tool` (Painel Interativo)
 - **Recursos**:
-  - Captura em alta resolução da tela inteira com suporte a multi-monitores via Pillow ImageGrab.
+  - Captura de tela inteira ou por monitor específico selecionável.
+  - Predefinições de resolução (Nativa, 1080p, 720p, 50%, 75%).
+  - Temporizador de atraso configurável (0 a 10s).
+  - Canvas interativo com zoom e pan para inspeção do print antes de salvar.
+
+### `images.ocr` — OCR de Imagem (Reconhecimento de Texto)
+- **Tipo**: `Tool` (Painel Interativo 100% Offline)
+- **Recursos**:
+  - Reconhecimento óptico de caracteres local via motor nativo do Windows (WinRT) em português do Brasil e inglês.
+  - Seleção de região de interesse (ROI) arrastável sobre a imagem com zoom interativo.
+  - Barra de pós-processamento de texto: unificar parágrafos, remover espaços duplos, maiúsculas/minúsculas e exportação para `.txt` ou `.md`.
+
+### `images.remove_bg` — Removedor de Fundo de Imagem
+- **Tipo**: `Tool` (Painel Interativo)
+- **Recursos**:
+  - Remoção de fundo com detecção inteligente por cantos, cores claras, escuras ou chroma key.
+  - Extrator de paleta integrada na imagem carregada com swatches clicáveis para seleção direta da cor a remover.
+  - Substituição de fundo: transparência pura (fundo xadrez), cor sólida ou imagem customizada.
+
+### `images.annotate` — Editor de Anotações em Imagem
+- **Tipo**: `Tool` (Painel Interativo)
+- **Recursos**:
+  - Desenho vetorial de setas (preenchida, clássica ou dupla), retângulos e círculos com preenchimento opcional.
+  - Passos numerados automáticos em múltiplos formatos (1,2,3... / A,B,C... / I,II,III...).
+  - Ferramenta de seleção e movimentação de anotações com suporte à tecla Delete.
+  - Censura e privacidade: tarjas de desfoque gaussiano e pixelização em mosaico.
+  - Controles de zoom (-, +, 1:1, Ajustar) e cópia/salvamento direto.
+
+### `images.compare` — Comparador de Imagens
+- **Tipo**: `Tool` (Painel Interativo)
+- **Recursos**:
+  - Comparação lado a lado com slider cortina (Antes / Depois) e valor percentual.
+  - Mapa de calor de diferença de pixels com modo "Fundo Suavizado (Ghost Background)" e amplificação.
+  - Banner de fidelidade com identificação visual instantânea: "100% Idênticas — 0 pixels diferentes".
+  - Modo piscante (Flicker) para identificação rápida de variações sutis.
+  - Métricas matemáticas exatas de fidelidade: PSNR (dB), MSE e percentual de pixels alterados.
+
+### `images.border_shadow` — Bordas e Sombras em Imagem
+- **Tipo**: `FileTool` (Processamento em Lote Automatizado)
+- **Recursos**:
+  - Aplicação de molduras, bordas sólidas com cantos arredondados (`corner_radius`) e sombras projetadas suaves (Drop Shadow).
+  - Cores configuráveis com preview dinâmico Antes/Depois via `ImageLivePreviewPanel`.
+
+### `images.split_grid` — Divisor de Imagem em Grade e Carrossel
+- **Tipo**: `FileTool` (Processamento em Lote Automatizado)
+- **Recursos**:
+  - Divisão de fotos para carrossel contínuo do Instagram (4:5 de 1x2 a 1x10) e grades 1:1, 9:16 e 16:9.
+  - Sobreposição visual numerada dos slides ("Slide 1", "Slide 2"...) na prévia.
+  - Exportação organizada em subdiretórios com nomenclatura sequencial limpa.
   - Temporizador de atraso configurável (0 a 10 segundos).
   - Visualizador integrado com botões de cópia direta para a área de transferência e salvamento em PNG/JPEG.
 

@@ -31,7 +31,6 @@ class ComparisonMetrics:
 
 def calculate_metrics(img_a: Image.Image, img_b: Image.Image) -> ComparisonMetrics:
     """Calcula métricas matemáticas de diferença entre duas imagens de mesmo tamanho."""
-    # Garante mesmo modo e tamanho
     a = img_a.convert("RGB")
     b = img_b.convert("RGB")
     if a.size != b.size:
@@ -77,7 +76,7 @@ def calculate_metrics(img_a: Image.Image, img_b: Image.Image) -> ComparisonMetri
 
 def generate_diff_heatmap(img_a: Image.Image, img_b: Image.Image, amplification: float = 3.0) -> Image.Image:
     """
-    Gera um mapa de calor visual onde diferenças são destacadas em magenta sobre fundo escuro.
+    Gera um mapa de calor visual onde diferenças são destacadas sobre fundo preto.
     """
     a = img_a.convert("RGB")
     b = img_b.convert("RGB")
@@ -86,11 +85,48 @@ def generate_diff_heatmap(img_a: Image.Image, img_b: Image.Image, amplification:
 
     diff = ImageChops.difference(a, b)
 
-    # Amplifica as diferenças para torná-las visíveis mesmo quando sutis
     if amplification > 1.0:
         diff = diff.point(lambda p: min(255, int(p * amplification)))
 
     return diff
+
+
+def generate_diff_overlay(
+    img_a: Image.Image,
+    img_b: Image.Image,
+    amplification: float = 3.0,
+    show_ghost_base: bool = True
+) -> Image.Image:
+    """
+    Gera imagem de diferenças com opção de fundo fantasma suavizado (ghost background).
+    Diferenças sutis são destacadas em magenta vibrante sobre a imagem base esmaecida.
+    """
+    a = img_a.convert("RGB")
+    b = img_b.convert("RGB")
+    if a.size != b.size:
+        b = b.resize(a.size, resample=Image.LANCZOS)
+
+    diff = ImageChops.difference(a, b)
+    if amplification > 1.0:
+        diff = diff.point(lambda p: min(255, int(p * amplification)))
+
+    if not show_ghost_base:
+        return diff
+
+    # Imagem base em escala de cinza escurecida (25% de luminosidade)
+    ghost = a.convert("L").convert("RGB")
+    ghost = ghost.point(lambda p: int(p * 0.25))
+
+    # Cria máscara para os pixels diferentes
+    diff_gray = diff.convert("L")
+    mask = diff_gray.point(lambda p: min(255, int(p * 2)) if p > 2 else 0)
+
+    # Cor de destaque: magenta/neon (#E11D48 / #EC4899)
+    highlight = Image.new("RGB", a.size, (236, 72, 153))
+
+    result = ghost.copy()
+    result.paste(highlight, (0, 0), mask=mask)
+    return result
 
 
 def create_slider_composition(
@@ -101,15 +137,6 @@ def create_slider_composition(
 ) -> Image.Image:
     """
     Combina a Imagem A (à esquerda) e a Imagem B (à direita) em uma única imagem composta dividida pelo split_ratio.
-
-    Args:
-        img_a: Imagem A (Original).
-        img_b: Imagem B (Modificada).
-        split_ratio: Posição do corte de 0.0 a 1.0.
-        draw_line: Se desenha uma linha divisória branca vertical.
-
-    Returns:
-        Imagem combinada.
     """
     a = img_a.convert("RGBA")
     b = img_b.convert("RGBA")
@@ -121,17 +148,14 @@ def create_slider_composition(
 
     result = Image.new("RGBA", (w, h))
 
-    # Corta parte esquerda da Imagem A
     if split_x > 0:
         part_a = a.crop((0, 0, split_x, h))
         result.paste(part_a, (0, 0))
 
-    # Corta parte direita da Imagem B
     if split_x < w:
         part_b = b.crop((split_x, 0, w, h))
         result.paste(part_b, (split_x, 0))
 
-    # Desenha linha de corte
     if draw_line and 0 < split_x < w:
         draw = ImageDraw.Draw(result)
         draw.line([(split_x, 0), (split_x, h)], fill=(255, 255, 255, 220), width=2)

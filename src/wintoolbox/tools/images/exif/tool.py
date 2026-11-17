@@ -1,27 +1,28 @@
 """
 Ferramenta: Visualizador e Removedor de Metadados EXIF.
-Permite inspecionar dados de câmera e GPS e limpar metadados em lote para privacidade.
+Permite inspecionar dados de câmera e GPS de forma limpa e organizada,
+traduzindo códigos técnicos e limpando metadados em lote para privacidade.
 """
-import os
 from pathlib import Path
 from typing import List, Optional
 from PySide6.QtCore import Qt, QUrl
 from PySide6.QtGui import QDesktopServices
 from PySide6.QtWidgets import (
-    QApplication, QCheckBox, QComboBox, QFileDialog, QFrame,
-    QGridLayout, QHBoxLayout, QHeaderView, QLabel, QLineEdit,
-    QMessageBox, QProgressBar, QPushButton, QScrollArea, QTabWidget,
-    QTableWidget, QTableWidgetItem, QVBoxLayout, QWidget
+    QApplication, QFileDialog, QFrame, QGridLayout, QHBoxLayout,
+    QHeaderView, QLabel, QLineEdit, QMessageBox, QProgressBar,
+    QPushButton, QScrollArea, QTabWidget, QTableWidget, QVBoxLayout, QWidget
 )
 
 from wintoolbox.core.registry import Tool, register
 from wintoolbox.core.tasks import TaskRunner
-from wintoolbox.tools.images.exif.logic import (
-    get_exif_capture_date, get_exif_info, strip_metadata
-)
+from wintoolbox.tools.images.exif.logic import get_exif_info, strip_metadata
+from wintoolbox.ui.widgets.batch_input import BatchInputWidget
 from wintoolbox.ui.widgets.sortable_table import (
     SmartTableWidgetItem, enable_sorting_on_table, batch_table_update
 )
+
+EXIF_IMAGE_EXTS = [".jpg", ".jpeg", ".jfif", ".heic", ".heif", ".hif", ".avif", ".tiff", ".tif", ".png", ".webp"]
+
 
 @register
 class ImageExifTool(Tool):
@@ -34,12 +35,13 @@ class ImageExifTool(Tool):
     def build_view(self, parent: Optional[QWidget] = None) -> QWidget:
         return ImageExifView(self, parent)
 
+
 class ImageExifView(QWidget):
     def __init__(self, tool: ImageExifTool, parent: Optional[QWidget] = None):
         super().__init__(parent)
         self.tool = tool
         self.runner = TaskRunner()
-        self.batch_files: List[Path] = []
+        self._current_maps_url: Optional[str] = None
         self._build_ui()
 
     def _build_ui(self):
@@ -55,7 +57,6 @@ class ImageExifView(QWidget):
         layout.setContentsMargins(20, 20, 20, 20)
         layout.setSpacing(14)
 
-        # Cabeçalho
         lbl_title = QLabel(self.tool.name)
         lbl_title.setProperty("class", "title")
         layout.addWidget(lbl_title)
@@ -86,52 +87,86 @@ class ImageExifView(QWidget):
         row_sel.addWidget(self.txt_inspect_path, stretch=1)
 
         btn_browse = QPushButton("Selecionar Imagem...")
+        btn_browse.setProperty("class", "primary")
         btn_browse.clicked.connect(self._select_inspect_image)
         row_sel.addWidget(btn_browse)
         layout.addLayout(row_sel)
 
-        # Cards de Resumo
+        # Card de Resumo com Layout Espaçado e Limpo
         card = QFrame()
         card.setProperty("class", "card")
+        card.setStyleSheet("QFrame { background-color: #191B1F; border: 1px solid #2B303A; border-radius: 8px; padding: 14px; }")
         l_card = QGridLayout(card)
-        l_card.setHorizontalSpacing(20)
-        l_card.setVerticalSpacing(8)
+        l_card.setHorizontalSpacing(16)
+        l_card.setVerticalSpacing(10)
 
-        self.lbl_camera = QLabel("-")
-        self.lbl_date = QLabel("-")
-        self.lbl_exposure = QLabel("-")
-        self.lbl_iso = QLabel("-")
-        self.lbl_gps = QLabel("-")
+        # Labels com estilos distintos para chave e valor
+        def _lbl_key(text: str) -> QLabel:
+            l = QLabel(text)
+            l.setStyleSheet("font-weight: 600; color: #8F96A0; font-size: 12px;")
+            return l
 
-        l_card.addWidget(QLabel("Câmera / Modelo:"), 0, 0)
-        l_card.addWidget(self.lbl_camera, 0, 1)
-        l_card.addWidget(QLabel("Data de Captura:"), 0, 2)
-        l_card.addWidget(self.lbl_date, 0, 3)
+        def _lbl_val() -> QLabel:
+            l = QLabel("-")
+            l.setStyleSheet("font-weight: 500; color: #E0E4E8; font-size: 13px;")
+            return l
 
-        l_card.addWidget(QLabel("Exposição / Abertura:"), 1, 0)
-        l_card.addWidget(self.lbl_exposure, 1, 1)
-        l_card.addWidget(QLabel("Sensibilidade ISO:"), 1, 2)
-        l_card.addWidget(self.lbl_iso, 1, 3)
+        self.lbl_make = _lbl_val()
+        self.lbl_model = _lbl_val()
+        self.lbl_lens = _lbl_val()
+        self.lbl_dims = _lbl_val()
+        self.lbl_date = _lbl_val()
+        self.lbl_exposure = _lbl_val()
+        self.lbl_fnumber = _lbl_val()
+        self.lbl_iso = _lbl_val()
+        self.lbl_orient = _lbl_val()
+        self.lbl_gps = _lbl_val()
 
-        l_card.addWidget(QLabel("Coordenadas GPS:"), 2, 0)
+        # Linha 0: Fabricante & Modelo da Câmera
+        l_card.addWidget(_lbl_key("Fabricante:"), 0, 0)
+        l_card.addWidget(self.lbl_make, 0, 1)
+        l_card.addWidget(_lbl_key("Modelo da Câmera:"), 0, 2)
+        l_card.addWidget(self.lbl_model, 0, 3)
+
+        # Linha 1: Lente & Dimensões
+        l_card.addWidget(_lbl_key("Modelo da Lente:"), 1, 0)
+        l_card.addWidget(self.lbl_lens, 1, 1)
+        l_card.addWidget(_lbl_key("Resolução da Foto:"), 1, 2)
+        l_card.addWidget(self.lbl_dims, 1, 3)
+
+        # Linha 2: Exposição, Abertura e ISO
+        l_card.addWidget(_lbl_key("Tempo de Exposição:"), 2, 0)
+        l_card.addWidget(self.lbl_exposure, 2, 1)
+        l_card.addWidget(_lbl_key("Abertura (f-stop):"), 2, 2)
+        l_card.addWidget(self.lbl_fnumber, 2, 3)
+
+        # Linha 3: Data e Orientação
+        l_card.addWidget(_lbl_key("Data de Captura:"), 3, 0)
+        l_card.addWidget(self.lbl_date, 3, 1)
+        l_card.addWidget(_lbl_key("Orientação EXIF:"), 3, 2)
+        l_card.addWidget(self.lbl_orient, 3, 3)
+
+        # Linha 4: Coordenadas GPS
+        l_card.addWidget(_lbl_key("Localização GPS:"), 4, 0)
         row_gps = QHBoxLayout()
         row_gps.addWidget(self.lbl_gps)
-        self.btn_maps = QPushButton("Abrir no Google Maps")
+        self.btn_maps = QPushButton("Ver no Google Maps")
+        self.btn_maps.setFixedHeight(26)
         self.btn_maps.setEnabled(False)
         self.btn_maps.clicked.connect(self._open_maps)
         row_gps.addWidget(self.btn_maps)
         row_gps.addStretch()
-        l_card.addLayout(row_gps, 2, 1, 1, 3)
+        l_card.addLayout(row_gps, 4, 1, 1, 3)
 
         layout.addWidget(card)
 
-        # Tabela completa de Tags
-        layout.addWidget(QLabel("Todas as Tags EXIF Detectadas:"))
+        # Tabela completa de Tags Traduzidas
+        layout.addWidget(QLabel("Todas as Tags EXIF Detectadas (Decodificadas):"))
         self.table_tags = QTableWidget()
         self.table_tags.setColumnCount(3)
-        self.table_tags.setHorizontalHeaderLabels(["ID da Tag", "Nome do Metadado", "Valor"])
-        self.table_tags.horizontalHeader().setSectionResizeMode(1, QHeaderView.ResizeToContents)
-        self.table_tags.horizontalHeader().setSectionResizeMode(2, QHeaderView.Stretch)
+        self.table_tags.setHorizontalHeaderLabels(["ID da Tag", "Nome do Metadado", "Valor Traduzido"])
+        self.table_tags.horizontalHeader().setSectionResizeMode(1, QHeaderView.ResizeMode.ResizeToContents)
+        self.table_tags.horizontalHeader().setSectionResizeMode(2, QHeaderView.ResizeMode.Stretch)
         self.table_tags.verticalHeader().setVisible(False)
         self.table_tags.setFixedHeight(240)
         enable_sorting_on_table(self.table_tags)
@@ -153,10 +188,14 @@ class ImageExifView(QWidget):
         p = Path(f)
         data = get_exif_info(p)
 
-        self.lbl_camera.setText(f"{data['camera_make']} {data['camera_model']}".strip())
+        self.lbl_make.setText(data["camera_make"])
+        self.lbl_model.setText(data["camera_model"])
+        self.lbl_lens.setText(data["lens_model"])
+        self.lbl_dims.setText(data["dimensions"])
         self.lbl_date.setText(data["date_time"])
-        self.lbl_exposure.setText(f"{data['exposure']} | {data['f_number']}")
-        self.lbl_iso.setText(data["iso"])
+        self.lbl_exposure.setText(data["exposure"])
+        self.lbl_fnumber.setText(data["f_number"])
+        self.lbl_orient.setText(data["orientation"])
 
         if data["gps_lat"] is not None:
             self.lbl_gps.setText(f"Lat: {data['gps_lat']}, Lon: {data['gps_lon']}")
@@ -178,7 +217,7 @@ class ImageExifView(QWidget):
                 self.table_tags.setItem(r, 2, SmartTableWidgetItem(str(tval)))
 
     def _open_maps(self):
-        if hasattr(self, "_current_maps_url") and self._current_maps_url:
+        if self._current_maps_url:
             QDesktopServices.openUrl(QUrl(self._current_maps_url))
 
     def _build_batch_tab(self) -> QWidget:
@@ -186,179 +225,77 @@ class ImageExifView(QWidget):
         layout = QVBoxLayout(w)
         layout.setSpacing(12)
 
-        # Barra de Adição
-        row_bar = QHBoxLayout()
-        btn_add_files = QPushButton("Adicionar Imagens...")
-        btn_add_files.clicked.connect(self._add_batch_files)
-        row_bar.addWidget(btn_add_files)
+        # Widget evoluído de entrada de lote (Ícones / Miniaturas, Pastas, sem badges)
+        self.batch_input = BatchInputWidget(allowed_extensions=EXIF_IMAGE_EXTS, parent=w)
+        layout.addWidget(self.batch_input)
 
-        btn_add_folder = QPushButton("Adicionar Pasta...")
-        btn_add_folder.clicked.connect(self._add_batch_folder)
-        row_bar.addWidget(btn_add_folder)
+        # Barra de Destino e Ação
+        card_action = QFrame()
+        card_action.setProperty("class", "card")
+        l_act = QHBoxLayout(card_action)
+        l_act.setSpacing(10)
 
-        btn_clear = QPushButton("Limpar Lista")
-        btn_clear.clicked.connect(self._clear_batch)
-        row_bar.addWidget(btn_clear)
-        row_bar.addStretch()
-        layout.addLayout(row_bar)
+        self.btn_strip = QPushButton("Limpar e Anonimizar Imagens Selecionadas")
+        self.btn_strip.setProperty("class", "primary")
+        self.btn_strip.setFixedHeight(36)
+        self.btn_strip.clicked.connect(self._run_strip_batch)
+        l_act.addWidget(self.btn_strip)
 
-        # Tabela de Arquivos
-        self.table_batch = QTableWidget()
-        self.table_batch.setColumnCount(3)
-        self.table_batch.setHorizontalHeaderLabels(["Arquivo", "Status", "Pasta"])
-        self.table_batch.horizontalHeader().setSectionResizeMode(0, QHeaderView.ResizeToContents)
-        self.table_batch.horizontalHeader().setSectionResizeMode(2, QHeaderView.Stretch)
-        self.table_batch.verticalHeader().setVisible(False)
-        self.table_batch.setFixedHeight(200)
-        enable_sorting_on_table(self.table_batch)
-        layout.addWidget(self.table_batch)
+        l_act.addStretch()
+        self.lbl_strip_status = QLabel("")
+        self.lbl_strip_status.setStyleSheet("font-size: 12px; color: #8F96A0;")
+        l_act.addWidget(self.lbl_strip_status)
 
-        self.lbl_batch_count = QLabel("Nenhum arquivo na lista.")
-        layout.addWidget(self.lbl_batch_count)
-
-        # Opções de Limpeza
-        card_opt = QFrame()
-        card_opt.setProperty("class", "card")
-        l_opt = QVBoxLayout(card_opt)
-        l_opt.setSpacing(8)
-
-        self.cmb_batch_action = QComboBox()
-        self.cmb_batch_action.addItems([
-            "Remover Todos os Metadados (Anonimização Total)",
-            "Remover Apenas Coordenadas de Localização (GPS)",
-            "Renomear Arquivos pela Data de Captura (AAAA-MM-DD_HH-MM-SS)"
-        ])
-        l_opt.addWidget(QLabel("Ação em lote a executar:"))
-        l_opt.addWidget(self.cmb_batch_action)
-
-        self.chk_overwrite = QCheckBox("Substituir arquivos originais (sem criar cópias)")
-        self.chk_overwrite.setChecked(False)
-        l_opt.addWidget(self.chk_overwrite)
-        layout.addWidget(card_opt)
-
-        # Barra de Ação
-        bar_run = QHBoxLayout()
-        self.btn_run_batch = QPushButton("Executar Limpeza em Lote")
-        self.btn_run_batch.setProperty("class", "primary")
-        self.btn_run_batch.setFixedHeight(36)
-        self.btn_run_batch.setEnabled(False)
-        self.btn_run_batch.clicked.connect(self._run_batch_action)
-        bar_run.addWidget(self.btn_run_batch)
+        layout.addWidget(card_action)
 
         self.progress_bar = QProgressBar()
-        self.progress_bar.setRange(0, 100)
-        self.progress_bar.setValue(0)
-        self.progress_bar.setFixedHeight(8)
-        self.progress_bar.setTextVisible(False)
-        bar_run.addWidget(self.progress_bar, stretch=1)
-        layout.addLayout(bar_run)
+        self.progress_bar.setVisible(False)
+        layout.addWidget(self.progress_bar)
 
         return w
 
-    def _add_batch_files(self):
-        files, _ = QFileDialog.getOpenFileNames(
-            self,
-            "Selecionar Fotos",
-            "",
-            "Fotos (*.jpg *.jpeg *.jfif *.heic *.heif *.hif *.avif *.tiff *.tif *.png *.webp)"
-        )
-        if files:
-            for f in files:
-                p = Path(f)
-                if p not in self.batch_files:
-                    self.batch_files.append(p)
-            self._refresh_batch_table()
-
-    def _add_batch_folder(self):
-        folder = QFileDialog.getExistingDirectory(self, "Selecionar Pasta com Fotos")
-        if folder:
-            for root, _, files in os.walk(folder):
-                for f in files:
-                    ext = Path(f).suffix.lower()
-                    if ext in (".jpg", ".jpeg", ".jfif", ".heic", ".heif", ".hif", ".avif", ".tiff", ".tif", ".png", ".webp"):
-                        p = Path(root) / f
-                        if p not in self.batch_files:
-                            self.batch_files.append(p)
-            self._refresh_batch_table()
-
-    def _clear_batch(self):
-        self.batch_files.clear()
-        self._refresh_batch_table()
-
-    def _refresh_batch_table(self):
-        with batch_table_update(self.table_batch):
-            self.table_batch.setRowCount(len(self.batch_files))
-            self.lbl_batch_count.setText(f"{len(self.batch_files)} imagem(ns) carregada(s)")
-            self.btn_run_batch.setEnabled(len(self.batch_files) > 0)
-
-            for r, p in enumerate(self.batch_files):
-                self.table_batch.setItem(r, 0, SmartTableWidgetItem(p.name, sort_value=p.name.lower(), user_data=p))
-                self.table_batch.setItem(r, 1, SmartTableWidgetItem("Pendente"))
-                self.table_batch.setItem(r, 2, SmartTableWidgetItem(str(p.parent)))
-
-    def _run_batch_action(self):
-        if not self.batch_files:
+    def _run_strip_batch(self):
+        files = self.batch_input.get_discovered_files()
+        if not files:
+            QMessageBox.warning(self, "Aviso", "Por favor, adicione imagens na lista acima primeiro.")
             return
 
-        action = self.cmb_batch_action.currentText()
-        overwrite = self.chk_overwrite.isChecked()
+        out_dir = QFileDialog.getExistingDirectory(self, "Selecionar Diretório de Saída para as Imagens Limpas")
+        if not out_dir:
+            return
 
-        self.btn_run_batch.setEnabled(False)
+        out_path = Path(out_dir)
+        total = len(files)
+        self.progress_bar.setMaximum(total)
         self.progress_bar.setValue(0)
+        self.progress_bar.setVisible(True)
+        self.btn_strip.setEnabled(False)
 
-        total = len(self.batch_files)
-
-        skipped: List[str] = []
-
-        def worker(ctx):
+        def _task(ctx):
             success_count = 0
-            for idx, p in enumerate(self.batch_files):
-                try:
-                    if action == "Renomear Arquivos pela Data de Captura (AAAA-MM-DD_HH-MM-SS)":
-                        dt = get_exif_capture_date(p)
-                        if not dt:
-                            skipped.append(f"{p.name}: sem data de captura no EXIF")
-                        else:
-                            new_name = f"{dt.strftime('%Y-%m-%d_%H-%M-%S')}{p.suffix.lower()}"
-                            target = p.parent / new_name
-                            if str(target) == str(p):
-                                success_count += 1
-                            elif target.exists():
-                                skipped.append(f"{p.name}: '{new_name}' já existe")
-                            else:
-                                p.rename(target)
-                                success_count += 1
-                    else:
-                        gps_only = "Apenas Coordenadas" in action
-                        if overwrite:
-                            dst = p
-                        else:
-                            dst = p.parent / f"{p.stem}_limpo{p.suffix}"
-                        strip_metadata(p, dst, remove_gps_only=gps_only)
-                        success_count += 1
-                except Exception as e:
-                    skipped.append(f"{p.name}: {e}")
-
-                ctx.send_progress(int(((idx + 1) / total) * 100), f"Processando item {idx+1}...")
+            for idx, disc in enumerate(files):
+                if ctx.is_cancelled:
+                    break
+                src = disc.source_path
+                dst = out_path / src.name
+                if strip_metadata(src, dst):
+                    success_count += 1
+                ctx.set_progress(idx + 1, total)
             return success_count
 
-        def on_task_progress(percent, _total, _msg):
-            self.progress_bar.setValue(percent)
+        def _on_done(success_count):
+            self.btn_strip.setEnabled(True)
+            self.progress_bar.setVisible(False)
+            self.lbl_strip_status.setText(f"{success_count} de {total} imagens limpas com sucesso!")
+            QMessageBox.information(
+                self,
+                "Concluído",
+                f"{success_count} imagens foram limpas e salvas em:\n{out_path}"
+            )
 
-        def on_done(count):
-            self.btn_run_batch.setEnabled(True)
-            self.progress_bar.setValue(100)
-            for r in range(self.table_batch.rowCount()):
-                self.table_batch.setItem(r, 1, QTableWidgetItem("Concluído"))
-            msg = f"{count} de {total} imagem(ns) processadas com sucesso."
-            if skipped:
-                msg += "\n\nNão processadas:\n" + "\n".join(skipped[:15])
-                if len(skipped) > 15:
-                    msg += f"\n... e mais {len(skipped) - 15}"
-            QMessageBox.information(self, "Processamento Concluído", msg)
+        def _on_error(err):
+            self.btn_strip.setEnabled(True)
+            self.progress_bar.setVisible(False)
+            QMessageBox.critical(self, "Erro", f"Falha durante a limpeza: {err}")
 
-        def on_error(err):
-            self.btn_run_batch.setEnabled(True)
-            QMessageBox.critical(self, "Erro", f"Falha no processamento: {err}")
-
-        self.runner.start_task(worker, on_progress=on_task_progress, on_finished=on_done, on_error=on_error)
+        self.runner.run_async(_task, on_success=_on_done, on_error=_on_error)

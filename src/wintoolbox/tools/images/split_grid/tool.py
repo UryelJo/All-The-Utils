@@ -1,31 +1,34 @@
 """
-Ferramenta: Divisão de Imagens em Grade e Fatias.
-Permite particionar imagens para carrossel, mosaicos e sprites em lote.
+Ferramenta: Divisor de Imagens em Grade e Carrossel em Lote com Preview Dinâmico.
+Implementação completa com contrato FileTool.
 """
 from pathlib import Path
 from typing import Any, Dict, Optional
 
+from PySide6.QtCore import Qt
 from PySide6.QtWidgets import (
-    QComboBox,
-    QFrame,
-    QGridLayout,
-    QLabel,
-    QSpinBox,
-    QVBoxLayout,
-    QWidget,
+    QComboBox, QFrame, QGridLayout, QGroupBox, QHBoxLayout,
+    QLabel, QLineEdit, QVBoxLayout, QWidget
 )
 
+from wintoolbox.core.logging_setup import get_logger
 from wintoolbox.core.registry import FileTool, ItemResult, TaskContext, register
-from wintoolbox.tools.images.split_grid.logic import split_image_file
+from wintoolbox.tools.images.split_grid.logic import (
+    GRID_PRESETS, process_image_split, render_grid_slice_preview
+)
+from wintoolbox.ui.widgets.live_preview import ImageLivePreviewPanel
+from wintoolbox.ui.widgets.slider_spin import SliderSpinControl
+
+_log = get_logger("images.split_grid.ui")
 
 
 @register
 class SplitGridTool(FileTool):
     id = "images.split_grid"
-    name = "Divisão em Grade (Carrossel)"
+    name = "Grade para Carrossel"
     category = "Imagens"
-    description = "Divida imagens em grades NxM ou fatias para carrossel do Instagram, posters e sprites"
-    keywords = ["dividir", "grade", "fatiar", "carrossel", "instagram", "mosaico", "sprites", "grid", "tiles"]
+    description = "Fatie imagens panorâmicas em carrossel do Instagram, posts em mosaico, posters e grades 2D"
+    keywords = ["grade", "carrossel", "instagram", "fatiar", "mosaico", "split", "tiles", "recorte", "sprites"]
     accepts = [
         ".png", ".jpg", ".jpeg", ".jfif", ".webp",
         ".heic", ".heif", ".hif", ".avif", ".bmp",
@@ -36,141 +39,156 @@ class SplitGridTool(FileTool):
 
     def build_options(self, parent: Optional[QWidget] = None) -> QWidget:
         panel = QFrame(parent)
-        layout = QVBoxLayout(panel)
-        layout.setContentsMargins(12, 10, 12, 10)
-        layout.setSpacing(10)
+        main_layout = QHBoxLayout(panel)
+        main_layout.setContentsMargins(12, 12, 12, 12)
+        main_layout.setSpacing(16)
 
-        lbl_header = QLabel("Configuração da Grade de Corte")
-        lbl_header.setStyleSheet("font-weight: 600; font-size: 13px;")
-        layout.addWidget(lbl_header)
+        # Coluna da Esquerda: Controles e Presets
+        left_col = QWidget()
+        left_layout = QVBoxLayout(left_col)
+        left_layout.setContentsMargins(0, 0, 0, 0)
+        left_layout.setSpacing(10)
 
-        grid = QGridLayout()
-        grid.setHorizontalSpacing(16)
-        grid.setVerticalSpacing(10)
+        grp_opts = QGroupBox("Formato e Divisão")
+        grid = QGridLayout(grp_opts)
+        grid.setHorizontalSpacing(14)
+        grid.setVerticalSpacing(8)
 
-        # 1. Predefinições Rápidas
-        grid.addWidget(QLabel("Predefinições:"), 0, 0)
+        # Preset (Estilo Canva / Redes Sociais)
+        grid.addWidget(QLabel("Predefinição:"), 0, 0)
         self.cmb_preset = QComboBox()
-        self.cmb_preset.addItems([
-            "Personalizado",
-            "Carrossel Instagram (1x3)",
-            "Carrossel Instagram (1x4)",
-            "Grade Instagram (3x3)",
-            "Díptico / Lado a Lado (1x2)",
-            "Atlas / Sprite (2x2)",
-            "Atlas / Sprite (4x4)",
-        ])
+        self.cmb_preset.addItems(list(GRID_PRESETS.keys()))
         self.cmb_preset.currentTextChanged.connect(self._on_preset_changed)
-        grid.addWidget(self.cmb_preset, 0, 1, 1, 3)
+        grid.addWidget(self.cmb_preset, 0, 1)
 
-        # 2. Linhas
-        grid.addWidget(QLabel("Linhas (verticais):"), 1, 0)
-        self.spin_rows = QSpinBox()
-        self.spin_rows.setRange(1, 20)
-        self.spin_rows.setValue(1)
-        grid.addWidget(self.spin_rows, 1, 1)
+        # Formato de Saída
+        grid.addWidget(QLabel("Formato dos slides:"), 0, 2)
+        self.cmb_format = QComboBox()
+        self.cmb_format.addItems(["PNG (Sem perdas)", "JPG (Fotografia)", "WEBP (Moderno)"])
+        grid.addWidget(self.cmb_format, 0, 3)
 
-        # 3. Colunas
-        grid.addWidget(QLabel("Colunas (horizontais):"), 1, 2)
-        self.spin_cols = QSpinBox()
-        self.spin_cols.setRange(1, 20)
-        self.spin_cols.setValue(3)
-        grid.addWidget(self.spin_cols, 1, 3)
+        # Colunas (Divisões Horizontais)
+        grid.addWidget(QLabel("Colunas (Slides horizontais):"), 1, 0)
+        self.spin_cols = SliderSpinControl("", 1, 20, 3, suffix=" col")
+        self.spin_cols.valueChanged.connect(self._on_dimensions_changed)
+        grid.addWidget(self.spin_cols, 1, 1)
 
-        # 4. Sobreposição (Overlap)
-        grid.addWidget(QLabel("Sobreposição (px):"), 2, 0)
-        self.spin_overlap = QSpinBox()
-        self.spin_overlap.setRange(0, 100)
-        self.spin_overlap.setValue(0)
+        # Linhas (Divisões Verticais)
+        grid.addWidget(QLabel("Linhas (Slides verticais):"), 1, 2)
+        self.spin_rows = SliderSpinControl("", 1, 20, 1, suffix=" lin")
+        self.spin_rows.valueChanged.connect(self._on_dimensions_changed)
+        grid.addWidget(self.spin_rows, 1, 3)
+
+        # Sobreposição (Overlap)
+        grid.addWidget(QLabel("Sobreposição entre fatias:"), 2, 0)
+        self.spin_overlap = SliderSpinControl("", 0, 150, 0, suffix=" px")
+        self.spin_overlap.valueChanged.connect(self._on_dimensions_changed)
         grid.addWidget(self.spin_overlap, 2, 1)
 
-        # 5. Formato de Saída
-        grid.addWidget(QLabel("Formato de saída:"), 2, 2)
-        self.cmb_format = QComboBox()
-        self.cmb_format.addItems(["PNG", "JPEG", "WebP"])
-        grid.addWidget(self.cmb_format, 2, 3)
+        # Padrão de Nomenclatura
+        grid.addWidget(QLabel("Nome dos arquivos:"), 2, 2)
+        self.txt_naming = QLineEdit("{stem}_slide_{col}")
+        grid.addWidget(self.txt_naming, 2, 3)
 
-        layout.addLayout(grid)
+        left_layout.addWidget(grp_opts)
+        left_layout.addStretch()
+        main_layout.addWidget(left_col, stretch=1)
+
+        # Coluna da Direita: Preview Dinâmico com Numeração de Fatias
+        self.preview_panel = ImageLivePreviewPanel("Pré-visualização das Fatias (Linhas de Corte)", panel)
+        self.preview_panel.set_preview_generator(render_grid_slice_preview)
+        main_layout.addWidget(self.preview_panel, stretch=1)
+
         return panel
 
+    def on_active_file_changed(self, path: Path) -> None:
+        self.preview_panel.set_source_file(path)
+        self._update_preview()
+
     def _on_preset_changed(self, text: str) -> None:
-        if "1x3" in text:
-            self.spin_rows.setValue(1)
-            self.spin_cols.setValue(3)
-        elif "1x4" in text:
-            self.spin_rows.setValue(1)
-            self.spin_cols.setValue(4)
-        elif "3x3" in text:
-            self.spin_rows.setValue(3)
-            self.spin_cols.setValue(3)
-        elif "1x2" in text:
-            self.spin_rows.setValue(1)
-            self.spin_cols.setValue(2)
-        elif "2x2" in text:
-            self.spin_rows.setValue(2)
-            self.spin_cols.setValue(2)
-        elif "4x4" in text:
-            self.spin_rows.setValue(4)
-            self.spin_cols.setValue(4)
+        preset = GRID_PRESETS.get(text)
+        if preset:
+            self.spin_rows.setValue(preset["rows"])
+            self.spin_cols.setValue(preset["cols"])
+            if preset["rows"] == 1:
+                self.txt_naming.setText("{stem}_slide_{col}")
+            else:
+                self.txt_naming.setText("{stem}_lin{row}_col{col}")
+        self._update_preview()
+
+    def _on_dimensions_changed(self, *_) -> None:
+        self._update_preview()
+
+    def _update_preview(self) -> None:
+        params = self.get_options()
+        self.preview_panel.update_params(params)
 
     def get_options(self) -> Dict[str, Any]:
+        fmt_text = self.cmb_format.currentText()
+        if "PNG" in fmt_text:
+            out_fmt = "PNG"
+        elif "JPG" in fmt_text:
+            out_fmt = "JPG"
+        else:
+            out_fmt = "WEBP"
+
         return {
-            "rows": self.spin_rows.value() if hasattr(self, "spin_rows") else 1,
-            "cols": self.spin_cols.value() if hasattr(self, "spin_cols") else 3,
-            "overlap": self.spin_overlap.value() if hasattr(self, "spin_overlap") else 0,
-            "format": self.cmb_format.currentText() if hasattr(self, "cmb_format") else "PNG",
+            "rows": int(self.spin_rows.value()),
+            "cols": int(self.spin_cols.value()),
+            "overlap_px": int(self.spin_overlap.value()),
+            "output_format": out_fmt,
+            "naming_pattern": self.txt_naming.text().strip() or "{stem}_slide_{col}",
         }
 
-    def process(
-        self,
-        src: Path,
-        dst: Path,
-        params: Optional[Dict[str, Any]] = None,
-        ctx: Optional[TaskContext] = None,
-    ) -> ItemResult:
-        opts = self.get_options() if hasattr(self, "spin_rows") else {}
-        eff_params = params if isinstance(params, dict) else {}
+    def output_ext(self, params: Dict[str, Any]) -> str:
+        fmt = str(params.get("output_format", params.get("format", "PNG"))).upper()
+        if "JPG" in fmt or "JPEG" in fmt:
+            return ".jpg"
+        if "WEBP" in fmt:
+            return ".webp"
+        return ".png"
 
-        if ctx is not None and ctx.cancelled():
+    def process(self, src: Path, dst: Path, params: Dict[str, Any], ctx: TaskContext) -> ItemResult:
+        if ctx and ctx.cancelled():
             return ItemResult(
                 success=False,
                 source_path=src,
-                output_path=dst,
-                error="Operação cancelada pelo usuário",
+                error="Operação cancelada pelo usuário"
             )
-
-        rows = int(eff_params.get("rows", opts.get("rows", 1)))
-        cols = int(eff_params.get("cols", opts.get("cols", 3)))
-        overlap = int(eff_params.get("overlap", opts.get("overlap", 0)))
-        out_fmt = str(eff_params.get("format", opts.get("format", "PNG"))).lower()
-
-        clean_stem = dst.stem.split(".wtbx-")[0] if ".wtbx-" in dst.stem else src.stem
-        dest_folder = dst.parent / f"{clean_stem}_grid_{rows}x{cols}"
-        bytes_in = src.stat().st_size if src.exists() else 0
-
         try:
-            generated_files = split_image_file(
+            bytes_in = src.stat().st_size
+            rows = int(params.get("rows", 1))
+            cols = int(params.get("cols", 1))
+            overlap_px = int(params.get("overlap_px", params.get("overlap", 0)))
+            out_fmt = str(params.get("output_format", params.get("format", "PNG")))
+            naming_pat = str(params.get("naming_pattern", "{stem}_slide_{col}"))
+
+            clean_stem = dst.stem.split(".wtbx-")[0] if ".wtbx-" in dst.stem else src.stem
+            output_dir = dst.parent / f"{clean_stem}_grid_{rows}x{cols}"
+
+            generated = process_image_split(
                 input_path=src,
-                output_dir=dest_folder,
+                output_dir=output_dir,
                 rows=rows,
                 cols=cols,
-                overlap_px=overlap,
+                overlap_px=overlap_px,
                 output_format=out_fmt,
+                naming_pattern=naming_pat,
             )
-            bytes_out = sum(f.stat().st_size for f in generated_files if f.exists())
+
+            bytes_out = sum(p.stat().st_size for p in generated if p.exists())
             return ItemResult(
                 success=True,
                 source_path=src,
-                output_path=dest_folder,
-                message=f"{len(generated_files)} partes geradas em {dest_folder.name}",
+                output_path=output_dir,
+                message=f"{len(generated)} fatias geradas em {output_dir.name}/",
                 bytes_in=bytes_in,
                 bytes_out=bytes_out,
             )
-        except Exception as e:
+        except Exception as exc:
+            _log.warning("Falha ao fatiar imagem '%s': %s", src, exc)
             return ItemResult(
                 success=False,
                 source_path=src,
-                output_path=dst,
-                error=str(e),
-                bytes_in=bytes_in,
+                error=str(exc),
             )

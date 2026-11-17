@@ -8,16 +8,17 @@ from PIL import Image
 from PySide6.QtCore import Qt, QTimer
 from PySide6.QtGui import QFont, QImage, QPixmap
 from PySide6.QtWidgets import (
-    QApplication, QButtonGroup, QComboBox, QFileDialog, QFrame, QHBoxLayout,
-    QLabel, QMessageBox, QPushButton, QRadioButton, QScrollArea, QSlider,
-    QVBoxLayout, QWidget
+    QApplication, QButtonGroup, QCheckBox, QComboBox, QFileDialog, QFrame,
+    QHBoxLayout, QLabel, QMessageBox, QPushButton, QRadioButton, QScrollArea,
+    QSlider, QSpinBox, QVBoxLayout, QWidget
 )
 
 from wintoolbox.core.logging_setup import get_logger
 from wintoolbox.core.registry import Tool, register
 from wintoolbox.core.tasks import TaskRunner
 from wintoolbox.tools.images.compare.logic import (
-    ComparisonMetrics, calculate_metrics, create_slider_composition, generate_diff_heatmap
+    ComparisonMetrics, calculate_metrics, create_slider_composition,
+    generate_diff_heatmap, generate_diff_overlay
 )
 from wintoolbox.ui.widgets.toast import show_toast
 from wintoolbox.ui.widgets.tool_header import ToolHeader
@@ -54,6 +55,9 @@ class CompareView(QWidget):
         self._flicker_timer.setInterval(400)
         self._flicker_timer.timeout.connect(self._on_flicker_tick)
 
+        self._cached_rendered: Optional[Image.Image] = None
+        self._zoom: float = 1.0
+
         self._build_ui()
 
     def _build_ui(self) -> None:
@@ -66,91 +70,150 @@ class CompareView(QWidget):
             self.tool.description,
         ))
 
-        # Painel Superior: Carregamento dos dois arquivos
+        # Painel Superior: Linha 1 - Seleção dos dois arquivos com layout balanceado
         files_card = QFrame()
         files_card.setObjectName("Card")
         f_lay = QHBoxLayout(files_card)
         f_lay.setContentsMargins(14, 10, 14, 10)
         f_lay.setSpacing(12)
 
+        # Bloco Imagem A
+        b_a = QVBoxLayout()
+        b_a.setSpacing(4)
         self.btn_load_a = QPushButton("Carregar Imagem A (Original)...")
         self.btn_load_a.setProperty("accent", True)
         self.btn_load_a.clicked.connect(lambda: self._load_file("A"))
-        f_lay.addWidget(self.btn_load_a)
-
+        b_a.addWidget(self.btn_load_a)
         self.lbl_file_a = QLabel("Nenhuma imagem selecionada")
         self.lbl_file_a.setStyleSheet("color: rgba(255, 255, 255, 0.7); font-size: 11px;")
-        f_lay.addWidget(self.lbl_file_a, stretch=1)
+        b_a.addWidget(self.lbl_file_a)
+        f_lay.addLayout(b_a, stretch=1)
 
         self.btn_swap = QPushButton("Inverter (A ↔ B)")
         self.btn_swap.clicked.connect(self._swap_images)
         f_lay.addWidget(self.btn_swap)
 
+        # Bloco Imagem B
+        b_b = QVBoxLayout()
+        b_b.setSpacing(4)
         self.btn_load_b = QPushButton("Carregar Imagem B (Modificada)...")
         self.btn_load_b.setProperty("accent", True)
         self.btn_load_b.clicked.connect(lambda: self._load_file("B"))
-        f_lay.addWidget(self.btn_load_b)
-
+        b_b.addWidget(self.btn_load_b)
         self.lbl_file_b = QLabel("Nenhuma imagem selecionada")
         self.lbl_file_b.setStyleSheet("color: rgba(255, 255, 255, 0.7); font-size: 11px;")
-        f_lay.addWidget(self.lbl_file_b, stretch=1)
+        b_b.addWidget(self.lbl_file_b)
+        f_lay.addLayout(b_b, stretch=1)
 
         root.addWidget(files_card)
 
-        # Painel de Modo de Comparação e Controles
+        # Painel Superior: Linha 2 - Modos de Comparação e Ajustes Dinâmicos
         ctrl_card = QFrame()
         ctrl_card.setObjectName("Card")
         c_lay = QHBoxLayout(ctrl_card)
-        c_lay.setContentsMargins(14, 10, 14, 10)
+        c_lay.setContentsMargins(14, 8, 14, 8)
         c_lay.setSpacing(12)
 
-        c_lay.addWidget(QLabel("Modo de Comparação:"))
+        c_lay.addWidget(QLabel("Modo:"))
         self.mode_group = QButtonGroup(self)
 
-        rb_slider = QRadioButton("Slider Cortina (Antes / Depois)")
+        rb_slider = QRadioButton("Slider Cortina")
         rb_slider.setChecked(True)
         self.mode_group.addButton(rb_slider, 0)
         c_lay.addWidget(rb_slider)
 
-        rb_diff = QRadioButton("Diferença de Pixels (Mapa)")
+        rb_diff = QRadioButton("Diferença de Pixels")
         self.mode_group.addButton(rb_diff, 1)
         c_lay.addWidget(rb_diff)
 
-        rb_flicker = QRadioButton("Modo Piscante (Flicker)")
+        rb_flicker = QRadioButton("Piscante (Flicker)")
         self.mode_group.addButton(rb_flicker, 2)
         c_lay.addWidget(rb_flicker)
 
         self.mode_group.buttonClicked.connect(self._on_mode_changed)
 
-        # Slider Cortina
+        # Controles específicos de Cortina
+        self.lbl_split_title = QLabel("Divisão:")
+        c_lay.addWidget(self.lbl_split_title)
         self.slider_split = QSlider(Qt.Horizontal)
         self.slider_split.setRange(0, 100)
         self.slider_split.setValue(50)
-        self.slider_split.setFixedWidth(160)
+        self.slider_split.setFixedWidth(120)
         self.slider_split.valueChanged.connect(self._update_display)
         c_lay.addWidget(self.slider_split)
 
         self.lbl_split = QLabel("50%")
+        self.lbl_split.setFixedWidth(36)
         c_lay.addWidget(self.lbl_split)
 
-        c_lay.addStretch(1)
+        # Controles específicos de Diferença
+        self.chk_ghost = QCheckBox("Fundo Suavizado")
+        self.chk_ghost.setChecked(True)
+        self.chk_ghost.setToolTip("Mostra a imagem base esmaecida sob os pixels com diferença para facilitar a localização")
+        self.chk_ghost.setVisible(False)
+        self.chk_ghost.toggled.connect(self._update_display)
+        c_lay.addWidget(self.chk_ghost)
 
-        # Botão Iniciar/Parar Piscada
+        self.lbl_amp = QLabel("Amplificação:")
+        self.lbl_amp.setVisible(False)
+        c_lay.addWidget(self.lbl_amp)
+        self.spin_amp = QSpinBox()
+        self.spin_amp.setRange(1, 10)
+        self.spin_amp.setValue(4)
+        self.spin_amp.setSuffix("x")
+        self.spin_amp.setVisible(False)
+        self.spin_amp.valueChanged.connect(self._update_display)
+        c_lay.addWidget(self.spin_amp)
+
+        # Controles específicos de Flicker
         self.btn_flicker_toggle = QPushButton("Alternar A/B")
         self.btn_flicker_toggle.setVisible(False)
         self.btn_flicker_toggle.clicked.connect(self._toggle_flicker_manual)
         c_lay.addWidget(self.btn_flicker_toggle)
 
+        c_lay.addStretch(1)
+
+        # Controles de Zoom
+        c_lay.addWidget(QLabel("Zoom:"))
+        self.btn_zoom_out = QPushButton("-")
+        self.btn_zoom_out.setFixedWidth(28)
+        self.btn_zoom_out.clicked.connect(lambda: self._adjust_zoom(0.8))
+        c_lay.addWidget(self.btn_zoom_out)
+
+        self.lbl_zoom = QLabel("100%")
+        self.lbl_zoom.setFixedWidth(40)
+        self.lbl_zoom.setAlignment(Qt.AlignCenter)
+        c_lay.addWidget(self.lbl_zoom)
+
+        self.btn_zoom_in = QPushButton("+")
+        self.btn_zoom_in.setFixedWidth(28)
+        self.btn_zoom_in.clicked.connect(lambda: self._adjust_zoom(1.25))
+        c_lay.addWidget(self.btn_zoom_in)
+
+        self.btn_zoom_reset = QPushButton("1:1")
+        self.btn_zoom_reset.setFixedWidth(36)
+        self.btn_zoom_reset.clicked.connect(lambda: self._set_zoom(1.0))
+        c_lay.addWidget(self.btn_zoom_reset)
+
         root.addWidget(ctrl_card)
 
-        # Cartão de Métricas
+        # Cartão de Métricas e Banner de Fidelidade
         self.metrics_card = QFrame()
         self.metrics_card.setObjectName("Card")
         m_lay = QHBoxLayout(self.metrics_card)
         m_lay.setContentsMargins(14, 8, 14, 8)
-        self.lbl_metrics = QLabel("Carregue ambas as imagens para calcular métricas de fidelidade visual (PSNR, MSE e percentual de diferença).")
+        self.lbl_metrics = QLabel("Carregue ambas as imagens para calcular métricas visuais (PSNR, MSE e percentual de diferença).")
         self.lbl_metrics.setStyleSheet("color: rgba(255, 255, 255, 0.7); font-size: 11px;")
-        m_lay.addWidget(self.lbl_metrics)
+        m_lay.addWidget(self.lbl_metrics, stretch=1)
+
+        self.lbl_identical_badge = QLabel("100% Idênticas — 0 pixels diferentes")
+        self.lbl_identical_badge.setStyleSheet(
+            "background-color: rgba(16, 185, 129, 0.2); color: #10B981; "
+            "border: 1px solid #10B981; border-radius: 4px; padding: 3px 8px; font-weight: bold; font-size: 11px;"
+        )
+        self.lbl_identical_badge.setVisible(False)
+        m_lay.addWidget(self.lbl_identical_badge)
+
         root.addWidget(self.metrics_card)
 
         # Visualizador Central
@@ -205,11 +268,11 @@ class CompareView(QWidget):
             if target == "A":
                 self._img_a = loaded
                 self._name_a = p.name
-                self.lbl_file_a.setText(f"{p.name} ({loaded.width}x{loaded.height})")
+                self.lbl_file_a.setText(f"{p.name} ({loaded.width} × {loaded.height} px)")
             else:
                 self._img_b = loaded
                 self._name_b = p.name
-                self.lbl_file_b.setText(f"{p.name} ({loaded.width}x{loaded.height})")
+                self.lbl_file_b.setText(f"{p.name} ({loaded.width} × {loaded.height} px)")
 
             self._on_images_updated()
             show_toast(self, f"Imagem {target} carregada: {p.name}", duration_ms=2000)
@@ -229,44 +292,46 @@ class CompareView(QWidget):
 
     def _on_images_updated(self) -> None:
         if self._img_a and self._img_b:
-            # Calcula métricas
             m = calculate_metrics(self._img_a, self._img_b)
-            psnr_str = f"{m.psnr_db} dB" if m.psnr_db != 999.0 else "Infinita (Idênticas)"
-            status = "Idênticas (100% de coincidência)" if m.identical else f"{m.difference_percentage}% de pixels com variação"
+            psnr_str = f"{m.psnr_db} dB" if m.psnr_db != 999.0 else "Infinita"
             self.lbl_metrics.setText(
-                f"<b>Resolução Base:</b> {m.width} × {m.height} px  •  "
+                f"<b>Resolução:</b> {m.width} × {m.height} px  •  "
                 f"<b>PSNR:</b> {psnr_str}  •  <b>MSE:</b> {m.mean_squared_error}  •  "
-                f"<b>Status:</b> {status}"
+                f"<b>Pixels Divergentes:</b> {m.different_pixels_count:,} ({m.difference_percentage}%)"
             )
+            self.lbl_identical_badge.setVisible(m.identical)
             self.btn_copy.setEnabled(True)
             self.btn_save.setEnabled(True)
         elif self._img_a:
-            self.lbl_metrics.setText(f"Imagem A carregada ({self._img_a.width}x{self._img_a.height} px). Carregue a Imagem B para comparar.")
+            self.lbl_metrics.setText(f"Imagem A carregada ({self._img_a.width} × {self._img_a.height} px). Carregue a Imagem B para comparar.")
+            self.lbl_identical_badge.setVisible(False)
         elif self._img_b:
-            self.lbl_metrics.setText(f"Imagem B carregada ({self._img_b.width}x{self._img_b.height} px). Carregue a Imagem A para comparar.")
+            self.lbl_metrics.setText(f"Imagem B carregada ({self._img_b.width} × {self._img_b.height} px). Carregue a Imagem A para comparar.")
+            self.lbl_identical_badge.setVisible(False)
 
         self._update_display()
 
     def _on_mode_changed(self, button) -> None:
         idx = self.mode_group.id(button)
-        if idx == 0:
-            self._current_mode = "slider"
-            self.slider_split.setVisible(True)
-            self.lbl_split.setVisible(True)
-            self.btn_flicker_toggle.setVisible(False)
-            self._flicker_timer.stop()
-        elif idx == 1:
-            self._current_mode = "diff"
-            self.slider_split.setVisible(False)
-            self.lbl_split.setVisible(False)
-            self.btn_flicker_toggle.setVisible(False)
-            self._flicker_timer.stop()
-        elif idx == 2:
-            self._current_mode = "flicker"
-            self.slider_split.setVisible(False)
-            self.lbl_split.setVisible(False)
-            self.btn_flicker_toggle.setVisible(True)
+        is_slider = (idx == 0)
+        is_diff = (idx == 1)
+        is_flicker = (idx == 2)
+
+        self._current_mode = "slider" if is_slider else ("diff" if is_diff else "flicker")
+
+        self.lbl_split_title.setVisible(is_slider)
+        self.slider_split.setVisible(is_slider)
+        self.lbl_split.setVisible(is_slider)
+
+        self.chk_ghost.setVisible(is_diff)
+        self.lbl_amp.setVisible(is_diff)
+        self.spin_amp.setVisible(is_diff)
+
+        self.btn_flicker_toggle.setVisible(is_flicker)
+        if is_flicker:
             self._flicker_timer.start()
+        else:
+            self._flicker_timer.stop()
 
         self._update_display()
 
@@ -277,6 +342,14 @@ class CompareView(QWidget):
     def _on_flicker_tick(self) -> None:
         self._flicker_state = not self._flicker_state
         self._update_display()
+
+    def _adjust_zoom(self, factor: float) -> None:
+        self._set_zoom(self._zoom * factor)
+
+    def _set_zoom(self, zoom: float) -> None:
+        self._zoom = max(0.1, min(5.0, zoom))
+        self.lbl_zoom.setText(f"{int(self._zoom * 100)}%")
+        self._render_pixmap_preview()
 
     def _generate_current_pil_view(self) -> Optional[Image.Image]:
         if not self._img_a and not self._img_b:
@@ -290,36 +363,45 @@ class CompareView(QWidget):
             ratio = self.slider_split.value() / 100.0
             return create_slider_composition(self._img_a, self._img_b, split_ratio=ratio)
         elif self._current_mode == "diff":
-            return generate_diff_heatmap(self._img_a, self._img_b, amplification=4.0)
+            amp = float(self.spin_amp.value())
+            show_ghost = self.chk_ghost.isChecked()
+            return generate_diff_overlay(self._img_a, self._img_b, amplification=amp, show_ghost_base=show_ghost)
         elif self._current_mode == "flicker":
             return self._img_b if self._flicker_state else self._img_a
         return self._img_a
 
     def _update_display(self) -> None:
         self.lbl_split.setText(f"{self.slider_split.value()}%")
-        pil_img = self._generate_current_pil_view()
-        if not pil_img:
+        self._cached_rendered = self._generate_current_pil_view()
+        self._render_pixmap_preview()
+
+    def _render_pixmap_preview(self) -> None:
+        if not self._cached_rendered:
             return
 
+        pil_img = self._cached_rendered
         data = pil_img.convert("RGBA").tobytes("raw", "RGBA")
         qimg = QImage(data, pil_img.width, pil_img.height, QImage.Format_RGBA8888)
         pix = QPixmap.fromImage(qimg)
+
+        if abs(self._zoom - 1.0) > 0.01:
+            target_w = max(1, int(pix.width() * self._zoom))
+            target_h = max(1, int(pix.height() * self._zoom))
+            pix = pix.scaled(target_w, target_h, Qt.KeepAspectRatio, Qt.SmoothTransformation)
 
         self.lbl_preview.setPixmap(pix)
         self.lbl_preview.adjustSize()
 
     def _copy_view(self) -> None:
-        pil_img = self._generate_current_pil_view()
-        if not pil_img:
+        if not self._cached_rendered:
             return
-        data = pil_img.convert("RGBA").tobytes("raw", "RGBA")
-        qimg = QImage(data, pil_img.width, pil_img.height, QImage.Format_RGBA8888)
+        data = self._cached_rendered.convert("RGBA").tobytes("raw", "RGBA")
+        qimg = QImage(data, self._cached_rendered.width, self._cached_rendered.height, QImage.Format_RGBA8888)
         QApplication.clipboard().setImage(qimg)
         show_toast(self, "Imagem comparativa copiada para a área de transferência!", duration_ms=2500)
 
     def _save_view(self) -> None:
-        pil_img = self._generate_current_pil_view()
-        if not pil_img:
+        if not self._cached_rendered:
             return
 
         save_path, _ = QFileDialog.getSaveFileName(
@@ -333,8 +415,8 @@ class CompareView(QWidget):
 
         target = Path(save_path)
         if target.suffix.lower() in (".jpg", ".jpeg"):
-            pil_img.convert("RGB").save(target, format="JPEG", quality=95)
+            self._cached_rendered.convert("RGB").save(target, format="JPEG", quality=95)
         else:
-            pil_img.save(target)
+            self._cached_rendered.save(target)
 
         show_toast(self, f"Salvo com sucesso em {target.name}!", duration_ms=3000)

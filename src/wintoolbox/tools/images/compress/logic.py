@@ -117,3 +117,80 @@ def compress_single_image(src: Path, dst: Path, params: Dict[str, Any]) -> Tuple
 
     new_size = dst.stat().st_size if dst.exists() else orig_size
     return (orig_size, new_size)
+
+
+def estimate_compressed_size(src: Path, params: Dict[str, Any]) -> int:
+    """
+    Estima o tamanho em bytes após compressão sem gravar em disco,
+    utilizando buffer em memória BytesIO.
+    """
+    if not src.is_file():
+        return 0
+    try:
+        buf = io.BytesIO()
+        # Usa um arquivo temporário simulado no buffer
+        mode = params.get("mode", "Qualidade Visual Balanceada")
+        quality = int(params.get("quality", 80))
+        quantize_png = bool(params.get("quantize_png", False))
+        progressive_jpeg = bool(params.get("progressive_jpeg", True))
+        target_kb = int(params.get("target_kb", 250))
+        ext = src.suffix.lower()
+
+        with Image.open(src) as im:
+            if ext in (".jpg", ".jpeg"):
+                if im.mode in ("RGBA", "LA", "P"):
+                    rgb = Image.new("RGB", im.size, (255, 255, 255))
+                    rgb.paste(im.convert("RGB"))
+                    work = rgb
+                else:
+                    work = im.copy()
+                if mode == "Meta de Tamanho Máximo (KB)":
+                    return min(src.stat().st_size, target_kb * 1024)
+                q = 95 if mode == "Otimização Sem Perdas (Lossless)" else quality
+                work.save(buf, format="JPEG", quality=q, optimize=True, progressive=progressive_jpeg)
+            elif ext == ".png":
+                work = im.copy()
+                if quantize_png and work.mode != "P":
+                    work = work.quantize(colors=256, method=Image.Quantize.MEDIANCUT)
+                work.save(buf, format="PNG", optimize=True, compress_level=9)
+            elif ext == ".webp":
+                if mode == "Meta de Tamanho Máximo (KB)":
+                    return min(src.stat().st_size, target_kb * 1024)
+                lossless = mode == "Otimização Sem Perdas (Lossless)"
+                im.save(buf, format="WEBP", lossless=lossless, quality=quality)
+            else:
+                return src.stat().st_size
+
+        return buf.tell()
+    except Exception:
+        # Fallback de estimativa conservadora
+        return int(src.stat().st_size * 0.7)
+
+
+def render_compress_preview(source_path: Path, params: Dict[str, Any]) -> Image.Image:
+    """Carrega a imagem comprimida em memória para visualização visual de fidelidade."""
+    buf = io.BytesIO()
+    ext = source_path.suffix.lower()
+    mode = params.get("mode", "Qualidade Visual Balanceada")
+    quality = int(params.get("quality", 80))
+    quantize_png = bool(params.get("quantize_png", False))
+
+    with Image.open(source_path) as im:
+        if ext in (".jpg", ".jpeg"):
+            if im.mode in ("RGBA", "LA", "P"):
+                work = Image.new("RGB", im.size, (255, 255, 255))
+                work.paste(im.convert("RGB"))
+            else:
+                work = im.copy()
+            work.save(buf, format="JPEG", quality=quality)
+        elif ext == ".png" and quantize_png:
+            work = im.quantize(colors=256, method=Image.Quantize.MEDIANCUT)
+            work.save(buf, format="PNG")
+        elif ext == ".webp":
+            im.save(buf, format="WEBP", quality=quality)
+        else:
+            return im.copy()
+
+    buf.seek(0)
+    return Image.open(buf)
+

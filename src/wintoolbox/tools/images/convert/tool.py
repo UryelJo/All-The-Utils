@@ -1,5 +1,5 @@
 """
-Ferramenta: Conversor Universal de Imagens em Lote (com suporte completo a iPhone HEIF/HEIC).
+Ferramenta: Conversor Universal de Imagens em Lote (com suporte a vetores SVG, Ícones .ICO e Favicons).
 Implementação completa herdando de FileTool.
 """
 from pathlib import Path
@@ -9,11 +9,15 @@ from PySide6.QtCore import Qt
 from PySide6.QtWidgets import (
     QCheckBox,
     QComboBox,
+    QFileDialog,
     QFrame,
     QGridLayout,
     QHBoxLayout,
     QLabel,
-    QSlider,
+    QLineEdit,
+    QMessageBox,
+    QPushButton,
+    QTabWidget,
     QVBoxLayout,
     QWidget,
 )
@@ -31,6 +35,12 @@ from wintoolbox.tools.images.convert.logic import (
     convert_single_image,
     get_output_extension,
 )
+from wintoolbox.tools.images.favicon.logic import (
+    DEFAULT_ICO_SIZES,
+    generate_multi_size_ico,
+    generate_web_favicon_package,
+)
+from wintoolbox.ui.widgets.slider_spin import SliderSpinControl
 
 _log = get_logger("images.convert.ui")
 
@@ -41,27 +51,26 @@ class ImageConverterTool(FileTool):
     name = "Conversor de Imagens"
     category = "Imagens"
     description = (
-        "Conversão em lote entre 42 formatos de entrada e 18 de saída "
-        "(HEIC/HEIF de iPhone, AVIF, WEBP, JPG, PNG, QOI, PSD, TGA, DDS, JP2, ICNS, ICO, PDF)"
+        "Conversão universal em lote entre formatos modernos, vetores SVG, ícones .ICO e favicons para web"
     )
     keywords = [
         "imagem", "foto", "converter", "heic", "heif", "hif", "iphone", "apple",
         "avif", "webp", "jpeg", "jpg", "png", "ico", "icns", "qoi", "psd", "tga",
-        "dds", "jp2", "tiff", "gif", "pdf", "lote", "pasta", "display p3", "srgb",
+        "dds", "jp2", "tiff", "gif", "pdf", "svg", "favicon", "lote", "pasta"
     ]
     accepts = list(SUPPORTED_IMAGE_INPUTS)
     batch_kind = "per_file"
     parallel_mode = "process"
 
     def build_options(self, parent: Optional[QWidget] = None) -> QWidget:
-        panel = QFrame(parent)
-        layout = QVBoxLayout(panel)
+        tabs = QTabWidget(parent)
+        tabs.setProperty("class", "card")
+
+        # Aba 1: Opções de Conversão em Lote
+        tab_convert = QWidget()
+        layout = QVBoxLayout(tab_convert)
         layout.setContentsMargins(12, 10, 12, 10)
         layout.setSpacing(10)
-
-        lbl_header = QLabel("Opções de Conversão, Cores e Metadados")
-        lbl_header.setStyleSheet("font-weight: 600; font-size: 13px;")
-        layout.addWidget(lbl_header)
 
         grid = QGridLayout()
         grid.setHorizontalSpacing(16)
@@ -77,19 +86,11 @@ class ImageConverterTool(FileTool):
 
         qual_row = QHBoxLayout()
         qual_row.setSpacing(10)
-        self.lbl_quality = QLabel("Qualidade (90%):")
-        qual_row.addWidget(self.lbl_quality)
-
-        self.slider_quality = QSlider(Qt.Horizontal)
-        self.slider_quality.setRange(10, 100)
-        self.slider_quality.setValue(90)
-        self.slider_quality.setMinimumWidth(130)
-        self.slider_quality.valueChanged.connect(
-            lambda v: self.lbl_quality.setText(f"Qualidade ({v}%):")
-        )
+        self.slider_quality = SliderSpinControl("Qualidade:", 10, 100, 90, suffix="%")
+        self.slider_quality.valueChanged.connect(lambda _: self._sync_controls_state())
         qual_row.addWidget(self.slider_quality)
 
-        self.chk_lossless = QCheckBox("Sem perdas (Lossless)")
+        self.chk_lossless = QCheckBox("Sem perdas")
         self.chk_lossless.toggled.connect(self._sync_controls_state)
         qual_row.addWidget(self.chk_lossless)
         qual_row.addStretch()
@@ -132,8 +133,121 @@ class ImageConverterTool(FileTool):
         grid.addWidget(self.chk_all_frames, 3, 0, 1, 4)
 
         layout.addLayout(grid)
+        tabs.addTab(tab_convert, "Conversão em Lote")
+
+        # Aba 2: Ícones .ICO & Favicons Web
+        tab_ico = self._build_favicon_tab()
+        tabs.addTab(tab_ico, "Ícones .ICO & Favicons Web")
+
+        self._active_file: Optional[Path] = None
         self._sync_controls_state()
-        return panel
+        return tabs
+
+    def _build_favicon_tab(self) -> QWidget:
+        w = QWidget()
+        layout = QVBoxLayout(w)
+        layout.setContentsMargins(12, 10, 12, 10)
+        layout.setSpacing(10)
+
+        lbl_info = QLabel("Gere arquivos .ico com múltiplas resoluções ou pacotes prontos para sites.")
+        lbl_info.setStyleSheet("color: #8F96A0; font-size: 12px;")
+        layout.addWidget(lbl_info)
+
+        lbl_sizes = QLabel("Tamanhos embutidos no arquivo .ico:")
+        lbl_sizes.setStyleSheet("font-weight: 500; font-size: 12px;")
+        layout.addWidget(lbl_sizes)
+
+        grid_sizes = QGridLayout()
+        grid_sizes.setHorizontalSpacing(12)
+        grid_sizes.setVerticalSpacing(4)
+        self.chk_ico_sizes = {}
+        for idx, sz in enumerate(DEFAULT_ICO_SIZES):
+            chk = QCheckBox(f"{sz}×{sz} px")
+            chk.setChecked(True)
+            self.chk_ico_sizes[sz] = chk
+            grid_sizes.addWidget(chk, idx // 4, idx % 4)
+        layout.addLayout(grid_sizes)
+
+        # Diretório opcional de saída
+        row_dir = QHBoxLayout()
+        row_dir.setSpacing(8)
+        row_dir.addWidget(QLabel("Diretório de saída (opcional):"))
+        self.txt_ico_out_dir = QLineEdit()
+        self.txt_ico_out_dir.setPlaceholderText("Mesma pasta da imagem de origem")
+        row_dir.addWidget(self.txt_ico_out_dir, stretch=1)
+
+        btn_browse_out = QPushButton("Procurar...")
+        btn_browse_out.clicked.connect(self._on_browse_ico_out)
+        row_dir.addWidget(btn_browse_out)
+        layout.addLayout(row_dir)
+
+        # Botões de ação direta
+        row_actions = QHBoxLayout()
+        row_actions.setSpacing(10)
+
+        btn_ico = QPushButton("Gerar .ICO da Imagem Selecionada")
+        btn_ico.setProperty("class", "primary")
+        btn_ico.clicked.connect(self._generate_ico_from_active)
+        row_actions.addWidget(btn_ico)
+
+        btn_web = QPushButton("Gerar Pacote Favicon Web Completo...")
+        btn_web.clicked.connect(self._generate_web_package)
+        row_actions.addWidget(btn_web)
+
+        row_actions.addStretch()
+        layout.addLayout(row_actions)
+
+        return w
+
+    def on_active_file_changed(self, path: Path) -> None:
+        self._active_file = path
+
+    def _on_browse_ico_out(self) -> None:
+        folder = QFileDialog.getExistingDirectory(None, "Selecionar Diretório de Saída")
+        if folder:
+            self.txt_ico_out_dir.setText(folder)
+
+    def _generate_ico_from_active(self) -> None:
+        if not self._active_file or not self._active_file.is_file():
+            QMessageBox.warning(None, "Aviso", "Por favor, adicione e selecione uma imagem na lista acima primeiro.")
+            return
+
+        sizes = [sz for sz, chk in self.chk_ico_sizes.items() if chk.isChecked()]
+        if not sizes:
+            QMessageBox.warning(None, "Aviso", "Selecione pelo menos um tamanho para o .ico.")
+            return
+
+        out_dir = self.txt_ico_out_dir.text().strip()
+        if out_dir and Path(out_dir).is_dir():
+            target_ico = Path(out_dir) / f"{self._active_file.stem}.ico"
+        else:
+            target_ico = self._active_file.with_suffix(".ico")
+
+        try:
+            generate_multi_size_ico(self._active_file, target_ico, sizes)
+            QMessageBox.information(None, "Sucesso", f"Arquivo .ICO criado com sucesso:\n{target_ico}")
+        except Exception as ex:
+            QMessageBox.critical(None, "Erro", f"Falha ao gerar .ico: {ex}")
+
+    def _generate_web_package(self) -> None:
+        if not self._active_file or not self._active_file.is_file():
+            QMessageBox.warning(None, "Aviso", "Selecione uma imagem na lista acima primeiro.")
+            return
+
+        out_dir = QFileDialog.getExistingDirectory(None, "Pasta de Destino para o Pacote Web")
+        if not out_dir:
+            return
+
+        try:
+            generate_web_favicon_package(
+                self._active_file,
+                Path(out_dir),
+                app_name="Web App",
+                theme_color="#0078D4"
+            )
+            QMessageBox.information(None, "Sucesso", f"Pacote Web gerado com sucesso em:\n{out_dir}")
+        except Exception as ex:
+            QMessageBox.critical(None, "Erro", f"Falha ao gerar pacote web: {ex}")
 
     def _sync_controls_state(self) -> None:
         fmt = self.cmb_format.currentText().upper()
@@ -145,7 +259,6 @@ class ImageConverterTool(FileTool):
 
         is_lossy_slider_active = (fmt in LOSSY_CAPABLE_FORMATS) and not is_lossless_active
         self.slider_quality.setEnabled(is_lossy_slider_active)
-        self.lbl_quality.setEnabled(is_lossy_slider_active)
 
         can_subsample = (fmt in SUBSAMPLING_CAPABLE_FORMATS) and not is_lossless_active
         self.cmb_subsampling.setEnabled(can_subsample)
@@ -157,7 +270,7 @@ class ImageConverterTool(FileTool):
         lossless = (fmt in LOSSLESS_TOGGLE_FORMATS) and self.chk_lossless.isChecked()
         return {
             "format": fmt,
-            "quality": self.slider_quality.value(),
+            "quality": int(self.slider_quality.value()),
             "lossless": lossless,
             "subsampling": self.cmb_subsampling.currentData() or "4:2:0",
             "color_profile_mode": self.cmb_color_profile.currentData() or "srgb",

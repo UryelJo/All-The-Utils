@@ -6,11 +6,31 @@ posters e atlas de sprites 2D com ou sem sobreposição (overlap).
 Zero dependências de interface gráfica ou bibliotecas de UI.
 """
 from pathlib import Path
-from typing import List, Tuple
-from PIL import Image
+from typing import Any, Dict, List, Optional, Tuple
+from PIL import Image, ImageDraw, ImageFont
 from wintoolbox.tools.images.convert.logic import ensure_heif_registered
 
 ensure_heif_registered()
+
+GRID_PRESETS: Dict[str, Optional[Dict[str, Any]]] = {
+    "Personalizado": None,
+    "Instagram Carrossel Retrato 1×2 (4:5)": {"rows": 1, "cols": 2, "aspect": (2 * 4, 5)},
+    "Instagram Carrossel Retrato 1×3 (4:5)": {"rows": 1, "cols": 3, "aspect": (3 * 4, 5)},
+    "Instagram Carrossel Retrato 1×4 (4:5)": {"rows": 1, "cols": 4, "aspect": (4 * 4, 5)},
+    "Instagram Carrossel Retrato 1×5 (4:5)": {"rows": 1, "cols": 5, "aspect": (5 * 4, 5)},
+    "Instagram Carrossel Retrato 1×6 (4:5)": {"rows": 1, "cols": 6, "aspect": (6 * 4, 5)},
+    "Instagram Carrossel Retrato 1×10 (4:5)": {"rows": 1, "cols": 10, "aspect": (10 * 4, 5)},
+    "Instagram Feed Quadrado 1×3 (1:1)": {"rows": 1, "cols": 3, "aspect": (3, 1)},
+    "Instagram Mosaico de Perfil 3×3 (1:1)": {"rows": 3, "cols": 3, "aspect": (1, 1)},
+    "Stories / Reels / TikTok 1×2 (9:16)": {"rows": 1, "cols": 2, "aspect": (2 * 9, 16)},
+    "Stories / Reels / TikTok 1×3 (9:16)": {"rows": 1, "cols": 3, "aspect": (3 * 9, 16)},
+    "YouTube / Banner Panorâmico 1×3 (16:9)": {"rows": 1, "cols": 3, "aspect": (3 * 16, 9)},
+    "Post X / Twitter Grade 2×2": {"rows": 2, "cols": 2, "aspect": (1, 1)},
+    "Poster A4 2×2 (4 Folhas)": {"rows": 2, "cols": 2, "aspect": (1, 1)},
+    "Poster A4 3×3 (9 Folhas)": {"rows": 3, "cols": 3, "aspect": (1, 1)},
+    "Sprite Atlas 2×2": {"rows": 2, "cols": 2, "aspect": None},
+    "Sprite Atlas 4×4": {"rows": 4, "cols": 4, "aspect": None},
+}
 
 
 def calculate_grid_boxes(
@@ -20,19 +40,7 @@ def calculate_grid_boxes(
     cols: int,
     overlap_px: int = 0
 ) -> List[Tuple[int, int, int, int, int, int]]:
-    """
-    Calcula as coordenadas de corte (x1, y1, x2, y2) para cada célula da grade.
-
-    Args:
-        width: Largura total da imagem em pixels.
-        height: Altura total da imagem em pixels.
-        rows: Quantidade de divisões verticais (linhas >= 1).
-        cols: Quantidade de divisões horizontais (colunas >= 1).
-        overlap_px: Pixels de sobreposição nas margens comuns entre células adjacentes.
-
-    Returns:
-        Lista de tuplas (row_index, col_index, x1, y1, x2, y2).
-    """
+    """Calcula as coordenadas de corte (x1, y1, x2, y2) para cada célula da grade."""
     if rows < 1 or cols < 1:
         raise ValueError("Linhas e colunas devem ser maiores ou iguais a 1.")
     if width <= 0 or height <= 0:
@@ -68,9 +76,7 @@ def split_image(
     cols: int,
     overlap_px: int = 0
 ) -> List[Tuple[int, int, Image.Image]]:
-    """
-    Divide um objeto PIL Image em uma grade de imagens recortadas.
-    """
+    """Divide um objeto PIL Image em uma grade de imagens recortadas."""
     w, h = image.size
     boxes = calculate_grid_boxes(w, h, rows, cols, overlap_px)
     results: List[Tuple[int, int, Image.Image]] = []
@@ -82,53 +88,90 @@ def split_image(
     return results
 
 
-def split_image_file(
+def render_grid_slice_preview(source_path: Path, params: Dict[str, Any]) -> Image.Image:
+    """Gera pré-visualização dinâmica com as linhas de corte numeradas sobre a imagem."""
+    with Image.open(source_path) as im:
+        preview_im = im.convert("RGBA").copy()
+        draw = ImageDraw.Draw(preview_im)
+        w, h = preview_im.size
+
+        rows = max(1, int(params.get("rows", 1)))
+        cols = max(1, int(params.get("cols", 3)))
+        overlap = int(params.get("overlap_px", 0))
+
+        boxes = calculate_grid_boxes(w, h, rows, cols, overlap)
+
+        font_size = max(16, min(w, h) // 18)
+        try:
+            font = ImageFont.truetype(r"C:\Windows\Fonts\segoeui.ttf", font_size)
+        except Exception:
+            font = ImageFont.load_default()
+
+        line_w = max(2, min(w, h) // 250)
+        tile_num = 1
+        for r_idx, c_idx, x1, y1, x2, y2 in boxes:
+            draw.rectangle([x1, y1, x2 - 1, y2 - 1], outline=(0, 180, 255, 230), width=line_w)
+
+            # Badge do slide
+            text = f"Slide {tile_num}"
+            cx = (x1 + x2) // 2
+            cy = (y1 + y2) // 2
+            badge_w = len(text) * (font_size // 2 + 2)
+            badge_h = font_size + 10
+            draw.rounded_rectangle(
+                [cx - badge_w // 2, cy - badge_h // 2, cx + badge_w // 2, cy + badge_h // 2],
+                radius=6,
+                fill=(10, 15, 20, 180)
+            )
+            draw.text((cx, cy), text, fill=(255, 255, 255, 255), font=font, anchor="mm")
+            tile_num += 1
+
+        return preview_im
+
+
+def process_image_split(
     input_path: Path,
     output_dir: Path,
     rows: int = 1,
-    cols: int = 3,
+    cols: int = 1,
     overlap_px: int = 0,
-    output_format: str = "png"
+    output_format: str = "PNG",
+    naming_pattern: str = "{stem}_row{row}_col{col}"
 ) -> List[Path]:
-    """
-    Abre o arquivo de imagem, divide na grade e grava as partes numeradas na pasta de destino.
-    """
+    """Processa um arquivo de imagem fatiando-o e gravando cada parte no diretório de saída."""
     if not input_path.is_file():
         raise FileNotFoundError(f"Arquivo de imagem não encontrado: {input_path}")
 
     output_dir.mkdir(parents=True, exist_ok=True)
-    base_name = input_path.stem
-    fmt = output_format.lower().lstrip(".")
-    if fmt == "jpg":
-        fmt = "jpeg"
+    out_fmt = output_format.strip().upper().lstrip(".")
+    ext = ".jpg" if out_fmt in ("JPG", "JPEG") else f".{out_fmt.lower()}"
+    stem = input_path.stem
 
-    saved_files: List[Path] = []
+    generated_paths: List[Path] = []
 
     with Image.open(input_path) as im:
         tiles = split_image(im, rows, cols, overlap_px)
-        is_single_row = (rows == 1)
-        is_single_col = (cols == 1)
 
-        for r_idx, c_idx, tile_img in tiles:
-            if is_single_row:
-                file_name = f"{base_name}_part_{c_idx:02d}.{fmt}"
-            elif is_single_col:
-                file_name = f"{base_name}_part_{r_idx:02d}.{fmt}"
-            else:
-                file_name = f"{base_name}_r{r_idx:02d}_c{c_idx:02d}.{fmt}"
+        for r_idx, c_idx, tile in tiles:
+            filename = naming_pattern.format(stem=stem, row=r_idx, col=c_idx) + ext
+            tile_path = output_dir / filename
 
-            out_file = output_dir / file_name
-
-            if fmt in ("jpeg", "jpg") and tile_img.mode in ("RGBA", "P"):
-                rgb_im = Image.new("RGB", tile_img.size, (255, 255, 255))
-                if tile_img.mode == "RGBA":
-                    rgb_im.paste(tile_img, mask=tile_img.split()[3])
+            if ext in (".jpg", ".jpeg"):
+                if tile.mode in ("RGBA", "LA", "P"):
+                    rgb_bg = Image.new("RGB", tile.size, (255, 255, 255))
+                    rgb_bg.paste(tile, mask=tile.split()[3] if "A" in tile.mode else None)
+                    rgb_bg.save(tile_path, "JPEG", quality=95)
                 else:
-                    rgb_im.paste(tile_img.convert("RGB"))
-                rgb_im.save(out_file, "JPEG", quality=95)
+                    tile.save(tile_path, "JPEG", quality=95)
+            elif ext == ".webp":
+                tile.save(tile_path, "WEBP", quality=95)
             else:
-                tile_img.save(out_file, format=fmt.upper())
+                tile.save(tile_path, "PNG")
 
-            saved_files.append(out_file)
+            generated_paths.append(tile_path)
 
-    return saved_files
+    return generated_paths
+
+
+# Alias para retrocompatibilidade
+split_image_file = process_image_split

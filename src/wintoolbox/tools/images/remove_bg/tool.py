@@ -1,21 +1,27 @@
 """
-Ferramenta: Removedor de Fundo de Imagem (Transparência PNG).
-Interface para seleção de imagens, escolha do modo de remoção (detecção automática, fundo branco ou chroma key) e download.
+Ferramenta: Removedor de Fundo de Imagem (Transparência PNG e Substituição).
+Interface profissional com extração de paleta de cores dominante,
+substituição de fundo por cor sólida ou imagem e preview em tempo real com zoom.
 """
 from pathlib import Path
-import subprocess
-from typing import Optional
-from PySide6.QtCore import Qt
+from typing import Dict, List, Optional, Tuple
+from PySide6.QtCore import QSize, Qt, QTimer
 from PySide6.QtGui import QColor, QPixmap
 from PySide6.QtWidgets import (
-    QColorDialog, QComboBox, QFileDialog, QGroupBox, QHBoxLayout,
-    QLabel, QLineEdit, QMessageBox, QPushButton, QScrollArea,
-    QSpinBox, QVBoxLayout, QWidget
+    QColorDialog, QComboBox, QFileDialog, QFrame, QGroupBox,
+    QHBoxLayout, QLabel, QLineEdit, QMessageBox, QPushButton,
+    QScrollArea, QVBoxLayout, QWidget
 )
 
-from wintoolbox.core.registry import TaskContext, Tool, register
+from wintoolbox.core.registry import Tool, register
 from wintoolbox.core.tasks import run_task
-from wintoolbox.tools.images.remove_bg.logic import remove_image_background
+from wintoolbox.tools.images.palette.logic import extract_dominant_colors
+from wintoolbox.tools.images.remove_bg.logic import (
+    remove_image_background, render_remove_bg_preview
+)
+from wintoolbox.ui.widgets.slider_spin import SliderSpinControl
+from wintoolbox.ui.widgets.toast import show_toast
+from wintoolbox.ui.widgets.zoomable_image import ZoomableImageCanvas
 
 
 @register
@@ -23,7 +29,7 @@ class RemoveBgTool(Tool):
     id = "images.remove_bg"
     name = "Removedor de Fundo de Imagem"
     category = "Imagens"
-    description = "Remoção de fundo sólido, branco ou chroma key com canal alfa transparente para salvar em PNG"
+    description = "Remoção de fundo sólido, branco ou chroma key com canal alfa transparente ou troca de fundo"
     keywords = ["fundo", "removebg", "transparência", "png", "alpha", "chromakey", "recorte", "imagem"]
 
     def build_view(self, parent: Optional[QWidget] = None) -> QWidget:
@@ -35,7 +41,14 @@ class RemoveBgView(QWidget):
         super().__init__(parent)
         self.tool = tool
         self._current_src_path: Optional[Path] = None
-        self._custom_color = (0, 255, 0)
+        self._custom_color: Tuple[int, int, int] = (0, 255, 0)
+        self._solid_replacement_color: Tuple[int, int, int] = (255, 255, 255)
+        self._custom_bg_image: Optional[Path] = None
+
+        self._preview_timer = QTimer(self)
+        self._preview_timer.setSingleShot(True)
+        self._preview_timer.timeout.connect(self._do_update_preview)
+
         self._build_ui()
 
     def _build_ui(self):
@@ -43,54 +56,92 @@ class RemoveBgView(QWidget):
         layout.setContentsMargins(12, 12, 12, 12)
         layout.setSpacing(10)
 
-        # Barra Superior: Origem e Destino
+        # Barra Superior: Carregamento
         top_bar = QHBoxLayout()
         top_bar.setSpacing(8)
 
         self.txt_src = QLineEdit()
         self.txt_src.setPlaceholderText("Selecione uma imagem de origem...")
-        top_bar.addWidget(self.txt_src, 1)
+        top_bar.addWidget(self.txt_src, stretch=1)
 
         btn_browse_src = QPushButton("Procurar Imagem...")
+        btn_browse_src.setProperty("class", "primary")
         btn_browse_src.clicked.connect(self._on_browse_src)
         top_bar.addWidget(btn_browse_src)
 
+        btn_paste = QPushButton("Colar Imagem")
+        btn_paste.clicked.connect(self._on_paste_clipboard)
+        top_bar.addWidget(btn_paste)
+
+        btn_save = QPushButton("Salvar Resultado...")
+        btn_save.setFixedHeight(32)
+        btn_save.clicked.connect(self._on_save_result)
+        top_bar.addWidget(btn_save)
+
         layout.addLayout(top_bar)
 
-        # Configurações de Remoção
-        grp_cfg = QGroupBox("Configurações de Remoção")
-        cfg_layout = QHBoxLayout(grp_cfg)
-        cfg_layout.setSpacing(12)
+        # Configurações de Remoção e Paleta
+        grp_cfg = QGroupBox("Configurações de Remoção e Cores Detectadas")
+        v_cfg = QVBoxLayout(grp_cfg)
+        v_cfg.setSpacing(8)
 
-        cfg_layout.addWidget(QLabel("Modo:"))
+        row_ctrls = QHBoxLayout()
+        row_ctrls.setSpacing(10)
+
+        row_ctrls.addWidget(QLabel("Modo de detecção:"))
         self.cmb_mode = QComboBox()
         self.cmb_mode.addItem("Detecção Automática nos Cantos", "auto_corners")
         self.cmb_mode.addItem("Fundo Branco / Claro", "white")
         self.cmb_mode.addItem("Fundo Preto / Escuro", "black")
         self.cmb_mode.addItem("Cor Específica (Chroma Key)", "custom")
         self.cmb_mode.currentIndexChanged.connect(self._on_mode_changed)
-        cfg_layout.addWidget(self.cmb_mode)
+        row_ctrls.addWidget(self.cmb_mode)
 
-        self.btn_pick_color = QPushButton("Cor")
-        self.btn_pick_color.setStyleSheet("background-color: #00FF00; color: #000; border: 1px solid #777;")
-        self.btn_pick_color.clicked.connect(self._on_pick_custom_color)
-        self.btn_pick_color.setVisible(False)
-        cfg_layout.addWidget(self.btn_pick_color)
+        row_ctrls.addWidget(QLabel("Tolerância:"))
+        self.slider_tol = SliderSpinControl("", 5, 120, 35)
+        self.slider_tol.valueChanged.connect(self._request_preview)
+        row_ctrls.addWidget(self.slider_tol)
 
-        cfg_layout.addWidget(QLabel("Tolerância:"))
-        self.spin_tol = QSpinBox()
-        self.spin_tol.setRange(5, 100)
-        self.spin_tol.setValue(35)
-        cfg_layout.addWidget(self.spin_tol)
+        row_ctrls.addWidget(QLabel("Suavização (Feather):"))
+        self.slider_feather = SliderSpinControl("", 0, 30, 8, suffix=" px")
+        self.slider_feather.valueChanged.connect(self._request_preview)
+        row_ctrls.addWidget(self.slider_feather)
 
-        cfg_layout.addWidget(QLabel("Suavização:"))
-        self.spin_feather = QSpinBox()
-        self.spin_feather.setRange(0, 30)
-        self.spin_feather.setValue(8)
-        self.spin_feather.setSuffix(" px")
-        cfg_layout.addWidget(self.spin_feather)
+        row_ctrls.addWidget(QLabel("Fundo final:"))
+        self.cmb_bg_replace = QComboBox()
+        self.cmb_bg_replace.addItem("Transparente (PNG)", "transparent")
+        self.cmb_bg_replace.addItem("Cor Sólida", "solid")
+        self.cmb_bg_replace.addItem("Outra Imagem de Fundo", "custom_image")
+        self.cmb_bg_replace.currentIndexChanged.connect(self._on_replace_mode_changed)
+        row_ctrls.addWidget(self.cmb_bg_replace)
 
-        cfg_layout.addStretch()
+        self.btn_pick_solid = QPushButton("Escolher Cor...")
+        self.btn_pick_solid.setVisible(False)
+        self.btn_pick_solid.clicked.connect(self._on_pick_solid_color)
+        row_ctrls.addWidget(self.btn_pick_solid)
+
+        self.btn_browse_bg_img = QPushButton("Escolher Fundo...")
+        self.btn_browse_bg_img.setVisible(False)
+        self.btn_browse_bg_img.clicked.connect(self._on_browse_bg_image)
+        row_ctrls.addWidget(self.btn_browse_bg_img)
+
+        row_ctrls.addStretch()
+        v_cfg.addLayout(row_ctrls)
+
+        # Paleta de Cores Dominantes
+        self.row_palette = QHBoxLayout()
+        self.row_palette.setSpacing(6)
+        self.lbl_palette = QLabel("Cores detectadas (clique para remover):")
+        self.lbl_palette.setStyleSheet("font-size: 11px; color: #8F96A0;")
+        self.row_palette.addWidget(self.lbl_palette)
+        self.palette_container = QWidget()
+        self.palette_layout = QHBoxLayout(self.palette_container)
+        self.palette_layout.setContentsMargins(0, 0, 0, 0)
+        self.palette_layout.setSpacing(6)
+        self.row_palette.addWidget(self.palette_container)
+        self.row_palette.addStretch()
+        v_cfg.addLayout(self.row_palette)
+
         layout.addWidget(grp_cfg)
 
         # Painel Central Dividido: Preview Original vs Preview Resultado
@@ -98,136 +149,156 @@ class RemoveBgView(QWidget):
         split_layout.setSpacing(12)
 
         grp_orig = QGroupBox("Imagem Original")
-        orig_layout = QVBoxLayout(grp_orig)
-        self.scroll_orig = QScrollArea()
-        self.scroll_orig.setWidgetResizable(True)
-        self.lbl_orig = QLabel("Nenhuma imagem selecionada.")
-        self.lbl_orig.setAlignment(Qt.AlignCenter)
-        self.lbl_orig.setStyleSheet("color: #888890;")
-        self.scroll_orig.setWidget(self.lbl_orig)
-        orig_layout.addWidget(self.scroll_orig)
-        split_layout.addWidget(grp_orig, 1)
+        v_orig = QVBoxLayout(grp_orig)
+        self.canvas_orig = ZoomableImageCanvas(self)
+        v_orig.addWidget(self.canvas_orig)
+        split_layout.addWidget(grp_orig, stretch=1)
 
-        grp_res = QGroupBox("Resultado sem Fundo (PNG Transparente)")
-        res_layout = QVBoxLayout(grp_res)
-        self.scroll_res = QScrollArea()
-        self.scroll_res.setWidgetResizable(True)
-        # Fundo xadrez sutil para indicar transparência
-        self.lbl_res = QLabel("O resultado aparecerá aqui.")
-        self.lbl_res.setAlignment(Qt.AlignCenter)
-        self.lbl_res.setStyleSheet("color: #888890; background-color: #2b2b32;")
-        self.scroll_res.setWidget(self.lbl_res)
-        res_layout.addWidget(self.scroll_res)
-        split_layout.addWidget(grp_res, 1)
+        grp_res = QGroupBox("Resultado com Transparência (Ao Vivo)")
+        v_res = QVBoxLayout(grp_res)
+        self.canvas_res = ZoomableImageCanvas(self)
+        self.canvas_res.set_checkerboard_enabled(True)
+        v_res.addWidget(self.canvas_res)
+        split_layout.addWidget(grp_res, stretch=1)
 
         layout.addLayout(split_layout)
-
-        # Barra Inferior de Ações
-        act_box = QHBoxLayout()
-        self.lbl_status = QLabel("")
-        act_box.addWidget(self.lbl_status)
-        act_box.addStretch()
-
-        self.btn_run = QPushButton("Remover Fundo Agora")
-        self.btn_run.setProperty("class", "primary")
-        self.btn_run.setStyleSheet("font-weight: bold; padding: 6px 18px;")
-        self.btn_run.clicked.connect(self._on_run_remove)
-        act_box.addWidget(self.btn_run)
-
-        self.btn_save = QPushButton("Salvar PNG Como...")
-        self.btn_save.setEnabled(False)
-        self.btn_save.clicked.connect(self._on_save_as)
-        act_box.addWidget(self.btn_save)
-
-        layout.addLayout(act_box)
-
-    def _on_mode_changed(self):
-        is_custom = self.cmb_mode.currentData() == "custom"
-        self.btn_pick_color.setVisible(is_custom)
-
-    def _on_pick_custom_color(self):
-        c = QColorDialog.getColor(QColor(self._custom_color[0], self._custom_color[1], self._custom_color[2]), self, "Cor do Fundo")
-        if c.isValid():
-            self._custom_color = (c.red(), c.green(), c.blue())
-            hex_str = c.name()
-            self.btn_pick_color.setStyleSheet(f"background-color: {hex_str}; border: 1px solid #777;")
 
     def _on_browse_src(self):
         f, _ = QFileDialog.getOpenFileName(
             self,
             "Selecionar Imagem",
             "",
-            "Imagens (*.png *.jpg *.jpeg *.webp *.bmp);;Todos os Arquivos (*.*)"
+            "Imagens (*.png *.jpg *.jpeg *.webp *.bmp *.heic *.avif);;Todos (*.*)"
         )
         if f:
-            self._current_src_path = Path(f)
-            self.txt_src.setText(f)
-            pix = QPixmap(f)
-            if not pix.isNull():
-                self.lbl_orig.setPixmap(pix.scaled(320, 320, Qt.KeepAspectRatio, Qt.SmoothTransformation))
-            self.btn_save.setEnabled(False)
+            self._load_image(Path(f))
 
-    def _on_run_remove(self):
-        if not self._current_src_path or not self._current_src_path.is_file():
-            QMessageBox.warning(self, "Aviso", "Selecione uma imagem de origem válida.")
+    def _on_paste_clipboard(self):
+        clipboard = QApplication.clipboard()
+        img = clipboard.image()
+        if img.isNull():
+            QMessageBox.warning(self, "Aviso", "A área de transferência não contém uma imagem válida.")
             return
 
-        mode = self.cmb_mode.currentData()
-        tol = self.spin_tol.value()
-        feather = self.spin_feather.value()
-        custom_c = self._custom_color if mode == "custom" else None
+        import tempfile
+        with tempfile.NamedTemporaryFile(suffix=".png", delete=False) as tmp:
+            tmp_path = Path(tmp.name)
+        img.save(str(tmp_path), "PNG")
+        self._load_image(tmp_path)
 
-        temp_out = Path.home() / "AppData" / "Local" / "Temp" / f"{self._current_src_path.stem}_nobg.png"
+    def _load_image(self, path: Path):
+        self._current_src_path = path
+        self.txt_src.setText(str(path))
+        pix = QPixmap(str(path))
+        self.canvas_orig.set_pixmap(pix, auto_fit=True)
 
-        self.btn_run.setEnabled(False)
-        self.lbl_status.setText("Removendo fundo e gerando canal de transparência...")
+        # Extrai paleta de cores dominante
+        try:
+            colors = extract_dominant_colors(path, num_colors=8)
+            self._update_palette_buttons(colors)
+        except Exception:
+            pass
 
-        def _work(ctx: TaskContext):
-            ctx.progress(20, 100, "Calculando distâncias de cor e opacidade...")
-            out = remove_image_background(
-                self._current_src_path,
-                temp_out,
-                mode=mode,
-                custom_color=custom_c,
-                tolerance=tol,
-                feather=feather
-            )
-            ctx.progress(100, 100, "Concluído!")
-            return out
+        self._request_preview()
 
-        def _done(result, exc):
-            self.btn_run.setEnabled(True)
-            if exc:
-                self.lbl_status.setText(f"Erro: {exc}")
-                QMessageBox.critical(self, "Erro", f"Falha ao remover fundo: {exc}")
-            else:
-                self.lbl_status.setText("Fundo removido com sucesso!")
-                pix_res = QPixmap(str(result))
-                if not pix_res.isNull():
-                    self.lbl_res.setPixmap(pix_res.scaled(320, 320, Qt.KeepAspectRatio, Qt.SmoothTransformation))
-                self.btn_save.setEnabled(True)
-                self._temp_nobg_path = result
+    def _update_palette_buttons(self, colors: List[dict]):
+        # Limpa botões antigos
+        while self.palette_layout.count() > 0:
+            item = self.palette_layout.takeAt(0)
+            if item.widget():
+                item.widget().deleteLater()
 
-        def _on_prog(cur, tot, msg):
-            if msg:
-                self.lbl_status.setText(msg)
+        for c in colors:
+            hex_str = c["hex"]
+            rgb_val = c["rgb"]
+            btn = QPushButton()
+            btn.setFixedSize(24, 24)
+            btn.setStyleSheet(f"background-color: {hex_str}; border-radius: 4px; border: 1px solid #777;")
+            btn.setToolTip(f"Usar {hex_str} como cor de fundo para remover")
+            btn.clicked.connect(lambda _, rgb=rgb_val: self._on_select_palette_color(rgb))
+            self.palette_layout.addWidget(btn)
 
-        run_task(_work, on_done=_done, on_progress=_on_prog)
+    def _on_select_palette_color(self, rgb: Tuple[int, int, int]):
+        self._custom_color = rgb
+        self.cmb_mode.setCurrentIndex(3)  # Chroma Key
+        self._request_preview()
 
-    def _on_save_as(self):
-        if not hasattr(self, "_temp_nobg_path") or not self._temp_nobg_path.exists():
-            return
+    def _on_mode_changed(self):
+        self._request_preview()
 
-        default_name = f"{self._current_src_path.stem}_transparente.png" if self._current_src_path else "sem_fundo.png"
-        f, _ = QFileDialog.getSaveFileName(self, "Salvar Imagem sem Fundo", default_name, "Imagem PNG (*.png)")
+    def _on_replace_mode_changed(self):
+        mode = self.cmb_bg_replace.currentData()
+        self.btn_pick_solid.setVisible(mode == "solid")
+        self.btn_browse_bg_img.setVisible(mode == "custom_image")
+        self._request_preview()
+
+    def _on_pick_solid_color(self):
+        c = QColorDialog.getColor()
+        if c.isValid():
+            self._solid_replacement_color = (c.red(), c.green(), c.blue())
+            self._request_preview()
+
+    def _on_browse_bg_image(self):
+        f, _ = QFileDialog.getOpenFileName(self, "Selecionar Imagem de Fundo", "", "Imagens (*.png *.jpg *.jpeg *.webp)")
         if f:
-            import shutil
-            shutil.copy2(self._temp_nobg_path, f)
-            ans = QMessageBox.question(
-                self,
-                "Sucesso",
-                f"Imagem com fundo transparente salva em:\n{f}\n\nDeseja abrir a imagem?",
-                QMessageBox.Yes | QMessageBox.No
+            self._custom_bg_image = Path(f)
+            self._request_preview()
+
+    def _request_preview(self):
+        if not self._current_src_path:
+            return
+        self._preview_timer.start(150)
+
+    def _do_update_preview(self):
+        if not self._current_src_path or not self._current_src_path.is_file():
+            return
+
+        params = {
+            "mode": self.cmb_mode.currentData(),
+            "custom_color": self._custom_color,
+            "tolerance": int(self.slider_tol.value()),
+            "feather": int(self.slider_feather.value()),
+            "bg_replacement_mode": self.cmb_bg_replace.currentData(),
+            "bg_solid_color": self._solid_replacement_color,
+            "bg_custom_image_path": self._custom_bg_image,
+        }
+
+        try:
+            im = render_remove_bg_preview(self._current_src_path, params)
+            import io
+            buf = io.BytesIO()
+            im.save(buf, format="PNG")
+            pix = QPixmap()
+            pix.loadFromData(buf.getvalue())
+            self.canvas_res.set_pixmap(pix, auto_fit=False)
+        except Exception as ex:
+            pass
+
+    def _on_save_result(self):
+        if not self._current_src_path:
+            QMessageBox.warning(self, "Aviso", "Carregue uma imagem primeiro.")
+            return
+
+        dest_str, _ = QFileDialog.getSaveFileName(self, "Salvar Imagem sem Fundo", "sem_fundo.png", "PNG (*.png);;WEBP (*.webp)")
+        if not dest_str:
+            return
+
+        params = {
+            "mode": self.cmb_mode.currentData(),
+            "custom_color": self._custom_color,
+            "tolerance": int(self.slider_tol.value()),
+            "feather": int(self.slider_feather.value()),
+            "bg_replacement_mode": self.cmb_bg_replace.currentData(),
+            "bg_solid_color": self._solid_replacement_color,
+            "bg_custom_image_path": self._custom_bg_image,
+        }
+
+        try:
+            remove_image_background(
+                input_path=self._current_src_path,
+                output_path=Path(dest_str),
+                **params
             )
-            if ans == QMessageBox.Yes and Path(f).exists():
-                subprocess.Popen(f'explorer /select,"{f}"')
+            show_toast(self, f"Imagem salva em:\n{dest_str}")
+        except Exception as ex:
+            QMessageBox.critical(self, "Erro", f"Falha ao salvar: {ex}")
