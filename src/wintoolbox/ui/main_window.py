@@ -34,6 +34,7 @@ from wintoolbox.ui.pages.debug_page import DebugPage
 from wintoolbox.ui.pages.history_page import HistoryPage
 from wintoolbox.ui.pages.home_page import HomePage
 from wintoolbox.ui.pages.settings_page import SettingsPage
+from wintoolbox.ui.sidebar_labels import get_sidebar_tool_label
 from wintoolbox.ui.theme import apply_theme, get_current_tokens
 from wintoolbox.ui.tray import SystemTrayManager
 from wintoolbox.ui.widgets.command_palette import CommandPaletteDialog
@@ -414,13 +415,10 @@ class MainWindow(QMainWindow):
         return True
 
     def _format_tool_label(self, tool: BaseTool, include_category: bool = False) -> str:
-        tool_name = (getattr(tool, "name", "") or getattr(tool, "title", "") or tool.id).strip()
-        parts = [tool_name]
+        tool_name = get_sidebar_tool_label(tool)
         if include_category:
-            parts.append(f"({tool.category})")
-        if isinstance(tool, FileTool):
-            parts.append("[Lote]")
-        return "  ".join(parts)
+            return f"{tool_name} ({tool.category})"
+        return tool_name
 
     def _build_tool_tooltip(self, tool: BaseTool) -> str:
         kind = "Processamento em Lote" if isinstance(tool, FileTool) else "Painel Interativo"
@@ -440,7 +438,10 @@ class MainWindow(QMainWindow):
         fav_ids = st.get("favorites", [])
 
         if getattr(self, "_sidebar_mode", "categories") == "az":
-            tools = [t for t in sorted(get_all_tools(), key=lambda x: normalize_text(x.name)) if self._matches_type_filter(t)]
+            tools = [
+                t for t in sorted(get_all_tools(), key=lambda x: normalize_text(get_sidebar_tool_label(x)))
+                if self._matches_type_filter(t)
+            ]
             for tool in tools:
                 item = QTreeWidgetItem(self.tree_nav)
                 item.setText(0, self._format_tool_label(tool, include_category=True))
