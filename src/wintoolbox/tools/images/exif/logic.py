@@ -247,9 +247,8 @@ def strip_metadata(src: Path, dst: Path, remove_gps_only: bool = False) -> bool:
                 im.save(dst, exif=exif)
                 return True
 
-            data = list(im.getdata())
             clean_im = Image.new(im.mode, im.size)
-            clean_im.putdata(data)
+            clean_im.paste(im)
 
             dst.parent.mkdir(parents=True, exist_ok=True)
             ext = dst.suffix.lower()
