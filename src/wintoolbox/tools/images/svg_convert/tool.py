@@ -32,7 +32,6 @@ SCALE_OPTIONS = [
 ]
 
 
-@register
 class SvgConverterTool(FileTool):
     id = "images.svg_convert"
     name = "Conversor de SVG para PNG e ICO"

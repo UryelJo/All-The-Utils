@@ -67,7 +67,6 @@ class CropOverlayItem(QGraphicsRectItem):
             painter.drawLine(QPointF(r.left(), r.top() + 2 * h_step), QPointF(r.right(), r.top() + 2 * h_step))
 
 
-@register
 class CropEditorTool(Tool):
     id = "images.crop_editor"
     name = "Editor de Recorte e Rotação"

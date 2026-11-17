@@ -24,7 +24,6 @@ from wintoolbox.tools.images.barcode.logic import (
 )
 
 
-@register
 class BarcodeGeneratorTool(Tool):
     id = "images.barcode"
     name = "Gerador de Código de Barras"

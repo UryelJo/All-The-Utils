@@ -1,3 +1,1 @@
-from .tool import BarcodeGeneratorTool
-
-__all__ = ["BarcodeGeneratorTool"]
+"""Módulo de Códigos de Barras (consolidado em images.qrcode)."""

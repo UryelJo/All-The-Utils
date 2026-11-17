@@ -17,7 +17,6 @@ from wintoolbox.tools.images.favicon.logic import (
     DEFAULT_ICO_SIZES, generate_multi_size_ico, generate_web_favicon_package
 )
 
-@register
 class ImageFaviconTool(Tool):
     id = "images.favicon"
     name = "Gerador de Ícones e Favicons"

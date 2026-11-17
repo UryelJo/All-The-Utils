@@ -82,7 +82,6 @@ class ScreenSnipperOverlay(QDialog):
             painter.drawRect(r)
 
 
-@register
 class TextExtractorTool(Tool):
     id = "images.text_extractor"
     name = "Extrator de Texto de Tela"
