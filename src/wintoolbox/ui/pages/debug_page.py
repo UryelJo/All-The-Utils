@@ -190,7 +190,8 @@ class DebugPage(QWidget):
         lay.addWidget(card)
 
         row = QHBoxLayout()
-        b_all = QPushButton("Modo Detalhado (tudo em DEBUG)")
+        b_all = QPushButton("Modo Detalhado")
+        b_all.setToolTip("Define todos os loggers para DEBUG")
         b_all.clicked.connect(lambda: self._set_all_levels("DEBUG"))
         row.addWidget(b_all)
         b_reset = QPushButton("Restaurar Padrões")

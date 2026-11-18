@@ -24,9 +24,9 @@ from wintoolbox.tools.text.regex_tester.logic import (
 @register
 class RegexTesterTool(Tool):
     id = "text.regex_tester"
-    name = "Testador de Expressões Regulares (RegEx)"
+    name = "Testador de Regex Avançado"
     category = "Texto e Redação"
-    description = "Teste padrões regex em tempo real, inspecione grupos de captura, substituições e catálogo de padrões"
+    description = "Teste padrões regex, inspecione grupos de captura, substituições e catálogo de padrões"
     keywords = ["regex", "regexp", "expressao regular", "padrao", "email", "cpf", "busca", "substituicao"]
 
     def __init__(self) -> None:

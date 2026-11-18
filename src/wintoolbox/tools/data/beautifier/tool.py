@@ -71,12 +71,12 @@ class DataBeautifierView(QWidget):
         self.cmb_indent.addItems(["2 espaços", "4 espaços"])
         l_cfg.addWidget(self.cmb_indent)
 
-        self.btn_beautify = QPushButton("Formatar (Beautify)")
+        self.btn_beautify = QPushButton("Formatar")
         self.btn_beautify.setProperty("class", "primary")
         self.btn_beautify.clicked.connect(self._do_beautify)
         l_cfg.addWidget(self.btn_beautify)
 
-        self.btn_minify = QPushButton("Minificar (Compactar)")
+        self.btn_minify = QPushButton("Minificar")
         self.btn_minify.clicked.connect(self._do_minify)
         l_cfg.addWidget(self.btn_minify)
 

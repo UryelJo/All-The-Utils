@@ -78,7 +78,7 @@ class ConverterView(QWidget):
         self.txt_epoch_in.textChanged.connect(self._on_epoch_changed)
         row_e1.addWidget(self.txt_epoch_in, stretch=1)
 
-        btn_now = QPushButton("Momento Atual (Agora)")
+        btn_now = QPushButton("Agora")
         btn_now.setProperty("class", "primary")
         btn_now.clicked.connect(self._set_epoch_now)
         row_e1.addWidget(btn_now)

@@ -65,7 +65,7 @@ class NFeKeyTool(Tool):
         layout.addWidget(desc)
 
         # Entrada
-        grp_in = QGroupBox("Chave de Acesso (44 dígitos)")
+        grp_in = QGroupBox("Chave de Acesso")
         v_in = QVBoxLayout(grp_in)
         v_in.setSpacing(8)
 

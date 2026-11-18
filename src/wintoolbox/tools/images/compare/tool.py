@@ -80,7 +80,7 @@ class CompareView(QWidget):
         # Bloco Imagem A
         b_a = QVBoxLayout()
         b_a.setSpacing(4)
-        self.btn_load_a = QPushButton("Carregar Imagem A (Original)...")
+        self.btn_load_a = QPushButton("Carregar Imagem A...")
         self.btn_load_a.setProperty("accent", True)
         self.btn_load_a.clicked.connect(lambda: self._load_file("A"))
         b_a.addWidget(self.btn_load_a)
@@ -89,14 +89,14 @@ class CompareView(QWidget):
         b_a.addWidget(self.lbl_file_a)
         f_lay.addLayout(b_a, stretch=1)
 
-        self.btn_swap = QPushButton("Inverter (A ↔ B)")
+        self.btn_swap = QPushButton("Inverter")
         self.btn_swap.clicked.connect(self._swap_images)
         f_lay.addWidget(self.btn_swap)
 
         # Bloco Imagem B
         b_b = QVBoxLayout()
         b_b.setSpacing(4)
-        self.btn_load_b = QPushButton("Carregar Imagem B (Modificada)...")
+        self.btn_load_b = QPushButton("Carregar Imagem B...")
         self.btn_load_b.setProperty("accent", True)
         self.btn_load_b.clicked.connect(lambda: self._load_file("B"))
         b_b.addWidget(self.btn_load_b)
@@ -117,16 +117,16 @@ class CompareView(QWidget):
         c_lay.addWidget(QLabel("Modo:"))
         self.mode_group = QButtonGroup(self)
 
-        rb_slider = QRadioButton("Slider Cortina")
+        rb_slider = QRadioButton("Cortina")
         rb_slider.setChecked(True)
         self.mode_group.addButton(rb_slider, 0)
         c_lay.addWidget(rb_slider)
 
-        rb_diff = QRadioButton("Diferença de Pixels")
+        rb_diff = QRadioButton("Diferença")
         self.mode_group.addButton(rb_diff, 1)
         c_lay.addWidget(rb_diff)
 
-        rb_flicker = QRadioButton("Piscante (Flicker)")
+        rb_flicker = QRadioButton("Alternada")
         self.mode_group.addButton(rb_flicker, 2)
         c_lay.addWidget(rb_flicker)
 

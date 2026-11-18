@@ -101,7 +101,7 @@ class LicenseInfoView(QWidget):
         btn_refresh.clicked.connect(self._load_async)
         act_btn_row.addWidget(btn_refresh)
 
-        btn_xpr = QPushButton("Verificar Validade da Ativação (slmgr /xpr)")
+        btn_xpr = QPushButton("Verificar Validade")
         btn_xpr.clicked.connect(self._on_check_expiration)
         act_btn_row.addWidget(btn_xpr)
 
@@ -185,12 +185,12 @@ class LicenseInfoView(QWidget):
         self.txt_install_key.setStyleSheet("font-family: 'Cascadia Mono', 'Consolas', monospace;")
         input_row.addWidget(self.txt_install_key, stretch=1)
 
-        self.btn_install_key = QPushButton("1. Instalar Chave (slmgr /ipk)")
+        self.btn_install_key = QPushButton("Instalar Chave")
         self.btn_install_key.setProperty("class", "primary")
         self.btn_install_key.clicked.connect(self._on_install_key)
         input_row.addWidget(self.btn_install_key)
 
-        self.btn_activate_now = QPushButton("2. Ativar Windows Agora (slmgr /ato)")
+        self.btn_activate_now = QPushButton("Ativar Windows")
         self.btn_activate_now.setProperty("accent", True)
         self.btn_activate_now.clicked.connect(self._on_activate_online)
         input_row.addWidget(self.btn_activate_now)
@@ -203,7 +203,7 @@ class LicenseInfoView(QWidget):
         self.txt_kms_host.setPlaceholderText("Ex: kms.empresa.local (apenas para licenciamento por volume KMS)")
         kms_row.addWidget(self.txt_kms_host, stretch=1)
 
-        self.btn_set_kms = QPushButton("Definir Servidor KMS (slmgr /skms)")
+        self.btn_set_kms = QPushButton("Definir Servidor KMS")
         self.btn_set_kms.clicked.connect(self._on_set_kms)
         kms_row.addWidget(self.btn_set_kms)
         act_ops_lay.addLayout(kms_row)

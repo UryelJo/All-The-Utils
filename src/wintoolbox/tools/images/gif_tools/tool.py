@@ -29,7 +29,7 @@ class GifToolsTool(Tool):
     id = "images.gif_tools"
     name = "Montador e Extrator de GIF"
     category = "Imagens"
-    description = "Criação de GIFs animados com timeline visual, player em tempo real e extração de quadros"
+    description = "Criação de GIFs animados com timeline visual, player e extração de quadros"
     keywords = ["gif", "animação", "frames", "quadros", "montador", "extrair", "loop", "timeline", "player"]
 
     def build_view(self, parent: Optional[QWidget] = None) -> QWidget:

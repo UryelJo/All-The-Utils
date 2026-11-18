@@ -30,7 +30,7 @@ class IpInfoTool(Tool):
     id = "network.ip_info"
     name = "Informações de IP e Monitor de Rede"
     category = "Rede e Internet"
-    description = "Consulta de IP local e público, adaptadores de rede e velocidade de tráfego em tempo real"
+    description = "Consulta de IP local e público, adaptadores de rede e velocidade de tráfego"
     keywords = ["ip", "rede", "conexao", "publico", "local", "mac", "interface", "velocidade", "download", "upload"]
 
     def build_view(self, parent: Optional[QWidget] = None) -> QWidget:

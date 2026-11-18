@@ -30,7 +30,7 @@ class WorldClockTool(Tool):
     id = "calc.world_clock"
     name = "Relógio Mundial"
     category = "Calculadoras"
-    description = "Relógio mundial em tempo real das principais capitais do mundo, conversor de fusos horários (UTC/GMT), horário de verão e comparativo de jornadas de trabalho."
+    description = "Relógio mundial das principais capitais do mundo, conversor de fusos horários (UTC/GMT), horário de verão e comparativo de jornadas de trabalho."
     keywords = ["relogio", "fuso", "timezone", "hora", "mundial", "utc", "gmt", "calculadora"]
 
     def build_view(self, parent: Optional[QWidget] = None) -> QWidget:
@@ -61,7 +61,7 @@ class WorldClockView(QWidget):
         ))
 
         self.tabs = QTabWidget()
-        self.tabs.addTab(self._build_clocks_tab(), "Relógios Globais ao Vivo")
+        self.tabs.addTab(self._build_clocks_tab(), "Relógios")
         self.tabs.addTab(self._build_converter_tab(), "Conversor de Horário")
         root.addWidget(self.tabs, stretch=1)
 

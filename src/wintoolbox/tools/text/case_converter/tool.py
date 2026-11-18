@@ -83,7 +83,7 @@ class CaseConverterTool(Tool):
         splitter.addWidget(input_group)
 
         # Painel de Resultados com Abas/Grade de Cards
-        result_group = QGroupBox("Variantes de Caixa (Clique para Copiar)")
+        result_group = QGroupBox("Variantes de Caixa")
         result_layout = QVBoxLayout(result_group)
         result_layout.setContentsMargins(8, 12, 8, 8)
 

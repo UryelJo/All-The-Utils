@@ -96,7 +96,7 @@ class HMACTool(Tool):
         layout.addWidget(opt_frame)
 
         # Chave Secreta
-        grp_key = QGroupBox("Chave Secreta (Secret Key)")
+        grp_key = QGroupBox("Chave Secreta")
         v_key = QVBoxLayout(grp_key)
         v_key.setSpacing(8)
 
@@ -144,7 +144,7 @@ class HMACTool(Tool):
         layout.addWidget(grp_res)
 
         # Seção de Verificação / Comparação
-        grp_verify = QGroupBox("Verificação de Assinatura (Conferir Webhook)")
+        grp_verify = QGroupBox("Verificação de Assinatura")
         v_ver = QVBoxLayout(grp_verify)
         v_ver.setSpacing(8)
 

@@ -110,7 +110,7 @@ class ColorPaletteGeneratorView(QWidget):
         root_layout.addWidget(self._swatches_container)
 
         # Painel Inferior: Código Exportado
-        group_code = QGroupBox("Código da Paleta (CSS / SCSS / JSON)")
+        group_code = QGroupBox("Código da Paleta")
         code_layout = QVBoxLayout(group_code)
         self._txt_code = QPlainTextEdit()
         self._txt_code.setFont(QFont("Consolas", 9))

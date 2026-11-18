@@ -20,9 +20,9 @@ from wintoolbox.ui.widgets.sortable_table import (
 @register
 class RegexTesterTool(Tool):
     id = "text.regex"
-    name = "Testador de Expressões Regulares (Regex)"
+    name = "Testador de Regex"
     category = "Texto e Redação"
-    description = "Testa expressões regulares em tempo real com grupos de captura, substituição e flags"
+    description = "Testa expressões regulares com grupos de captura, substituição e flags"
     keywords = ["regex", "regexp", "expressao", "regular", "match", "substituir", "padrao", "texto"]
 
     def build_view(self, parent: Optional[QWidget] = None) -> QWidget:

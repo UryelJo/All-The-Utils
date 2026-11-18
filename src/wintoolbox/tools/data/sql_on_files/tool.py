@@ -99,7 +99,7 @@ class SqlOnFilesTool(Tool):
 
         btn_sample_query = QPushButton("SELECT * LIMIT 50")
         btn_count_query = QPushButton("COUNT(*)")
-        btn_execute = QPushButton("Executar Consulta (F5)")
+        btn_execute = QPushButton("Executar Consulta")
         btn_execute.setStyleSheet("font-weight: bold;")
 
         sql_header.addWidget(btn_sample_query)

@@ -27,7 +27,7 @@ class HardwareMonitorTool(Tool):
     id = "system.monitor"
     name = "Monitor de Hardware"
     category = "Sistema"
-    description = "Monitor em tempo real (CPU, RAM e Discos), Saúde SMART de Discos/SSDs e Inventário de Hardware"
+    description = "Uso de recursos (CPU, RAM e Discos), Saúde SMART de Discos/SSDs e Inventário de Hardware"
     keywords = [
         "hardware", "monitor", "cpu", "ram", "memória", "disco", "armazenamento",
         "desempenho", "smart", "ssd", "saude", "temperatura", "gpu", "placa-mae", "bios"

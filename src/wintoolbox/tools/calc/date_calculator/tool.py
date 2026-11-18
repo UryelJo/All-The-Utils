@@ -155,7 +155,7 @@ class DateCalculatorView(QWidget):
         layout.setContentsMargins(8, 12, 8, 8)
         layout.setSpacing(12)
 
-        box = QGroupBox("Adicionar ou Subtrair Dias Úteis (Prazos)")
+        box = QGroupBox("Adicionar ou Subtrair Dias Úteis")
         grid = QGridLayout(box)
         grid.setSpacing(10)
 

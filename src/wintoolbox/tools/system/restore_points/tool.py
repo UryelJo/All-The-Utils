@@ -73,7 +73,7 @@ class RestorePointsView(QWidget):
         self.btn_refresh.clicked.connect(self._load_points_async)
         actions_bar.addWidget(self.btn_refresh)
 
-        self.btn_launch_wizard = QPushButton("Abrir Assistente de Restauração (rstrui.exe)")
+        self.btn_launch_wizard = QPushButton("Abrir Assistente de Restauração")
         self.btn_launch_wizard.clicked.connect(self._launch_wizard)
         actions_bar.addWidget(self.btn_launch_wizard)
 

@@ -240,6 +240,10 @@ class BatchInputWidget(QFrame):
             if src.is_dir:
                 src.recursive = checked
         self._refresh_views()
+        if self.icon_list.count() > 0 and self.icon_list.currentRow() < 0:
+            self.icon_list.setCurrentRow(0)
+        if self.table.rowCount() > 0 and self.table.currentRow() < 0:
+            self.table.setCurrentCell(0, 0)
         self._update_discovered()
 
     def add_paths(self, paths: List[Path]) -> None:
@@ -254,6 +258,10 @@ class BatchInputWidget(QFrame):
                 self.sources.append(item)
 
         self._refresh_views()
+        if self.icon_list.count() > 0 and self.icon_list.currentRow() < 0:
+            self.icon_list.setCurrentRow(0)
+        if self.table.rowCount() > 0 and self.table.currentRow() < 0:
+            self.table.setCurrentCell(0, 0)
         self._update_discovered()
 
     def remove_source(self, item: SourceItem) -> None:
@@ -274,6 +282,10 @@ class BatchInputWidget(QFrame):
         self._current_nav_folder = None
         self.nav_bar.setVisible(False)
         self._refresh_views()
+        if self.icon_list.count() > 0 and self.icon_list.currentRow() < 0:
+            self.icon_list.setCurrentRow(0)
+        if self.table.rowCount() > 0 and self.table.currentRow() < 0:
+            self.table.setCurrentCell(0, 0)
         self._update_discovered()
 
     def _refresh_views(self) -> None:

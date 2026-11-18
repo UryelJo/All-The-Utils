@@ -22,13 +22,13 @@ from wintoolbox.tools.images.svg_convert.logic import (
 _log = get_logger("images.svg_convert.ui")
 
 SCALE_OPTIONS = [
-    ("1x (Tamanho Nativo)", 1.0),
-    ("2x (Alta Resolução - Retina)", 2.0),
-    ("4x (Ultra HD 4K)", 4.0),
-    ("Fixo: 256 × 256 px", 256),
-    ("Fixo: 512 × 512 px", 512),
-    ("Fixo: 1024 × 1024 px", 1024),
-    ("Fixo: 2048 × 2048 px", 2048),
+    ("1x", 1.0),
+    ("2x", 2.0),
+    ("4x", 4.0),
+    ("256 × 256 px", 256),
+    ("512 × 512 px", 512),
+    ("1024 × 1024 px", 1024),
+    ("2048 × 2048 px", 2048),
 ]
 
 

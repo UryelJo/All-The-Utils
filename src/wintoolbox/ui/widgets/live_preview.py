@@ -90,8 +90,8 @@ class ImageLivePreviewPanel(QFrame):
 
     def set_source_file(self, path: Optional[Union[str, Path]]) -> None:
         """Atualiza o arquivo ativo de entrada."""
-        p = Path(path) if path else None
-        if p != self._current_src:
+        p = Path(path).resolve() if path else None
+        if p != self._current_src or self._cached_original_pixmap is None:
             self._current_src = p
             self._cached_original_pixmap = None
             self._cached_result_pixmap = None
@@ -120,6 +120,11 @@ class ImageLivePreviewPanel(QFrame):
                             self._cached_original_pixmap = pix
                     except Exception:
                         self._cached_original_pixmap = None
+
+                # Exibe o original imediatamente no canvas enquanto o render roda
+                if self._cached_original_pixmap:
+                    self._canvas.set_pixmap(self._cached_original_pixmap, auto_fit=True)
+
             self.request_update()
 
     def update_params(self, params: Dict[str, Any]) -> None:
@@ -139,7 +144,8 @@ class ImageLivePreviewPanel(QFrame):
         if self._btn_original.isChecked():
             self._canvas.set_pixmap(self._cached_original_pixmap, auto_fit=False)
         else:
-            self._canvas.set_pixmap(self._cached_result_pixmap, auto_fit=False)
+            pix = self._cached_result_pixmap or self._cached_original_pixmap
+            self._canvas.set_pixmap(pix, auto_fit=False)
 
     def _do_render(self) -> None:
         if not self._current_src or not self._preview_fn:

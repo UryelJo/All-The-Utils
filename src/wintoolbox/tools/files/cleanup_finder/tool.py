@@ -81,7 +81,7 @@ class FilesCleanupFinderTool(Tool):
         options_bar.addWidget(self.chk_use_trash)
         options_bar.addStretch()
 
-        btn_scan = QPushButton("Simular Varredura (Dry Run)")
+        btn_scan = QPushButton("Simular Varredura")
         btn_scan.setStyleSheet("font-weight: bold;")
         btn_cleanup = QPushButton("Higienizar Selecionados")
         btn_cleanup.setStyleSheet("background-color: #d32f2f; color: white; font-weight: bold;")

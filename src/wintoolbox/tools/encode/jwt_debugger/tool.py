@@ -102,7 +102,7 @@ class JwtDebuggerView(QWidget):
         right_layout.setSpacing(10)
 
         # Seção Header
-        group_header = QGroupBox("Cabeçalho (Header)")
+        group_header = QGroupBox("Cabeçalho")
         group_header.setStyleSheet("QGroupBox { font-weight: bold; color: #b91c1c; }")
         gh_layout = QVBoxLayout(group_header)
         self._txt_header = QPlainTextEdit()
@@ -113,7 +113,7 @@ class JwtDebuggerView(QWidget):
         right_layout.addWidget(group_header)
 
         # Seção Payload
-        group_payload = QGroupBox("Carga Útil / Dados (Payload / Claims)")
+        group_payload = QGroupBox("Carga Útil")
         group_payload.setStyleSheet("QGroupBox { font-weight: bold; color: #6d28d9; }")
         gp_layout = QVBoxLayout(group_payload)
         self._txt_payload = QPlainTextEdit()

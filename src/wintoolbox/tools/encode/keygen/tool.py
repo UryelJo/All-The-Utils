@@ -95,7 +95,7 @@ class KeygenTool(Tool):
         layout.addWidget(cfg_frame)
 
         # Card de Impressões Digitais (Fingerprints)
-        grp_fp = QGroupBox("Impressões Digitais da Chave Pública (Fingerprints)")
+        grp_fp = QGroupBox("Impressões Digitais")
         v_fp = QVBoxLayout(grp_fp)
         v_fp.setSpacing(6)
 

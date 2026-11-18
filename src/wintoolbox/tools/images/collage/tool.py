@@ -172,7 +172,7 @@ class ImageCollageView(QWidget):
         v_base.addLayout(row_base)
 
         row_chroma = QHBoxLayout()
-        btn_detect_chroma = QPushButton("Detectar Slots Verdes (#00FF00)")
+        btn_detect_chroma = QPushButton("Detectar Slots Verdes")
         btn_detect_chroma.setToolTip("Localiza automaticamente áreas pintadas em verde na imagem para servir como slots")
         btn_detect_chroma.clicked.connect(self._on_detect_chroma)
         row_chroma.addWidget(btn_detect_chroma)

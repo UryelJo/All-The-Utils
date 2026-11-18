@@ -88,7 +88,7 @@ class EncodersView(QWidget):
         self.btn_decode.clicked.connect(self._do_decode)
         bar_act.addWidget(self.btn_decode)
 
-        self.btn_swap = QPushButton("Inverter (Saída vira Entrada)")
+        self.btn_swap = QPushButton("Inverter")
         self.btn_swap.setFixedHeight(34)
         self.btn_swap.clicked.connect(self._swap_texts)
         bar_act.addWidget(self.btn_swap)

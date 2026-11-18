@@ -61,6 +61,7 @@ class SliderSpinControl(QWidget):
         if suffix:
             self._spin.setSuffix(suffix)
 
+        self._spin.setAlignment(Qt.AlignmentFlag.AlignCenter)
         self._spin.setFixedWidth(78 if suffix else 68)
         layout.addWidget(self._spin)
 

@@ -114,7 +114,7 @@ class WindowManagerView(QWidget):
         right_layout.addWidget(trans_box)
 
         # 3. Alinhamento Rápido (Snap)
-        snap_box = QGroupBox("Alinhamento e Posicionamento (Snap)")
+        snap_box = QGroupBox("Alinhamento e Posicionamento")
         snap_grid = QGridLayout(snap_box)
         snap_grid.setSpacing(6)
 

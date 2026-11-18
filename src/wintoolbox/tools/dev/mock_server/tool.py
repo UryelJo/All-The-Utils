@@ -126,7 +126,7 @@ class MockServerTool(Tool):
         v_logs.setContentsMargins(0, 0, 0, 0)
 
         h_l_head = QHBoxLayout()
-        h_l_head.addWidget(QLabel("Log de Requisições Recebidas em Tempo Real:"))
+        h_l_head.addWidget(QLabel("Requisições Recebidas:"))
         btn_clear_logs = QPushButton("Limpar Logs")
         btn_clear_logs.clicked.connect(self._clear_logs)
         h_l_head.addStretch()

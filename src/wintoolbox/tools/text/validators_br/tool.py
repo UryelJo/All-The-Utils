@@ -96,7 +96,7 @@ class ValidatorsBrView(QWidget):
         btn_format.clicked.connect(self._format_doc)
         row_v_actions.addWidget(btn_format)
 
-        btn_unformat = QPushButton("Remover Pontuação (Só Números)")
+        btn_unformat = QPushButton("Remover Pontuação")
         btn_unformat.clicked.connect(self._unformat_doc)
         row_v_actions.addWidget(btn_unformat)
         row_v_actions.addStretch()

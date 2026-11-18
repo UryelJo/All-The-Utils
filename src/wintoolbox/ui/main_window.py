@@ -327,8 +327,9 @@ class MainWindow(QMainWindow):
         tb_layout.addWidget(self.btn_active_jobs)
 
         # Botão de Busca Rápida (Command Palette)
-        self.btn_search_top = QPushButton("Busca Rápida (Ctrl+K)")
-        self.btn_search_top.setMinimumWidth(180)
+        self.btn_search_top = QPushButton("Busca Rápida")
+        self.btn_search_top.setToolTip("Busca rápida de ferramentas (Ctrl+K)")
+        self.btn_search_top.setMinimumWidth(160)
         self.btn_search_top.setStyleSheet("text-align: center; padding: 4px 12px; font-size: 12px;")
         self.btn_search_top.clicked.connect(self._open_command_palette)
         tb_layout.addWidget(self.btn_search_top)

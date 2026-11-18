@@ -144,11 +144,11 @@ class RsaAttackView(PainelFerramenta):
         form_f.addRow("Limite de Iterações:", self.spn_f_iter)
         lay_f.addLayout(form_f)
 
-        btn_run_fermat = QPushButton("Executar Fatoração de Fermat (p ≈ q)")
+        btn_run_fermat = QPushButton("Fatoração de Fermat")
         btn_run_fermat.setProperty("accent", True)
         btn_run_fermat.clicked.connect(self._executar_fermat)
         lay_f.addWidget(btn_run_fermat)
-        self.tabs.addTab(tab_fermat, "Fermat (p ≈ q)")
+        self.tabs.addTab(tab_fermat, "Fermat")
 
         # Aba 3: Módulo Comum
         tab_mc = QWidget()
@@ -190,11 +190,11 @@ class RsaAttackView(PainelFerramenta):
         self.txt_h_dados.setMaximumHeight(110)
         lay_h.addWidget(self.txt_h_dados)
 
-        btn_run_hastad = QPushButton("Executar Hastad Broadcast (CRT)")
+        btn_run_hastad = QPushButton("Ataque Broadcast")
         btn_run_hastad.setProperty("accent", True)
         btn_run_hastad.clicked.connect(self._executar_hastad)
         lay_h.addWidget(btn_run_hastad)
-        self.tabs.addTab(tab_h, "Hastad Broadcast")
+        self.tabs.addTab(tab_h, "Broadcast")
 
         # Resultado / Relatório
         card_res, lay_res = criar_card("Relatório de Criptoanálise", self)

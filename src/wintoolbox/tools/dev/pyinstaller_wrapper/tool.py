@@ -31,7 +31,7 @@ class PyInstallerWrapperTool(Tool):
     id = "dev.pyinstaller_wrapper"
     name = "Gerador de Executáveis"
     category = "Desenvolvimento"
-    description = "Configuração e compilação de scripts Python em executáveis .exe nativos via PyInstaller com logs em tempo real"
+    description = "Configuração e compilação de scripts Python em executáveis .exe nativos via PyInstaller com acompanhamento do log"
     keywords = ["pyinstaller", "exe", "executavel", "build", "compilador", "python", "deploy", "dist", "dev"]
 
     def build_view(self, parent: Optional[QWidget] = None) -> QWidget:

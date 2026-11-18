@@ -120,28 +120,28 @@ class ListOpsTool(Tool):
         v_center.setSpacing(8)
         v_center.addStretch()
 
-        btn_union = QPushButton("União (A ∪ B)")
+        btn_union = QPushButton("União")
         btn_union.clicked.connect(lambda: self._on_operation(ListOperation.UNION))
         v_center.addWidget(btn_union)
 
-        btn_intersect = QPushButton("Interseção (A ∩ B)")
+        btn_intersect = QPushButton("Interseção")
         btn_intersect.setStyleSheet("font-weight: bold;")
         btn_intersect.clicked.connect(lambda: self._on_operation(ListOperation.INTERSECTION))
         v_center.addWidget(btn_intersect)
 
-        btn_diff_a = QPushButton("Apenas em A (A - B)")
+        btn_diff_a = QPushButton("Apenas em A")
         btn_diff_a.clicked.connect(lambda: self._on_operation(ListOperation.DIFF_A_MINUS_B))
         v_center.addWidget(btn_diff_a)
 
-        btn_diff_b = QPushButton("Apenas em B (B - A)")
+        btn_diff_b = QPushButton("Apenas em B")
         btn_diff_b.clicked.connect(lambda: self._on_operation(ListOperation.DIFF_B_MINUS_A))
         v_center.addWidget(btn_diff_b)
 
-        btn_sym_diff = QPushButton("Diferença Simétrica (A Δ B)")
+        btn_sym_diff = QPushButton("Diferença Simétrica")
         btn_sym_diff.clicked.connect(lambda: self._on_operation(ListOperation.SYMMETRIC_DIFF))
         v_center.addWidget(btn_sym_diff)
 
-        btn_concat = QPushButton("Concatenar (A + B)")
+        btn_concat = QPushButton("Concatenar")
         btn_concat.clicked.connect(lambda: self._on_operation(ListOperation.CONCAT))
         v_center.addWidget(btn_concat)
 

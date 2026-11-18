@@ -28,7 +28,7 @@ class ConnectionsTool(Tool):
     id = "network.connections"
     name = "Conexões de Rede por Processo"
     category = "Rede e Internet"
-    description = "Monitoramento ao vivo de portas abertas, sockets e conexões ativas associadas a cada processo (TCPView)"
+    description = "Monitoramento de portas abertas, sockets e conexões ativas associadas a cada processo"
     keywords = ["conexoes", "portas", "tcp", "udp", "processo", "tcpview", "socket", "rede", "listening", "established"]
 
     def build_view(self, parent: Optional[QWidget] = None) -> QWidget:

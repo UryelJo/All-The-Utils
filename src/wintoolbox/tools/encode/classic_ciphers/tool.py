@@ -108,7 +108,7 @@ class ClassicCiphersTool(Tool):
         self.spin_shift.valueChanged.connect(self._on_process)
         cfg_layout.addWidget(self.spin_shift)
 
-        self.btn_brute_force = QPushButton("Brute-Force (25 Deslocamentos)")
+        self.btn_brute_force = QPushButton("Força Bruta")
         self.btn_brute_force.clicked.connect(self._open_brute_force_dialog)
         cfg_layout.addWidget(self.btn_brute_force)
 
@@ -160,7 +160,7 @@ class ClassicCiphersTool(Tool):
         btn_copy.clicked.connect(self._copy_result)
         bar_out.addWidget(btn_copy)
 
-        btn_swap = QPushButton("Inverter (Usar Saída como Entrada)")
+        btn_swap = QPushButton("Inverter")
         btn_swap.clicked.connect(self._swap_texts)
         bar_out.addWidget(btn_swap)
         bar_out.addStretch()

@@ -67,7 +67,7 @@ class OcrView(QWidget):
         btn_paste.clicked.connect(self._on_paste_clipboard)
         top_bar.addWidget(btn_paste)
 
-        self.btn_run = QPushButton("Extrair Texto (OCR)")
+        self.btn_run = QPushButton("Extrair Texto")
         self.btn_run.setProperty("class", "primary")
         self.btn_run.setStyleSheet("font-weight: bold; padding: 6px 18px;")
         self.btn_run.clicked.connect(self._on_run_ocr)
@@ -80,7 +80,7 @@ class OcrView(QWidget):
         split_layout.setSpacing(12)
 
         # Esquerda: Imagem com ROI
-        grp_prev = QGroupBox("Imagem de Origem (Arraste para selecionar região pontilhada)")
+        grp_prev = QGroupBox("Imagem de Origem")
         prev_layout = QVBoxLayout(grp_prev)
         prev_layout.setSpacing(6)
 
@@ -103,14 +103,14 @@ class OcrView(QWidget):
         split_layout.addWidget(grp_prev, stretch=1)
 
         # Direita: Texto Reconhecido e Barra de Formatação
-        grp_text = QGroupBox("Texto Reconhecido (OCR)")
+        grp_text = QGroupBox("Texto")
         text_layout = QVBoxLayout(grp_text)
-        text_layout.setSpacing(6)
+        text_layout.setSpacing(8)
 
         # Barra de ferramentas de formatação de texto
         tb_text = QHBoxLayout()
-        tb_text.setContentsMargins(0, 4, 0, 8)
-        tb_text.setSpacing(8)
+        tb_text.setContentsMargins(0, 4, 0, 10)
+        tb_text.setSpacing(10)
 
         btn_join = QPushButton("Juntar Parágrafos")
         btn_join.setFixedHeight(26)
@@ -138,14 +138,15 @@ class OcrView(QWidget):
 
         tb_text.addWidget(QLabel("Tamanho:"))
         self.spin_font_size = QSpinBox()
-        self.spin_font_size.setFixedWidth(64)
+        self.spin_font_size.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        self.spin_font_size.setFixedWidth(56)
         self.spin_font_size.setRange(10, 24)
         self.spin_font_size.setValue(12)
         self.spin_font_size.valueChanged.connect(self._on_font_size_changed)
         tb_text.addWidget(self.spin_font_size)
 
         text_layout.addLayout(tb_text)
-        text_layout.addSpacing(4)
+        text_layout.addSpacing(6)
 
         self.txt_result = QTextEdit()
         self.txt_result.setPlaceholderText("O texto detectado na imagem aparecerá aqui...")
@@ -228,12 +229,12 @@ class OcrView(QWidget):
             return
 
         if not is_admin():
-            if prompt_elevation_dialog(
+            prompt_elevation_dialog(
                 self,
-                tool_name="Reconhecimento OCR",
-                reason="O motor OCR do Windows exige privilégios de Administrador para inicializar e consultar os pacotes de idiomas instalados.",
-            ):
-                return
+                tool_name="OCR de Imagem",
+                reason="O motor OCR nativo do Windows requer privilégios de Administrador para inicializar e acessar pacotes de idiomas.",
+            )
+            return
 
         roi = self.canvas.get_roi()
         if roi and roi.width() > 5 and roi.height() > 5:

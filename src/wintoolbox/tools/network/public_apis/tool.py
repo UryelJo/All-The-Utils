@@ -27,7 +27,7 @@ class PublicApisTool(Tool):
     id = "network.public_apis"
     name = "Consultas Públicas e BrasilAPI"
     category = "Rede e Internet"
-    description = "Consulta de CEP, CNPJ, DDD, Bancos autorizados, Feriados Nacionais, Tabela FIPE e Cotações em tempo real"
+    description = "Consulta de CEP, CNPJ, DDD, Bancos autorizados, Feriados Nacionais, Tabela FIPE e Cotações"
     keywords = [
         "cep", "cnpj", "cotacao", "dolar", "euro", "bitcoin", "moedas",
         "brasilapi", "viacep", "empresa", "endereco", "ddd", "bancos",
@@ -494,7 +494,7 @@ class PublicApisView(QWidget):
         layout.setSpacing(10)
 
         row_act = QHBoxLayout()
-        btn_refresh = QPushButton("Atualizar Cotações em Tempo Real")
+        btn_refresh = QPushButton("Atualizar Cotações")
         btn_refresh.setProperty("class", "primary")
         btn_refresh.clicked.connect(self._refresh_quotes)
         row_act.addWidget(btn_refresh)

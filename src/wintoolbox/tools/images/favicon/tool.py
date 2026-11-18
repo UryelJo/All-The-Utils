@@ -76,8 +76,8 @@ class ImageFaviconView(QWidget):
 
         # Abas de Exportação
         tabs = QTabWidget()
-        tabs.addTab(self._build_ico_tab(), "Arquivo .ICO (Windows)")
-        tabs.addTab(self._build_web_tab(), "Pacote Completo Web Favicon")
+        tabs.addTab(self._build_ico_tab(), "Arquivo ICO")
+        tabs.addTab(self._build_web_tab(), "Pacote Web")
         layout.addWidget(tabs)
 
         layout.addStretch()
@@ -94,12 +94,19 @@ class ImageFaviconView(QWidget):
         if f:
             self.txt_src.setText(f)
 
+    def _browse_ico_dst(self):
+        d = QFileDialog.getExistingDirectory(self, "Selecionar Pasta de Destino")
+        if d:
+            self.txt_ico_dst.setText(d)
+
     def _build_ico_tab(self) -> QWidget:
         w = QWidget()
         layout = QVBoxLayout(w)
         layout.setSpacing(12)
 
-        layout.addWidget(QLabel("Tamanhos embutidos no arquivo .ico:"))
+        grp_sizes = QGroupBox("Tamanhos do Ícone")
+        l_sizes = QVBoxLayout(grp_sizes)
+        l_sizes.setSpacing(8)
         grid_sizes = QGridLayout()
         self.chk_sizes = {}
         for idx, sz in enumerate(DEFAULT_ICO_SIZES):
@@ -107,7 +114,20 @@ class ImageFaviconView(QWidget):
             chk.setChecked(True)
             self.chk_sizes[sz] = chk
             grid_sizes.addWidget(chk, idx // 4, idx % 4)
-        layout.addLayout(grid_sizes)
+        l_sizes.addLayout(grid_sizes)
+        layout.addWidget(grp_sizes)
+
+        grp_out = QGroupBox("Destino")
+        l_out = QVBoxLayout(grp_out)
+        row_dst = QHBoxLayout()
+        self.txt_ico_dst = QLineEdit()
+        self.txt_ico_dst.setPlaceholderText("Pasta de destino (opcional, salva ao lado da imagem original por padrão)...")
+        row_dst.addWidget(self.txt_ico_dst, stretch=1)
+        btn_browse_dst = QPushButton("Procurar...")
+        btn_browse_dst.clicked.connect(self._browse_ico_dst)
+        row_dst.addWidget(btn_browse_dst)
+        l_out.addLayout(row_dst)
+        layout.addWidget(grp_out)
 
         row_out = QHBoxLayout()
         btn_generate = QPushButton("Gerar Arquivo .ICO...")
@@ -118,6 +138,7 @@ class ImageFaviconView(QWidget):
         row_out.addStretch()
         layout.addLayout(row_out)
 
+        layout.addStretch()
         return w
 
     def _generate_ico(self):
@@ -131,10 +152,15 @@ class ImageFaviconView(QWidget):
             QMessageBox.warning(self, "Aviso", "Selecione pelo menos um tamanho para o arquivo .ico.")
             return
 
+        default_dst = Path(src_str).with_suffix(".ico")
+        custom_dst_dir = getattr(self, "txt_ico_dst", None)
+        if custom_dst_dir and custom_dst_dir.text().strip() and Path(custom_dst_dir.text().strip()).is_dir():
+            default_dst = Path(custom_dst_dir.text().strip()) / default_dst.name
+
         dst_str, _ = QFileDialog.getSaveFileName(
             self,
             "Salvar Arquivo de Ícone",
-            str(Path(src_str).with_suffix(".ico")),
+            str(default_dst),
             "Ícones do Windows (*.ico)"
         )
         if not dst_str:
@@ -191,6 +217,7 @@ class ImageFaviconView(QWidget):
         btn_copy_html.clicked.connect(self._copy_html)
         layout.addWidget(btn_copy_html)
 
+        layout.addStretch()
         return w
 
     def _generate_web_pack(self):

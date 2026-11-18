@@ -27,10 +27,10 @@ from wintoolbox.ui.widgets.sortable_table import (
 @register
 class FolderWatcherTool(Tool):
     id = "files.folder_watcher"
-    name = "Monitor de Pastas em Tempo Real"
+    name = "Monitor de Pastas"
     category = "Arquivos e Pastas"
     description = "Sentinela de diretórios: monitora pastas em segundo plano e emite alertas visuais quando arquivos são criados, modificados, renomeados ou deletados."
-    keywords = ["monitor", "watcher", "pasta", "tempo real", "eventos", "alerta", "notificação", "arquivos"]
+    keywords = ["monitor", "watcher", "pasta", "eventos", "alerta", "notificação", "arquivos"]
 
     def build_view(self, parent: Optional[QWidget] = None) -> QWidget:
         return FolderWatcherView(self, parent)

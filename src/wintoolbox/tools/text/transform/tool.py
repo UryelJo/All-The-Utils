@@ -146,11 +146,11 @@ class TextTransformView(QWidget):
         grid_lines = QGridLayout()
         grid_lines.setSpacing(8)
 
-        btn_sort_az = QPushButton("Ordenar Linhas (A → Z)")
+        btn_sort_az = QPushButton("Ordenar A → Z")
         btn_sort_az.clicked.connect(self._sort_lines_asc)
         grid_lines.addWidget(btn_sort_az, 0, 0)
 
-        btn_sort_za = QPushButton("Ordenar Linhas (Z → A)")
+        btn_sort_za = QPushButton("Ordenar Z → A")
         btn_sort_za.clicked.connect(self._sort_lines_desc)
         grid_lines.addWidget(btn_sort_za, 0, 1)
 
@@ -166,7 +166,7 @@ class TextTransformView(QWidget):
         btn_reverse.clicked.connect(self._reverse_lines)
         grid_lines.addWidget(btn_reverse, 1, 0)
 
-        btn_number = QPushButton("Numerar Linhas (1, 2, 3...)")
+        btn_number = QPushButton("Numerar Linhas")
         btn_number.clicked.connect(self._number_lines)
         grid_lines.addWidget(btn_number, 1, 1)
 

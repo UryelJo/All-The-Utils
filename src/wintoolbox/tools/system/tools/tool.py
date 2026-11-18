@@ -128,11 +128,11 @@ class SystemToolsView(QWidget):
         grid_layout.setContentsMargins(12, 12, 12, 12)
         grid_layout.setSpacing(10)
 
-        btn_sfc = QPushButton("Verificar Integridade de Arquivos (SFC /scannow)")
+        btn_sfc = QPushButton("Verificar Integridade de Arquivos")
         btn_sfc.clicked.connect(lambda: self._run_command("sfc /scannow", requires_admin=True))
         grid_layout.addWidget(btn_sfc, 0, 0)
 
-        btn_dism = QPushButton("Reparar Imagem do Windows (DISM /RestoreHealth)")
+        btn_dism = QPushButton("Reparar Imagem do Windows")
         btn_dism.clicked.connect(
             lambda: self._run_command("DISM.exe /Online /Cleanup-Image /RestoreHealth", requires_admin=True)
         )
@@ -142,15 +142,15 @@ class SystemToolsView(QWidget):
         btn_defrag.clicked.connect(lambda: self._run_command("defrag C: /O", requires_admin=True))
         grid_layout.addWidget(btn_defrag, 1, 0)
 
-        btn_temp = QPushButton("Limpar Arquivos Temporários (%TEMP%)")
+        btn_temp = QPushButton("Limpar Arquivos Temporários")
         btn_temp.clicked.connect(self._run_clean_temp)
         grid_layout.addWidget(btn_temp, 1, 1)
 
-        btn_dns = QPushButton("Limpar Cache de DNS (ipconfig /flushdns)")
+        btn_dns = QPushButton("Limpar Cache DNS")
         btn_dns.clicked.connect(lambda: self._run_command("ipconfig /flushdns", requires_admin=False))
         grid_layout.addWidget(btn_dns, 2, 0)
 
-        btn_net_reset = QPushButton("Redefinir Pilha de Rede Completa (Winsock + TCP/IP + DNS)")
+        btn_net_reset = QPushButton("Redefinir Pilha de Rede")
         btn_net_reset.clicked.connect(
             lambda: self._execute_repair("Redefinir Pilha de Rede e Cache DNS", flush_network_stack, requires_admin=True)
         )
@@ -289,7 +289,7 @@ class SystemToolsView(QWidget):
         layout.addWidget(grp_theme)
 
         # Card 3: Menu de Contexto do Windows 11
-        grp_ctx = QGroupBox("Menu de Contexto do Windows 11 (Botão Direito no Explorer)")
+        grp_ctx = QGroupBox("Menu de Contexto do Windows 11")
         ctx_layout = QVBoxLayout(grp_ctx)
         ctx_layout.setSpacing(8)
 
@@ -303,12 +303,12 @@ class SystemToolsView(QWidget):
         ctx_layout.addWidget(self.lbl_ctx_desc)
 
         ctx_btn_row = QHBoxLayout()
-        self.btn_enable_classic = QPushButton("Ativar Menu Clássico Completo (Sem 'Mostrar mais opções')")
+        self.btn_enable_classic = QPushButton("Ativar Menu Clássico")
         self.btn_enable_classic.setProperty("accent", True)
         self.btn_enable_classic.clicked.connect(lambda: self._apply_context_menu(True))
         ctx_btn_row.addWidget(self.btn_enable_classic)
 
-        self.btn_restore_modern = QPushButton("Restaurar Menu Moderno Padrão do Windows 11")
+        self.btn_restore_modern = QPushButton("Restaurar Menu Moderno")
         self.btn_restore_modern.clicked.connect(lambda: self._apply_context_menu(False))
         ctx_btn_row.addWidget(self.btn_restore_modern)
         ctx_btn_row.addStretch()
@@ -345,13 +345,13 @@ class SystemToolsView(QWidget):
         layout.setSpacing(14)
 
         # Card 1: Manter Sistema Acordado (Keep Awake)
-        grp_awake = QGroupBox("Manter Sistema Acordado (Impedir Suspensão e Desligamento de Tela)")
+        grp_awake = QGroupBox("Manter Sistema Acordado")
         awake_lay = QVBoxLayout(grp_awake)
         awake_lay.addWidget(self._keep_awake_tool.build_ui())
         layout.addWidget(grp_awake)
 
         # Card 2: Agendar Ação do Sistema (Desligar, Reiniciar, Suspender, Bloquear)
-        grp_timer = QGroupBox("Agendar Ação do Sistema (Temporizador de Desligamento / Reinício)")
+        grp_timer = QGroupBox("Agendar Ação do Sistema")
         timer_layout = QVBoxLayout(grp_timer)
         timer_layout.setSpacing(10)
 

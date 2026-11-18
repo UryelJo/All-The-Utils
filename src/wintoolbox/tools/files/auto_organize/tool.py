@@ -107,12 +107,12 @@ class AutoOrganizeView(QWidget):
 
         # Linha 4: Botões de Ação
         r_btns = QHBoxLayout()
-        self.btn_simulate = QPushButton("1. Simular Organização (Ver Prévia)")
+        self.btn_simulate = QPushButton("Simular Organização")
         self.btn_simulate.setProperty("class", "primary")
         self.btn_simulate.clicked.connect(self._simulate)
         r_btns.addWidget(self.btn_simulate)
 
-        self.btn_execute = QPushButton("2. Executar Organização")
+        self.btn_execute = QPushButton("Executar Organização")
         self.btn_execute.setEnabled(False)
         self.btn_execute.clicked.connect(self._execute)
         r_btns.addWidget(self.btn_execute)

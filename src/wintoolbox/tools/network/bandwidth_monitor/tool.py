@@ -96,7 +96,7 @@ class BandwidthMonitorTool(Tool):
     id = "network.bandwidth_monitor"
     name = "Monitor de Tráfego de Rede"
     category = "Rede e Internet"
-    description = "Monitore em tempo real as velocidades de download e upload por interface com gráfico de linha"
+    description = "Monitore as velocidades de download e upload por interface com gráfico de linha"
     keywords = ["rede", "trafego", "largura de banda", "download", "upload", "bandwidth", "velocidade", "grafico"]
 
     def __init__(self) -> None:

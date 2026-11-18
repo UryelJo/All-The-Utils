@@ -23,7 +23,7 @@ class MarkdownEditorTool(Tool):
     id = "text.markdown_editor"
     name = "Editor de Markdown"
     category = "Texto e Redação"
-    description = "Editor de Markdown em duas colunas com pré-visualização HTML em tempo real e exportação"
+    description = "Editor de Markdown em duas colunas com pré-visualização HTML e exportação"
     keywords = ["markdown", "md", "editor", "preview", "html", "documento", "texto", "gfm"]
 
     def __init__(self) -> None:
@@ -101,7 +101,7 @@ class MarkdownEditorTool(Tool):
         self.txt_editor.setStyleSheet("font-family: Consolas, monospace; font-size: 13px;")
         self.txt_editor.setPlainText(
             "# Bem-vindo ao WinToolbox\n\n"
-            "Este é um editor **Markdown** com prévia em tempo real.\n\n"
+            "Este é um editor **Markdown** com pré-visualização.\n\n"
             "## Recursos Disponíveis:\n"
             "- Suporte a tabelas GFM\n"
             "- Blocos de código com sintaxe limpa\n"

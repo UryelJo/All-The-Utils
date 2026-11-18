@@ -115,7 +115,7 @@ class SymlinkManagerView(QWidget):
 
         # Barra de Ações
         act_bar = QHBoxLayout()
-        btn_delete_link = QPushButton("Remover Link Selecionado (Seguro)")
+        btn_delete_link = QPushButton("Remover Link")
         btn_delete_link.clicked.connect(self._delete_selected_link)
         act_bar.addWidget(btn_delete_link)
         act_bar.addStretch()

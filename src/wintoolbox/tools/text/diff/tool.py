@@ -84,7 +84,7 @@ class TextDiffView(QWidget):
         self.btn_compare.clicked.connect(self._run_diff)
         bar_opts.addWidget(self.btn_compare)
 
-        self.btn_swap = QPushButton("Inverter Lados (A ↔ B)")
+        self.btn_swap = QPushButton("Inverter Lados")
         self.btn_swap.setFixedHeight(34)
         self.btn_swap.clicked.connect(self._swap_texts)
         bar_opts.addWidget(self.btn_swap)

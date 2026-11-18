@@ -41,11 +41,11 @@ class VisualDiffTool(Tool):
 
         top_bar.addWidget(QLabel("Visualização:"))
         self.cmb_mode = QComboBox()
-        self.cmb_mode.addItems(["Lado a Lado (Split)", "Unificado (Unified)"])
+        self.cmb_mode.addItems(["Lado a Lado", "Unificado"])
         self.cmb_mode.currentTextChanged.connect(self._schedule_render)
         top_bar.addWidget(self.cmb_mode)
 
-        self.btn_swap = QPushButton("Inverter Lados (A ⇄ B)")
+        self.btn_swap = QPushButton("Inverter Lados")
         self.btn_swap.clicked.connect(self._swap_texts)
         top_bar.addWidget(self.btn_swap)
 

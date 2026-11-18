@@ -6,7 +6,7 @@ from typing import Optional, Tuple
 from PySide6.QtCore import QPoint, QRect, QRectF, QSize, Qt, Signal
 from PySide6.QtGui import (
     QBrush, QColor, QCursor, QMouseEvent, QPainter, QPaintEvent,
-    QPen, QPixmap, QWheelEvent
+    QPen, QPixmap, QResizeEvent, QWheelEvent
 )
 from PySide6.QtWidgets import (
     QFrame, QHBoxLayout, QLabel, QPushButton, QVBoxLayout, QWidget
@@ -97,6 +97,14 @@ class _CanvasView(QWidget):
         rendered_h = int(self._pixmap.height() * self._zoom)
         self._pan_offset = QPoint((self.width() - rendered_w) // 2, (self.height() - rendered_h) // 2)
         self.update()
+
+    def resizeEvent(self, event: QResizeEvent) -> None:
+        super().resizeEvent(event)
+        if self._pixmap and not self._pixmap.isNull():
+            if not getattr(self, "_initial_fit_done", False):
+                if self.width() > 10 and self.height() > 10:
+                    self._initial_fit_done = True
+                    self.fit_to_view()
 
     def set_zoom_level(self, zoom: float) -> None:
         zoom = max(0.05, min(zoom, 16.0))
@@ -267,7 +275,10 @@ class ZoomableImageCanvas(QFrame):
             tb.setSpacing(6)
 
             zoom_btn_css = (
-                "QPushButton { padding: 0px; margin: 0px; font-weight: bold; font-size: 13px; }"
+                "QPushButton { background-color: #24272B; color: #DDE2E8; border: 1px solid #363A40; "
+                "border-radius: 4px; font-weight: bold; font-size: 13px; } "
+                "QPushButton:hover { background-color: #2F3338; border-color: #4A5058; } "
+                "QPushButton:pressed { background-color: #1F2226; }"
             )
 
             self._btn_zoom_out = QPushButton("-", self)
@@ -290,16 +301,23 @@ class ZoomableImageCanvas(QFrame):
             self._btn_zoom_in.clicked.connect(self._on_zoom_in)
             tb.addWidget(self._btn_zoom_in)
 
+            btn_act_css = (
+                "QPushButton { background-color: #24272B; color: #DDE2E8; border: 1px solid #363A40; "
+                "border-radius: 4px; padding: 2px 8px; font-size: 11px; font-weight: 500; } "
+                "QPushButton:hover { background-color: #2F3338; border-color: #4A5058; } "
+                "QPushButton:pressed { background-color: #1F2226; }"
+            )
+
             self._btn_fit = QPushButton("Ajustar", self)
             self._btn_fit.setFixedHeight(24)
-            self._btn_fit.setStyleSheet("QPushButton { padding: 2px 10px; font-size: 11px; }")
+            self._btn_fit.setStyleSheet(btn_act_css)
             self._btn_fit.setToolTip("Ajustar à tela")
             self._btn_fit.clicked.connect(self._on_fit)
             tb.addWidget(self._btn_fit)
 
-            self._btn_100 = QPushButton("1:1", self)
-            self._btn_100.setFixedSize(36, 24)
-            self._btn_100.setStyleSheet("QPushButton { padding: 0px; margin: 0px; font-weight: bold; font-size: 11px; }")
+            self._btn_100 = QPushButton("100%", self)
+            self._btn_100.setFixedSize(48, 24)
+            self._btn_100.setStyleSheet(btn_act_css)
             self._btn_100.setToolTip("Tamanho original (100%)")
             self._btn_100.clicked.connect(self._on_100)
             tb.addWidget(self._btn_100)

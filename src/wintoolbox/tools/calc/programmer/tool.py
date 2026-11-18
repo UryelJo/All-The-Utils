@@ -29,7 +29,7 @@ class ProgrammerCalculatorTool(Tool):
     id = "calc.programmer"
     name = "Calculadora do Programador"
     category = "Calculadoras"
-    description = "Conversão em tempo real entre Hexadecimal, Decimal, Octal e Binário, operações bitwise e manipulador de bits"
+    description = "Conversão entre Hexadecimal, Decimal, Octal e Binário, operações bitwise e manipulador de bits"
     keywords = ["programador", "binario", "hexadecimal", "octal", "decimal", "bitwise", "and", "or", "xor", "shift", "bits"]
 
     def build_view(self, parent: Optional[QWidget] = None) -> QWidget:
@@ -55,7 +55,7 @@ class ProgrammerCalculatorView(QWidget):
 
         root.addWidget(ToolHeader(
             "Calculadora do Programador",
-            "Conversão e depuração em tempo real entre bases numéricas, operadores lógicos binários e chaveamento de bits."
+            "Conversão entre bases numéricas, operadores lógicos binários e chaveamento de bits."
         ))
 
         # 1. Barra de Tamanho de Palavra (Word Size)
@@ -80,18 +80,18 @@ class ProgrammerCalculatorView(QWidget):
 
         ws_layout.addStretch(1)
 
-        btn_clear = QPushButton("Zerar (0)")
+        btn_clear = QPushButton("Zerar")
         btn_clear.clicked.connect(self._clear_all)
         ws_layout.addWidget(btn_clear)
 
-        btn_all_ones = QPushButton("Definir Tudo (1s)")
+        btn_all_ones = QPushButton("Definir Tudo")
         btn_all_ones.clicked.connect(self._set_all_ones)
         ws_layout.addWidget(btn_all_ones)
 
         root.addWidget(ws_frame)
 
         # 2. Painel de Bases Numéricas (HEX, DEC, OCT, BIN)
-        bases_box = QGroupBox("Bases Numéricas (Edição e Conversão Instantânea)")
+        bases_box = QGroupBox("Bases Numéricas")
         grid_bases = QGridLayout(bases_box)
         grid_bases.setSpacing(8)
 
@@ -180,7 +180,7 @@ class ProgrammerCalculatorView(QWidget):
         root.addWidget(op_box)
 
         # 4. Visualizador Interativo de Bits (Bit Board)
-        board_box = QGroupBox("Chaveador Interativo de Bits (Clique no bit para alternar 0/1)")
+        board_box = QGroupBox("Chaveador de Bits")
         board_vlay = QVBoxLayout(board_box)
 
         self.bits_container = QWidget()

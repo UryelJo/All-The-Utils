@@ -93,13 +93,13 @@ class ClassicalBreakView(PainelFerramenta):
         lay_entrada.addWidget(self.txt_cifrado)
 
         linha_botoes = QHBoxLayout()
-        linha_botoes.addWidget(QLabel("Tamanho máximo de chave (Vigenère):"))
+        linha_botoes.addWidget(QLabel("Tamanho máximo de chave:"))
         self.spn_chave_max = QSpinBox()
         self.spn_chave_max.setRange(2, 40)
         self.spn_chave_max.setValue(15)
         linha_botoes.addWidget(self.spn_chave_max)
 
-        self.btn_analisar_tudo = QPushButton("Análise Completa (Todas as Cifras)")
+        self.btn_analisar_tudo = QPushButton("Análise Completa")
         self.btn_analisar_tudo.setProperty("accent", True)
         self.btn_analisar_tudo.clicked.connect(self._quebrar_todas)
         linha_botoes.addWidget(self.btn_analisar_tudo)

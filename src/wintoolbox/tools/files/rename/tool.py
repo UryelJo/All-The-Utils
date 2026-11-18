@@ -25,9 +25,9 @@ from wintoolbox.ui.widgets.sortable_table import (
 @register
 class BatchRenameTool(Tool):
     id = "files.rename"
-    name = "Renomeador de Arquivos em Lote"
+    name = "Renomeador de Arquivos"
     category = "Arquivos e Pastas"
-    description = "Renomeia múltiplos arquivos com regras de substituição, numeração, data e prévia em tempo real"
+    description = "Renomeia múltiplos arquivos com regras de substituição, numeração, data e prévia"
     keywords = ["renomear", "arquivos", "lote", "substituir", "prefixo", "sufixo", "numeracao", "organizar"]
 
     def build_view(self, parent: Optional[QWidget] = None) -> QWidget:

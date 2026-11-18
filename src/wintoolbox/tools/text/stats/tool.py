@@ -118,7 +118,7 @@ class TextStatsTool(Tool):
         left_layout.addWidget(lbl_input)
 
         self.text_editor = QTextEdit()
-        self.text_editor.setPlaceholderText("Cole ou digite o texto aqui para análise em tempo real...")
+        self.text_editor.setPlaceholderText("Cole ou digite o texto aqui para análise...")
         self.text_editor.textChanged.connect(self._trigger_debounce)
         left_layout.addWidget(self.text_editor)
 
