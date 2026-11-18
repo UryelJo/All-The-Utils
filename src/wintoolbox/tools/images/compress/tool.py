@@ -114,6 +114,7 @@ class ImageCompressorTool(FileTool):
 
         self._active_file: Optional[Path] = None
         self._on_mode_changed(self.cmb_mode.currentText())
+        panel.on_active_file_changed = self.on_active_file_changed
         return panel
 
     def on_active_file_changed(self, path: Path) -> None:

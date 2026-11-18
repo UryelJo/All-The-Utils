@@ -143,6 +143,7 @@ class BatchInputWidget(QFrame):
         self.table.setSelectionBehavior(QTableWidget.SelectionBehavior.SelectRows)
         self.table.setAlternatingRowColors(True)
         self.table.itemClicked.connect(self._on_table_item_clicked)
+        self.table.currentCellChanged.connect(self._on_table_cell_changed)
         enable_sorting_on_table(self.table)
         self.view_stack.addWidget(self.table)
 
@@ -155,6 +156,7 @@ class BatchInputWidget(QFrame):
         self.icon_list.setWordWrap(True)
         self.icon_list.setMovement(QListWidget.Movement.Static)
         self.icon_list.itemClicked.connect(self._on_icon_item_clicked)
+        self.icon_list.currentItemChanged.connect(self._on_icon_current_changed)
         self.icon_list.itemDoubleClicked.connect(self._on_icon_item_double_clicked)
         self.view_stack.addWidget(self.icon_list)
 
@@ -368,7 +370,13 @@ class BatchInputWidget(QFrame):
         return QApplication.style().standardIcon(QStyle.StandardPixmap.SP_FileIcon)
 
     def _on_table_item_clicked(self, item: SmartTableWidgetItem) -> None:
-        row = item.row()
+        self._notify_row_active(item.row())
+
+    def _on_table_cell_changed(self, currentRow: int, currentColumn: int, previousRow: int, previousColumn: int) -> None:
+        if currentRow != previousRow and currentRow >= 0:
+            self._notify_row_active(currentRow)
+
+    def _notify_row_active(self, row: int) -> None:
         if 0 <= row < len(self.sources):
             src = self.sources[row]
             if not src.is_dir:
@@ -380,6 +388,8 @@ class BatchInputWidget(QFrame):
                         break
 
     def _on_icon_item_clicked(self, item: QListWidgetItem) -> None:
+        if not item:
+            return
         data = item.data(Qt.ItemDataRole.UserRole)
         if isinstance(data, Path):
             if data.is_file():
@@ -389,6 +399,10 @@ class BatchInputWidget(QFrame):
                     if disc.source_path.is_relative_to(data):
                         self.active_file_changed.emit(disc.source_path)
                         break
+
+    def _on_icon_current_changed(self, current: Optional[QListWidgetItem], previous: Optional[QListWidgetItem]) -> None:
+        if current and current != previous:
+            self._on_icon_item_clicked(current)
 
     def _on_icon_item_double_clicked(self, item: QListWidgetItem) -> None:
         data = item.data(Qt.ItemDataRole.UserRole)

@@ -277,7 +277,7 @@ class CanvasWidget(QWidget):
             painter.drawText(self.rect(), Qt.AlignCenter, "Abra ou arraste uma imagem aqui para começar a anotar")
 
 
-@register
+# Ferramenta consolidada dentro de Captura de Tela e Manipulação Visual
 class AnnotateTool(Tool):
     id = "images.annotate"
     name = "Editor de Anotações"
@@ -392,6 +392,7 @@ class AnnotateView(QWidget):
 
         s_lay.addWidget(QLabel("Espessura:"))
         self.spin_width = QSpinBox()
+        self.spin_width.setFixedWidth(64)
         self.spin_width.setRange(1, 24)
         self.spin_width.setValue(4)
         self.spin_width.valueChanged.connect(self._on_width_changed)
@@ -430,6 +431,7 @@ class AnnotateView(QWidget):
         self.lbl_font_size = QLabel("Tamanho do Texto:")
         s_lay.addWidget(self.lbl_font_size)
         self.spin_font_size = QSpinBox()
+        self.spin_font_size.setFixedWidth(64)
         self.spin_font_size.setRange(10, 96)
         self.spin_font_size.setValue(24)
         self.spin_font_size.valueChanged.connect(self._on_font_size_changed)

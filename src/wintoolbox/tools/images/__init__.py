@@ -22,7 +22,6 @@ import wintoolbox.tools.images.qrcode
 import wintoolbox.tools.images.screenshot
 import wintoolbox.tools.images.ocr
 import wintoolbox.tools.images.remove_bg
-import wintoolbox.tools.images.annotate
 import wintoolbox.tools.images.compare
 import wintoolbox.tools.images.border_shadow
 import wintoolbox.tools.images.split_grid

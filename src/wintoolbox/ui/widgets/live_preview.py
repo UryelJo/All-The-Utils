@@ -37,6 +37,7 @@ class ImageLivePreviewPanel(QFrame):
 
         self._cached_original_pixmap: Optional[QPixmap] = None
         self._cached_result_pixmap: Optional[QPixmap] = None
+        self._is_first_load: bool = True
 
         self._timer = QTimer(self)
         self._timer.setSingleShot(True)
@@ -94,14 +95,31 @@ class ImageLivePreviewPanel(QFrame):
             self._current_src = p
             self._cached_original_pixmap = None
             self._cached_result_pixmap = None
+            self._is_first_load = True
             if p and p.is_file():
-                # Carrega original para cache
+                # Carrega original para cache com Pillow para suporte completo (HEIC, AVIF, TIFF, WEBP, etc.)
                 try:
-                    pix = QPixmap(str(p))
-                    if not pix.isNull():
-                        self._cached_original_pixmap = pix
+                    from PIL import Image, ImageOps
+                    import io
+                    with Image.open(p) as pil_im:
+                        pil_im = ImageOps.exif_transpose(pil_im)
+                        if pil_im.mode in ("RGBA", "LA", "P") or (pil_im.mode == "RGB" and "transparency" in pil_im.info):
+                            pil_im = pil_im.convert("RGBA")
+                        elif pil_im.mode != "RGB":
+                            pil_im = pil_im.convert("RGB")
+                        buf = io.BytesIO()
+                        pil_im.save(buf, format="PNG")
+                        pix = QPixmap()
+                        pix.loadFromData(buf.getvalue())
+                        if not pix.isNull():
+                            self._cached_original_pixmap = pix
                 except Exception:
-                    self._cached_original_pixmap = None
+                    try:
+                        pix = QPixmap(str(p))
+                        if not pix.isNull():
+                            self._cached_original_pixmap = pix
+                    except Exception:
+                        self._cached_original_pixmap = None
             self.request_update()
 
     def update_params(self, params: Dict[str, Any]) -> None:
@@ -146,7 +164,9 @@ class ImageLivePreviewPanel(QFrame):
                 self._cached_result_pixmap = pix
 
             if self._btn_result.isChecked():
-                self._canvas.set_pixmap(self._cached_result_pixmap, auto_fit=(self._cached_original_pixmap is None))
+                auto_fit = getattr(self, "_is_first_load", True)
+                self._canvas.set_pixmap(self._cached_result_pixmap, auto_fit=auto_fit)
+                self._is_first_load = False
             self._status_lbl.setText("Pronto")
         except Exception as ex:
             self._status_lbl.setText(f"Erro na prévia: {ex}")

@@ -142,6 +142,7 @@ class ImageWatermarkTool(FileTool):
         self.preview_panel.set_preview_generator(render_watermark_preview)
         main_layout.addWidget(self.preview_panel, stretch=1)
 
+        panel.on_active_file_changed = self.on_active_file_changed
         return panel
 
     def on_active_file_changed(self, path: Path) -> None:

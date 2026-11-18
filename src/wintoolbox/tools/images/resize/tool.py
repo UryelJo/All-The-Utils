@@ -67,6 +67,7 @@ class ImageResizeTool(FileTool):
         self.lbl_width = QLabel("Largura (px):")
         grid_dim.addWidget(self.lbl_width, 1, 0)
         self.spin_width = QSpinBox()
+        self.spin_width.setFixedWidth(80)
         self.spin_width.setRange(16, 16384)
         self.spin_width.setValue(1920)
         self.spin_width.valueChanged.connect(self._on_options_changed)
@@ -75,6 +76,7 @@ class ImageResizeTool(FileTool):
         self.lbl_height = QLabel("Altura (px):")
         grid_dim.addWidget(self.lbl_height, 1, 2)
         self.spin_height = QSpinBox()
+        self.spin_height.setFixedWidth(80)
         self.spin_height.setRange(16, 16384)
         self.spin_height.setValue(1080)
         self.spin_height.valueChanged.connect(self._on_options_changed)
@@ -163,6 +165,7 @@ class ImageResizeTool(FileTool):
 
         self._current_crop_box: Optional[Tuple[int, int, int, int]] = None
         self._sync_mode_visibility()
+        panel.on_active_file_changed = self.on_active_file_changed
         return panel
 
     def on_active_file_changed(self, path: Path) -> None:

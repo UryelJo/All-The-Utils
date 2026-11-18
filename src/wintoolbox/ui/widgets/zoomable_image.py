@@ -266,8 +266,13 @@ class ZoomableImageCanvas(QFrame):
             tb.setContentsMargins(6, 2, 6, 2)
             tb.setSpacing(6)
 
+            zoom_btn_css = (
+                "QPushButton { padding: 0px; margin: 0px; font-weight: bold; font-size: 13px; }"
+            )
+
             self._btn_zoom_out = QPushButton("-", self)
-            self._btn_zoom_out.setFixedSize(26, 24)
+            self._btn_zoom_out.setFixedSize(28, 24)
+            self._btn_zoom_out.setStyleSheet(zoom_btn_css)
             self._btn_zoom_out.setToolTip("Diminuir zoom")
             self._btn_zoom_out.clicked.connect(self._on_zoom_out)
             tb.addWidget(self._btn_zoom_out)
@@ -279,19 +284,22 @@ class ZoomableImageCanvas(QFrame):
             tb.addWidget(self._lbl_zoom)
 
             self._btn_zoom_in = QPushButton("+", self)
-            self._btn_zoom_in.setFixedSize(26, 24)
+            self._btn_zoom_in.setFixedSize(28, 24)
+            self._btn_zoom_in.setStyleSheet(zoom_btn_css)
             self._btn_zoom_in.setToolTip("Aumentar zoom")
             self._btn_zoom_in.clicked.connect(self._on_zoom_in)
             tb.addWidget(self._btn_zoom_in)
 
             self._btn_fit = QPushButton("Ajustar", self)
             self._btn_fit.setFixedHeight(24)
+            self._btn_fit.setStyleSheet("QPushButton { padding: 2px 10px; font-size: 11px; }")
             self._btn_fit.setToolTip("Ajustar à tela")
             self._btn_fit.clicked.connect(self._on_fit)
             tb.addWidget(self._btn_fit)
 
             self._btn_100 = QPushButton("1:1", self)
-            self._btn_100.setFixedSize(32, 24)
+            self._btn_100.setFixedSize(36, 24)
+            self._btn_100.setStyleSheet("QPushButton { padding: 0px; margin: 0px; font-weight: bold; font-size: 11px; }")
             self._btn_100.setToolTip("Tamanho original (100%)")
             self._btn_100.clicked.connect(self._on_100)
             tb.addWidget(self._btn_100)

@@ -17,6 +17,7 @@ from PySide6.QtWidgets import (
     QVBoxLayout, QWidget
 )
 
+from wintoolbox.core.elevation import bind_admin_prompt_on_show, is_admin, prompt_elevation_dialog
 from wintoolbox.core.registry import Tool, register
 from wintoolbox.core.tasks import run_task
 from wintoolbox.tools.images.ocr.logic import NO_TEXT_MESSAGE, perform_ocr_on_image
@@ -31,6 +32,7 @@ class OcrTool(Tool):
     category = "Imagens"
     description = "Extração rápida de texto de imagens 100% offline via API nativa do Windows (Windows.Media.Ocr)"
     keywords = ["ocr", "texto", "reconhecimento", "imagem", "scan", "foto", "extrair", "leitura", "copiar"]
+    requires_admin = True
 
     def build_view(self, parent: Optional[QWidget] = None) -> QWidget:
         return OcrView(self, parent)
@@ -107,27 +109,28 @@ class OcrView(QWidget):
 
         # Barra de ferramentas de formatação de texto
         tb_text = QHBoxLayout()
-        tb_text.setSpacing(6)
+        tb_text.setContentsMargins(0, 4, 0, 8)
+        tb_text.setSpacing(8)
 
         btn_join = QPushButton("Juntar Parágrafos")
-        btn_join.setFixedHeight(24)
+        btn_join.setFixedHeight(26)
         btn_join.setToolTip("Substitui quebras de linha simples por espaços")
         btn_join.clicked.connect(self._format_join_paragraphs)
         tb_text.addWidget(btn_join)
 
         btn_spaces = QPushButton("Limpar Espaços")
-        btn_spaces.setFixedHeight(24)
+        btn_spaces.setFixedHeight(26)
         btn_spaces.setToolTip("Remove múltiplos espaços seguidos")
         btn_spaces.clicked.connect(self._format_clean_spaces)
         tb_text.addWidget(btn_spaces)
 
         btn_upper = QPushButton("MAIÚSCULAS")
-        btn_upper.setFixedHeight(24)
+        btn_upper.setFixedHeight(26)
         btn_upper.clicked.connect(self._format_upper)
         tb_text.addWidget(btn_upper)
 
         btn_lower = QPushButton("minúsculas")
-        btn_lower.setFixedHeight(24)
+        btn_lower.setFixedHeight(26)
         btn_lower.clicked.connect(self._format_lower)
         tb_text.addWidget(btn_lower)
 
@@ -135,12 +138,14 @@ class OcrView(QWidget):
 
         tb_text.addWidget(QLabel("Tamanho:"))
         self.spin_font_size = QSpinBox()
+        self.spin_font_size.setFixedWidth(64)
         self.spin_font_size.setRange(10, 24)
         self.spin_font_size.setValue(12)
         self.spin_font_size.valueChanged.connect(self._on_font_size_changed)
         tb_text.addWidget(self.spin_font_size)
 
         text_layout.addLayout(tb_text)
+        text_layout.addSpacing(4)
 
         self.txt_result = QTextEdit()
         self.txt_result.setPlaceholderText("O texto detectado na imagem aparecerá aqui...")
@@ -170,6 +175,12 @@ class OcrView(QWidget):
         split_layout.addWidget(grp_text, stretch=1)
 
         layout.addLayout(split_layout)
+
+        bind_admin_prompt_on_show(
+            self,
+            tool_name="Reconhecimento OCR",
+            reason="O motor OCR nativo do Windows (WinRT) requer privilégios de Administrador para acessar determinados pacotes de idiomas e serviços do sistema.",
+        )
 
     def _on_toggle_roi(self, checked: bool):
         self.canvas.set_roi_selection_enabled(checked)
@@ -215,6 +226,14 @@ class OcrView(QWidget):
         if not self._current_image_path or not self._current_image_path.exists():
             QMessageBox.warning(self, "Aviso", "Por favor, carregue uma imagem antes de extrair o texto.")
             return
+
+        if not is_admin():
+            if prompt_elevation_dialog(
+                self,
+                tool_name="Reconhecimento OCR",
+                reason="O motor OCR do Windows exige privilégios de Administrador para inicializar e consultar os pacotes de idiomas instalados.",
+            ):
+                return
 
         roi = self.canvas.get_roi()
         if roi and roi.width() > 5 and roi.height() > 5:

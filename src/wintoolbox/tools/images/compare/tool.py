@@ -158,6 +158,7 @@ class CompareView(QWidget):
         self.lbl_amp.setVisible(False)
         c_lay.addWidget(self.lbl_amp)
         self.spin_amp = QSpinBox()
+        self.spin_amp.setFixedWidth(64)
         self.spin_amp.setRange(1, 10)
         self.spin_amp.setValue(4)
         self.spin_amp.setSuffix("x")
