@@ -76,9 +76,9 @@ class DebugPage(QWidget):
         root.addWidget(desc)
 
         tabs = QTabWidget()
-        tabs.addTab(self._build_logs_tab(), "Logs ao Vivo")
-        tabs.addTab(self._build_levels_tab(), "Verbosidade das Bibliotecas")
-        tabs.addTab(self._build_env_tab(), "Ambiente e Diagnóstico")
+        tabs.addTab(self._build_logs_tab(), "Logs")
+        tabs.addTab(self._build_levels_tab(), "Níveis de Log")
+        tabs.addTab(self._build_env_tab(), "Ambiente")
         tabs.currentChanged.connect(lambda i: i == 2 and not self._env_loaded and self._env_loader.request())
         root.addWidget(tabs, stretch=1)
 

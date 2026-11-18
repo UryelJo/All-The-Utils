@@ -137,8 +137,8 @@ class ImageWatermarkTool(FileTool):
         left_layout.addStretch()
         main_layout.addWidget(left_col, stretch=1)
 
-        # Coluna da Direita: Preview Dinâmico
-        self.preview_panel = ImageLivePreviewPanel("Prévia da Marca d'Água", panel)
+        # Coluna da Direita: Preview
+        self.preview_panel = ImageLivePreviewPanel("Prévia", panel)
         self.preview_panel.set_preview_generator(render_watermark_preview)
         main_layout.addWidget(self.preview_panel, stretch=1)
 

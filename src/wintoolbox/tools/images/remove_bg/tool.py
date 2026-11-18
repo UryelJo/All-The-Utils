@@ -90,10 +90,10 @@ class RemoveBgView(QWidget):
 
         row_ctrls.addWidget(QLabel("Modo de detecção:"))
         self.cmb_mode = QComboBox()
-        self.cmb_mode.addItem("Detecção Automática nos Cantos", "auto_corners")
-        self.cmb_mode.addItem("Fundo Branco / Claro", "white")
-        self.cmb_mode.addItem("Fundo Preto / Escuro", "black")
-        self.cmb_mode.addItem("Cor Específica (Chroma Key)", "custom")
+        self.cmb_mode.addItem("Cantos", "auto_corners")
+        self.cmb_mode.addItem("Fundo Branco", "white")
+        self.cmb_mode.addItem("Fundo Preto", "black")
+        self.cmb_mode.addItem("Cor Específica", "custom")
         self.cmb_mode.currentIndexChanged.connect(self._on_mode_changed)
         row_ctrls.addWidget(self.cmb_mode)
 
@@ -148,13 +148,13 @@ class RemoveBgView(QWidget):
         split_layout = QHBoxLayout()
         split_layout.setSpacing(12)
 
-        grp_orig = QGroupBox("Imagem Original")
+        grp_orig = QGroupBox("Original")
         v_orig = QVBoxLayout(grp_orig)
         self.canvas_orig = ZoomableImageCanvas(self)
         v_orig.addWidget(self.canvas_orig)
         split_layout.addWidget(grp_orig, stretch=1)
 
-        grp_res = QGroupBox("Resultado com Transparência (Ao Vivo)")
+        grp_res = QGroupBox("Resultado")
         v_res = QVBoxLayout(grp_res)
         self.canvas_res = ZoomableImageCanvas(self)
         self.canvas_res.set_checkerboard_enabled(True)

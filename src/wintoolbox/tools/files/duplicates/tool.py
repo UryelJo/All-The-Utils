@@ -89,7 +89,7 @@ class DuplicatesView(QWidget):
         l_dir.addLayout(row_sel)
 
         row_opts = QHBoxLayout()
-        self.chk_recursive = QCheckBox("Incluir subpastas (recursivo)")
+        self.chk_recursive = QCheckBox("Incluir subpastas")
         self.chk_recursive.setChecked(True)
         row_opts.addWidget(self.chk_recursive)
         row_opts.addStretch()

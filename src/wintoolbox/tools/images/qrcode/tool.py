@@ -160,7 +160,7 @@ class QrCodeView(QWidget):
 
         # Coluna da Direita: Preview
         col_right = QVBoxLayout()
-        grp_prev = QGroupBox("Pré-Visualização em Tempo Real")
+        grp_prev = QGroupBox("Prévia")
         prev_layout = QVBoxLayout(grp_prev)
         prev_layout.setAlignment(Qt.AlignCenter)
 

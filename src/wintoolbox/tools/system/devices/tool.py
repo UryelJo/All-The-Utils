@@ -22,7 +22,7 @@ from wintoolbox.tools.system.devices.logic import (
 @register
 class DevicesManagerTool(Tool):
     id = "system.devices"
-    name = "Diagnóstico de Dispositivos (PnP e USB)"
+    name = "Diagnóstico de Dispositivos"
     category = "Sistema"
     description = "Identifique dispositivos com erros de driver (Código 43, 10) e histórico de periféricos USB"
     keywords = ["dispositivos", "pnp", "usb", "drivers", "hardware", "codigo 43", "codigo 10", "gerenciador", "perifericos"]

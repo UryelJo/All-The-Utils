@@ -95,8 +95,8 @@ class ImageEffectsTool(FileTool):
         left_layout.addStretch()
         main_layout.addWidget(left_col, stretch=1)
 
-        # Coluna da Direita: Preview Dinâmico
-        self.preview_panel = ImageLivePreviewPanel("Pré-visualização do Filtro (Antes vs Depois)", panel)
+        # Coluna da Direita: Preview
+        self.preview_panel = ImageLivePreviewPanel("Prévia", panel)
         self.preview_panel.set_preview_generator(render_effects_preview)
         main_layout.addWidget(self.preview_panel, stretch=1)
 

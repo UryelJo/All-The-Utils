@@ -88,7 +88,7 @@ class FolderWatcherView(QWidget):
         l_card.addLayout(r_f)
 
         r_opts = QHBoxLayout()
-        self.chk_recursive = QCheckBox("Monitorar subpastas (Recursivo)")
+        self.chk_recursive = QCheckBox("Monitorar subpastas")
         self.chk_recursive.setChecked(True)
         r_opts.addWidget(self.chk_recursive)
 

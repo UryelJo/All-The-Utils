@@ -7,12 +7,12 @@ from PIL import Image, ImageEnhance, ImageFilter, ImageOps
 
 IMAGE_EFFECTS = [
     "Nenhum",
-    "Preto e Branco (Tons de Cinza)",
-    "Sépia Vintage",
-    "Inversão de Cores (Negativo)",
+    "Preto e Branco",
+    "Sépia",
+    "Inversão de Cores",
     "Desfoque Gaussiano",
-    "Auto-Contraste Dinâmico",
-    "Detecção de Bordas (Contorno)",
+    "Auto-Contraste",
+    "Detecção de Bordas",
     "Realce de Detalhes"
 ]
 
@@ -48,11 +48,11 @@ def apply_image_effects_and_adjustments(src: Path, dst: Path, params: Dict[str, 
         working_im = im.copy()
 
         # 1. Efeitos Artísticos
-        if effect == "Preto e Branco (Tons de Cinza)":
+        if effect in ("Preto e Branco", "Preto e Branco (Tons de Cinza)"):
             working_im = ImageOps.grayscale(working_im).convert("RGB")
-        elif effect == "Sépia Vintage":
+        elif effect in ("Sépia", "Sépia Vintage"):
             working_im = apply_sepia(working_im)
-        elif effect == "Inversão de Cores (Negativo)":
+        elif effect in ("Inversão de Cores", "Inversão de Cores (Negativo)"):
             if working_im.mode in ("RGBA", "LA"):
                 # Inverte apenas os canais RGB preservando alfa
                 r, g, b, a = working_im.convert("RGBA").split()
@@ -63,12 +63,12 @@ def apply_image_effects_and_adjustments(src: Path, dst: Path, params: Dict[str, 
                 working_im = ImageOps.invert(working_im.convert("RGB"))
         elif effect == "Desfoque Gaussiano":
             working_im = working_im.filter(ImageFilter.GaussianBlur(radius=blur_radius))
-        elif effect == "Auto-Contraste Dinâmico":
+        elif effect in ("Auto-Contraste", "Auto-Contraste Dinâmico"):
             if working_im.mode != "RGB":
                 working_im = ImageOps.autocontrast(working_im.convert("RGB"))
             else:
                 working_im = ImageOps.autocontrast(working_im)
-        elif effect == "Detecção de Bordas (Contorno)":
+        elif effect in ("Detecção de Bordas", "Detecção de Bordas (Contorno)"):
             working_im = working_im.filter(ImageFilter.FIND_EDGES)
         elif effect == "Realce de Detalhes":
             working_im = working_im.filter(ImageFilter.DETAIL)
@@ -115,11 +115,11 @@ def render_effects_preview(src: Path, params: Dict[str, Any]) -> Image.Image:
     with Image.open(src) as im:
         working_im = im.copy()
 
-        if effect == "Preto e Branco (Tons de Cinza)":
+        if effect in ("Preto e Branco", "Preto e Branco (Tons de Cinza)"):
             working_im = ImageOps.grayscale(working_im).convert("RGB")
-        elif effect == "Sépia Vintage":
+        elif effect in ("Sépia", "Sépia Vintage"):
             working_im = apply_sepia(working_im)
-        elif effect == "Inversão de Cores (Negativo)":
+        elif effect in ("Inversão de Cores", "Inversão de Cores (Negativo)"):
             if working_im.mode in ("RGBA", "LA"):
                 r, g, b, a = working_im.convert("RGBA").split()
                 rgb_inv = ImageOps.invert(Image.merge("RGB", (r, g, b)))
@@ -129,12 +129,12 @@ def render_effects_preview(src: Path, params: Dict[str, Any]) -> Image.Image:
                 working_im = ImageOps.invert(working_im.convert("RGB"))
         elif effect == "Desfoque Gaussiano":
             working_im = working_im.filter(ImageFilter.GaussianBlur(radius=blur_radius))
-        elif effect == "Auto-Contraste Dinâmico":
+        elif effect in ("Auto-Contraste", "Auto-Contraste Dinâmico"):
             if working_im.mode != "RGB":
                 working_im = ImageOps.autocontrast(working_im.convert("RGB"))
             else:
                 working_im = ImageOps.autocontrast(working_im)
-        elif effect == "Detecção de Bordas (Contorno)":
+        elif effect in ("Detecção de Bordas", "Detecção de Bordas (Contorno)"):
             working_im = working_im.filter(ImageFilter.FIND_EDGES)
         elif effect == "Realce de Detalhes":
             working_im = working_im.filter(ImageFilter.DETAIL)

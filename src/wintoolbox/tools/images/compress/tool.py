@@ -107,8 +107,8 @@ class ImageCompressorTool(FileTool):
         left_layout.addStretch()
         main_layout.addWidget(left_col, stretch=1)
 
-        # Coluna Direita: Preview Dinâmico de Fidelidade
-        self.preview_panel = ImageLivePreviewPanel("Fidelidade Visual (Antes vs Depois)", panel)
+        # Coluna Direita: Preview
+        self.preview_panel = ImageLivePreviewPanel("Prévia", panel)
         self.preview_panel.set_preview_generator(render_compress_preview)
         main_layout.addWidget(self.preview_panel, stretch=1)
 

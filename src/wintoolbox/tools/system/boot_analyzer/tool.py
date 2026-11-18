@@ -24,7 +24,7 @@ from wintoolbox.ui.widgets.tool_header import make_tool_header
 @register
 class BootAnalyzerTool(Tool):
     id = "system.boot_analyzer"
-    name = "Analisador de Inicialização (Boot)"
+    name = "Analisador de Inicialização"
     category = "Sistema"
     description = "Analise o tempo de inicialização do Windows (Event ID 100), tempo até tela de login e histórico"
     keywords = ["boot", "inicializacao", "diagnostico", "desempenho", "lentidao", "startup", "event 100", "tempo"]

@@ -94,8 +94,8 @@ class SplitGridTool(FileTool):
         left_layout.addStretch()
         main_layout.addWidget(left_col, stretch=1)
 
-        # Coluna da Direita: Preview Dinâmico com Numeração de Fatias
-        self.preview_panel = ImageLivePreviewPanel("Pré-visualização das Fatias (Linhas de Corte)", panel)
+        # Coluna da Direita: Preview
+        self.preview_panel = ImageLivePreviewPanel("Prévia", panel)
         self.preview_panel.set_preview_generator(render_grid_slice_preview)
         main_layout.addWidget(self.preview_panel, stretch=1)
 

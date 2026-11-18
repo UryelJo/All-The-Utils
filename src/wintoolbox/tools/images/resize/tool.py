@@ -157,8 +157,8 @@ class ImageResizeTool(FileTool):
         left_layout.addStretch()
         main_layout.addWidget(left_col, stretch=1)
 
-        # Coluna da Direita: Preview Interativo
-        self.preview_panel = ImageLivePreviewPanel("Pré-visualização Dinâmica", panel)
+        # Coluna da Direita: Preview
+        self.preview_panel = ImageLivePreviewPanel("Prévia", panel)
         self.preview_panel.set_preview_generator(render_resize_preview)
         self.preview_panel.canvas.roiChanged.connect(self._on_canvas_roi_changed)
         main_layout.addWidget(self.preview_panel, stretch=1)

@@ -25,7 +25,7 @@ _log = get_logger("images.border_shadow.ui")
 @register
 class BorderShadowTool(FileTool):
     id = "images.border_shadow"
-    name = "Bordas e Sombras (Mockup)"
+    name = "Bordas e Sombras"
     category = "Imagens"
     description = "Adicione cantos arredondados, sombra difusa, moldura e fundo decorativo em screenshots"
     keywords = ["borda", "sombra", "mockup", "screenshot", "cantos arredondados", "moldura", "gradiente"]
@@ -102,7 +102,7 @@ class BorderShadowTool(FileTool):
         main_layout.addWidget(left_col, stretch=1)
 
         # Coluna da Direita: Preview Dinâmico
-        self.preview_panel = ImageLivePreviewPanel("Pré-visualização do Mockup", panel)
+        self.preview_panel = ImageLivePreviewPanel("Prévia", panel)
         self.preview_panel.set_preview_generator(render_border_shadow_preview)
         main_layout.addWidget(self.preview_panel, stretch=1)
 

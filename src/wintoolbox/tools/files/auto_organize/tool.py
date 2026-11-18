@@ -87,7 +87,7 @@ class AutoOrganizeView(QWidget):
         self.cmb_mode.addItem("Por Ano de Modificação (Ano)", "date_year")
         r_opts.addWidget(self.cmb_mode, stretch=1)
 
-        self.chk_recursive = QCheckBox("Incluir subpastas (Recursivo)")
+        self.chk_recursive = QCheckBox("Incluir subpastas")
         r_opts.addWidget(self.chk_recursive)
         l_card.addLayout(r_opts)
 

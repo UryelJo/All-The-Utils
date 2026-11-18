@@ -28,7 +28,7 @@ from wintoolbox.ui.widgets.zoomable_image import ZoomableImageCanvas
 @register
 class OcrTool(Tool):
     id = "images.ocr"
-    name = "OCR de Imagem (Reconhecimento de Texto)"
+    name = "OCR de Imagem"
     category = "Imagens"
     description = "Extração rápida de texto de imagens 100% offline via API nativa do Windows (Windows.Media.Ocr)"
     keywords = ["ocr", "texto", "reconhecimento", "imagem", "scan", "foto", "extrair", "leitura", "copiar"]

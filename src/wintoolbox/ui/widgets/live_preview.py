@@ -22,7 +22,7 @@ class ImageLivePreviewPanel(QFrame):
     """
     def __init__(
         self,
-        title: str = "Prévia em Tempo Real",
+        title: str = "Prévia",
         parent: Optional[QWidget] = None,
         debounce_ms: int = 180
     ):

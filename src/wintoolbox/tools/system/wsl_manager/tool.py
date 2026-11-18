@@ -29,7 +29,7 @@ from wintoolbox.tools.system.wsl_manager.logic import (
 @register
 class WslManagerTool(Tool):
     id = "system.wsl_manager"
-    name = "Gerenciador do WSL (Linux)"
+    name = "Gerenciador do WSL"
     category = "Sistema"
     description = "Controle distribuições WSL, exporte backups tar e configure limites de RAM/CPU via .wslconfig"
     keywords = ["wsl", "linux", "ubuntu", "debian", "docker", "distros", "wsl2", "wslconfig", "backup"]

@@ -72,17 +72,17 @@ class HardwareMonitorView(QWidget):
 
         self.tabs = QTabWidget()
 
-        # Aba 1: Monitor em Tempo Real
+        # Aba 1: Desempenho
         tab_realtime = self._build_realtime_tab()
-        self.tabs.addTab(tab_realtime, "Monitor em Tempo Real")
+        self.tabs.addTab(tab_realtime, "Desempenho")
 
-        # Aba 2: Saúde do Disco e SSD (SMART)
+        # Aba 2: Saúde do Disco
         self.disk_health_view = DiskHealthView(DiskHealthTool(), self, embedded=True, auto_load=False)
-        self.tabs.addTab(self.disk_health_view, "Saúde do Disco e SSD (SMART)")
+        self.tabs.addTab(self.disk_health_view, "Saúde do Disco")
 
-        # Aba 3: Informações Detalhadas de Hardware
+        # Aba 3: Informações de Hardware
         self.hardware_info_view = self._hw_info_tool.build_ui(auto_load=False)
-        self.tabs.addTab(self.hardware_info_view, "Informações de Hardware")
+        self.tabs.addTab(self.hardware_info_view, "Hardware")
 
         self.tabs.currentChanged.connect(self._on_tab_changed)
         root_layout.addWidget(self.tabs, stretch=1)
